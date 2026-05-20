@@ -161,7 +161,10 @@ impl KernelConfigIndexer for DebianIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: Distribution::Debian,
-                        package_name: candidate.name.clone(),
+                        package_name: normalize_debian_kernel_package_name(
+                            &candidate.name,
+                            &feed.architecture,
+                        ),
                         package_version: candidate.version.clone(),
                         architecture: feed.architecture.clone(),
                         source: Some(format!("{source}#{config_path}")),
@@ -257,6 +260,48 @@ pub fn select_kernel_packages(
     }
 
     candidates
+}
+
+pub fn normalize_debian_kernel_package_name(name: &str, architecture: &Architecture) -> String {
+    let Some(rest) = name.strip_prefix(DEFAULT_PACKAGE_PREFIX) else {
+        return name.to_string();
+    };
+
+    let mut segments = rest.split('-').collect::<Vec<_>>();
+    if let Some(architecture_index) = segments
+        .iter()
+        .position(|segment| *segment == architecture.as_str())
+    {
+        segments[architecture_index] = "<ARCH>";
+    }
+
+    let version_prefix_len = kernel_version_prefix_len(&segments);
+    if version_prefix_len == 0 {
+        return format!("{DEFAULT_PACKAGE_PREFIX}{}", segments.join("-"));
+    }
+
+    let mut normalized = vec!["<VERSION>"];
+    normalized.extend_from_slice(&segments[version_prefix_len..]);
+    format!("{DEFAULT_PACKAGE_PREFIX}{}", normalized.join("-"))
+}
+
+fn kernel_version_prefix_len(segments: &[&str]) -> usize {
+    if !segments
+        .first()
+        .is_some_and(|segment| segment.starts_with(|character: char| character.is_ascii_digit()))
+    {
+        return 0;
+    }
+
+    let mut len = 1;
+    while len < segments.len()
+        && segments[len]
+            .chars()
+            .all(|character| character.is_ascii_digit())
+    {
+        len += 1;
+    }
+    len
 }
 
 pub fn extract_kernel_configs_from_deb(deb_bytes: &[u8]) -> Result<Vec<(String, String)>> {
@@ -425,6 +470,35 @@ Filename: pool/main/b/bash/bash.deb
         assert_eq!(configs.len(), 1);
         assert_eq!(configs[0].0, "boot/config-6.1.0-1-amd64");
         assert!(configs[0].1.contains("CONFIG_BPF=y"));
+    }
+
+    #[test]
+    fn normalizes_debian_kernel_package_name_for_storage_and_ui() {
+        assert_eq!(
+            normalize_debian_kernel_package_name(
+                "linux-image-6.12.73+deb13-riscv64",
+                &Architecture::Riscv64,
+            ),
+            "linux-image-<VERSION>-<ARCH>"
+        );
+        assert_eq!(
+            normalize_debian_kernel_package_name(
+                "linux-image-6.12.73+deb13-cloud-amd64",
+                &Architecture::Amd64,
+            ),
+            "linux-image-<VERSION>-cloud-<ARCH>"
+        );
+        assert_eq!(
+            normalize_debian_kernel_package_name(
+                "linux-image-6.12.73+deb13-amd64-unsigned",
+                &Architecture::Amd64,
+            ),
+            "linux-image-<VERSION>-<ARCH>-unsigned"
+        );
+        assert_eq!(
+            normalize_debian_kernel_package_name("linux-image-6.1.0-1-amd64", &Architecture::Amd64),
+            "linux-image-<VERSION>-<ARCH>"
+        );
     }
 
     fn minimal_deb_with_config(config: &str) -> Vec<u8> {

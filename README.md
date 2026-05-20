@@ -116,8 +116,8 @@ data/<DISTRO>/<PACKAGE>/index.json
 For example:
 
 ```text
-data/debian/linux-image-6.1.0-1-amd64/6.1.4-1/amd64/config
-data/debian/linux-image-6.1.0-1-amd64/index.json
+data/debian/linux-image-<VERSION>-<ARCH>/6.1.4-1/amd64/config
+data/debian/linux-image-<VERSION>-<ARCH>/index.json
 ```
 
 Each package index stores package metadata once and refers to kernels by a
@@ -129,7 +129,7 @@ every Kconfig entry:
   "schema_version": 4,
   "generated_at": "2026-05-20T00:00:00Z",
   "distribution": "debian",
-  "package_name": "linux-image-6.1.0-1-amd64",
+  "package_name": "linux-image-<VERSION>-<ARCH>",
   "kernels": {
     "6.1.4-1/amd64": {
       "version": "6.1.4-1",

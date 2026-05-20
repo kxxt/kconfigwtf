@@ -119,7 +119,7 @@ fn debian_index_command_indexes_local_packages_file() {
         .assert()
         .success();
 
-    let config_path = data_dir.join("debian/linux-image-6.1.0-1-amd64/6.1.4-1/amd64/config");
+    let config_path = data_dir.join("debian/linux-image-<VERSION>-<ARCH>/6.1.4-1/amd64/config");
     assert!(config_path.exists());
     assert!(
         fs::read_to_string(&config_path)
@@ -127,7 +127,7 @@ fn debian_index_command_indexes_local_packages_file() {
             .contains("CONFIG_BPF=y")
     );
 
-    let index_path = data_dir.join("debian/linux-image-6.1.0-1-amd64/index.json");
+    let index_path = data_dir.join("debian/linux-image-<VERSION>-<ARCH>/index.json");
     let index: PackageIndex =
         serde_json::from_str(&fs::read_to_string(&index_path).expect("read output"))
             .expect("parse package index");
@@ -135,7 +135,7 @@ fn debian_index_command_indexes_local_packages_file() {
 
     assert_eq!(bpf.len(), 1);
     assert_eq!(index.distribution, Distribution::Debian);
-    assert_eq!(index.package_name, "linux-image-6.1.0-1-amd64");
+    assert_eq!(index.package_name, "linux-image-<VERSION>-<ARCH>");
     assert_eq!(
         index.kernels["6.1.4-1/amd64"].architecture,
         Architecture::Amd64

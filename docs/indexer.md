@@ -41,6 +41,12 @@ that kernel.
 extensible when adding distributions or architectures that do not have a named
 variant yet.
 
+Distribution backends may normalize package names before returning
+`KernelConfigPackage` values when the native package name embeds volatile kernel
+details. The Debian backend replaces the kernel version and architecture in
+`linux-image-*` package names with `<VERSION>` and `<ARCH>` so related kernels
+share one package-level index.
+
 ## Debian Backend
 
 The Debian backend supports two retrieval modes:
