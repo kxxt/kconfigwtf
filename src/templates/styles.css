@@ -237,15 +237,22 @@ a {
   font-weight: 600;
 }
 
+.arch-details summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.arch-details[open] summary {
+  margin-bottom: 3px;
+}
+
 .arch-button {
   color: var(--accent);
   font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   font-size: 0.75rem;
   font-weight: 700;
-}
-
-.arch-summary {
-  color: var(--muted);
 }
 
 .empty {

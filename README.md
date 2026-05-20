@@ -67,6 +67,7 @@ The generated site consists of:
 - `styles.css`
 - `indexes.json`
 - `data/`, copied from the indexed data directory
+- `CONFIG_/<ENTRY>/index.html`, one generated result page per Kconfig entry
 
 Because the site uses `fetch`, serve it with any static file
 server instead of opening `index.html` directly from disk:
@@ -79,7 +80,8 @@ Then open `http://localhost:8000`.
 
 The search box autocompletes Kconfig names from a pre-generated list in
 `indexes.json`. Suggestions are shown without the `CONFIG_` prefix unless the
-user has already typed it.
+user has already typed it. Submitting the search navigates to the pre-generated
+page, for example `http://localhost:8000/CONFIG_/BPF/`.
 
 ## Architecture
 
@@ -163,10 +165,10 @@ distribution and Debian architectures such as `amd64`, `arm64`, `armhf`, `i386`,
 an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
-indexes, copies the data tree into the site output, and writes `indexes.json`.
-That manifest contains both the package index URLs and a sorted list of
-available Kconfig names for autocomplete, avoiding a browser-side full index
-scan before search.
+indexes, copies the data tree into the site output, writes `indexes.json`, and
+generates `CONFIG_/<ENTRY>/index.html` result pages. The manifest contains both
+the package index URLs and a sorted list of available Kconfig names for
+autocomplete, avoiding a browser-side full index scan before search.
 
 ## Test
 

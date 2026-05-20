@@ -72,17 +72,25 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(html.contains(r#"placeholder="BPF""#));
     assert!(html.contains(r#"<datalist id="config-options"></datalist>"#));
     assert!(html.contains("Versions / architectures"));
+    assert!(site_dir.join("CONFIG_/BPF/index.html").exists());
+
+    let bpf_page =
+        fs::read_to_string(site_dir.join("CONFIG_/BPF/index.html")).expect("read bpf page");
+    assert!(bpf_page.contains("CONFIG_BPF"));
+    assert!(bpf_page.contains(r#"rowspan="1""#));
+    assert!(bpf_page.contains("kernel-tag"));
+    assert!(bpf_page.contains("arch-button"));
+    assert!(
+        bpf_page.contains(
+            r#"data-config-url="../../data/debian/linux-image-amd64/6.1.0-1/amd64/config""#
+        )
+    );
 
     let app = fs::read_to_string(site_dir.join("app.js")).expect("read app js");
     assert!(!app.contains("collectConfigNames"));
     assert!(app.contains("manifest.configs"));
-    assert!(app.contains("groupRecords"));
-    assert!(app.contains("rowSpan"));
-    assert!(app.contains("kernel-tag"));
     assert!(app.contains("arch-button"));
-    assert!(app.contains("renderArchitectureButtons"));
-    assert!(app.contains("occurrenceByKernel"));
-    assert!(app.contains(r#"value: occurrence?.value || "-""#));
+    assert!(app.contains("window.location.href"));
     assert!(app.contains("CONFIG_"));
 }
 

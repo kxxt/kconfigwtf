@@ -12,270 +12,16 @@ const configTitle = document.querySelector("#config-title");
 const configLink = document.querySelector("#config-link");
 const configBody = document.querySelector("#config-body");
 
-let packageIndexes = null;
-let packageIndexesPromise = null;
 let manifest = null;
 let manifestPromise = null;
 let configNames = [];
 const maxSuggestions = 200;
-const maxArchitecturesPerTag = 4;
 
-function normalizeConfigName(value) {
+function bareConfigName(value) {
   const normalized = value.trim().toUpperCase();
-  return normalized.startsWith("CONFIG_") ? normalized : `CONFIG_${normalized}`;
-}
-
-function displayValue(value) {
-  if (value === "built_in") return "y";
-  if (value === "module") return "m";
-  if (value === "-") return "-";
-  if (value && typeof value === "object" && "other" in value) return value.other;
-  return String(value ?? "");
-}
-
-function joinRelative(base, path) {
-  const prefix = base.slice(0, base.lastIndexOf("/") + 1);
-  return `${prefix}${path}`;
-}
-
-function cell(text) {
-  const td = document.createElement("td");
-  td.textContent = text;
-  return td;
-}
-
-function renderEmpty(message) {
-  tbody.replaceChildren();
-  const row = document.createElement("tr");
-  const td = document.createElement("td");
-  td.colSpan = 5;
-  td.className = "empty";
-  td.textContent = message;
-  row.append(td);
-  tbody.append(row);
-}
-
-async function showConfig(record) {
-  configViewer.hidden = false;
-  configTitle.textContent = `${record.packageName} ${record.version} ${record.architecture}`;
-  configLink.href = record.configUrl;
-  configBody.textContent = "Loading...";
-
-  const response = await fetch(record.configUrl);
-  if (!response.ok) {
-    configBody.textContent = `Unable to load config: ${response.status}`;
-    return;
-  }
-  configBody.textContent = await response.text();
-}
-
-function groupRecords(records) {
-  const distributionMap = new Map();
-  for (const record of records) {
-    let distribution = distributionMap.get(record.distribution);
-    if (!distribution) {
-      distribution = {
-        distribution: record.distribution,
-        packageMap: new Map(),
-        packages: [],
-      };
-      distributionMap.set(record.distribution, distribution);
-    }
-
-    let packageGroup = distribution.packageMap.get(record.packageName);
-    if (!packageGroup) {
-      packageGroup = {
-        packageName: record.packageName,
-        valueMap: new Map(),
-        valueGroups: [],
-      };
-      distribution.packageMap.set(record.packageName, packageGroup);
-      distribution.packages.push(packageGroup);
-    }
-
-    const value = displayValue(record.value);
-    let valueGroup = packageGroup.valueMap.get(value);
-    if (!valueGroup) {
-      valueGroup = {
-        value,
-        records: [],
-      };
-      packageGroup.valueMap.set(value, valueGroup);
-      packageGroup.valueGroups.push(valueGroup);
-    }
-    valueGroup.records.push(record);
-  }
-
-  const distributions = Array.from(distributionMap.values()).sort((left, right) =>
-    left.distribution.localeCompare(right.distribution),
-  );
-
-  for (const distribution of distributions) {
-    distribution.packages.sort((left, right) =>
-      left.packageName.localeCompare(right.packageName),
-    );
-    distribution.rowSpan = 0;
-
-    for (const packageGroup of distribution.packages) {
-      packageGroup.valueGroups.sort((left, right) =>
-        left.value.localeCompare(right.value),
-      );
-      packageGroup.rowSpan = packageGroup.valueGroups.length;
-      distribution.rowSpan += packageGroup.rowSpan;
-    }
-  }
-
-  return distributions;
-}
-
-function versionTags(records) {
-  const versionMap = new Map();
-  for (const record of records) {
-    let version = versionMap.get(record.version);
-    if (!version) {
-      version = {
-        version: record.version,
-        architectures: new Map(),
-      };
-      versionMap.set(record.version, version);
-    }
-    if (!version.architectures.has(record.architecture)) {
-      version.architectures.set(record.architecture, []);
-    }
-    version.architectures.get(record.architecture).push(record);
-  }
-
-  return Array.from(versionMap.values())
-    .sort((left, right) => left.version.localeCompare(right.version))
-    .map((version) => {
-      const architectures = Array.from(version.architectures.keys()).sort();
-      const records = architectures.flatMap((architecture) =>
-        version.architectures.get(architecture),
-      );
-      return {
-        version: version.version,
-        architectures: architectures.map((architecture) => ({
-          name: architecture,
-          records: version.architectures.get(architecture),
-        })),
-        isCollapsed: architectures.length > maxArchitecturesPerTag,
-        architectureSummary: `${architectures.length} archs`,
-        title: `${version.version}: ${architectures.join(", ")}`,
-        records,
-      };
-    });
-}
-
-function tagsCell(records) {
-  const td = document.createElement("td");
-  const tags = document.createElement("div");
-  tags.className = "tag-list";
-
-  for (const version of versionTags(records)) {
-    const group = document.createElement("div");
-    group.className = "kernel-tag";
-    group.title = version.title;
-
-    const label = document.createElement("span");
-    label.className = "tag-version";
-    label.textContent = version.version;
-    group.append(label);
-
-    const archList = document.createElement("span");
-    archList.className = "tag-architectures";
-    group.append(archList);
-
-    const renderArchitectureButtons = () => {
-      archList.replaceChildren();
-      for (const architecture of version.architectures) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "arch-button";
-        button.textContent = architecture.name;
-        button.addEventListener("click", () => showConfig(architecture.records[0]));
-        archList.append(button);
-      }
-    };
-
-    if (version.isCollapsed) {
-      const expand = document.createElement("button");
-      expand.type = "button";
-      expand.className = "arch-button arch-summary";
-      expand.textContent = version.architectureSummary;
-      expand.addEventListener("click", renderArchitectureButtons);
-      archList.append(expand);
-    } else {
-      renderArchitectureButtons();
-    }
-
-    tags.append(group);
-  }
-
-  td.append(tags);
-  return td;
-}
-
-function sourcesCell(records) {
-  const td = document.createElement("td");
-  const sources = Array.from(
-    new Map(
-      records
-        .filter((record) => record.source)
-        .map((record) => [record.source, record]),
-    ).values(),
-  );
-
-  if (sources.length === 0) {
-    td.textContent = "";
-  } else if (sources.length === 1) {
-    const link = document.createElement("a");
-    link.href = sources[0].source;
-    link.textContent = "package";
-    td.append(link);
-  } else {
-    td.textContent = `${sources.length} packages`;
-  }
-
-  return td;
-}
-
-function renderResults(configName, records) {
-  title.textContent = configName;
-  count.textContent = `${records.length} match${records.length === 1 ? "" : "es"}`;
-  tbody.replaceChildren();
-
-  for (const distribution of groupRecords(records)) {
-    let wroteDistribution = false;
-    for (const packageGroup of distribution.packages) {
-      let wrotePackage = false;
-      for (const valueGroup of packageGroup.valueGroups) {
-        const row = document.createElement("tr");
-
-        if (!wroteDistribution) {
-          const distributionCell = cell(distribution.distribution);
-          distributionCell.rowSpan = distribution.rowSpan;
-          distributionCell.className = "group-cell";
-          row.append(distributionCell);
-          wroteDistribution = true;
-        }
-
-        if (!wrotePackage) {
-          const packageCell = cell(packageGroup.packageName);
-          packageCell.rowSpan = packageGroup.rowSpan;
-          packageCell.className = "group-cell package-cell";
-          row.append(packageCell);
-          wrotePackage = true;
-        }
-
-        row.append(
-          cell(valueGroup.value),
-          tagsCell(valueGroup.records),
-          sourcesCell(valueGroup.records),
-        );
-        tbody.append(row);
-      }
-    }
-  }
+  return normalized.startsWith("CONFIG_")
+    ? normalized.slice("CONFIG_".length)
+    : normalized;
 }
 
 async function fetchJson(path) {
@@ -302,28 +48,6 @@ async function ensureManifest() {
   }
 }
 
-async function loadPackageIndexes() {
-  const siteManifest = await ensureManifest();
-  return Promise.all(
-    siteManifest.indexes.map(async (indexPath) => ({
-      indexPath,
-      data: await fetchJson(indexPath),
-    })),
-  );
-}
-
-async function ensurePackageIndexes() {
-  if (packageIndexes) return packageIndexes;
-  packageIndexesPromise ||= loadPackageIndexes();
-  try {
-    packageIndexes = await packageIndexesPromise;
-    return packageIndexes;
-  } catch (error) {
-    packageIndexesPromise = null;
-    throw error;
-  }
-}
-
 function updateAutocomplete() {
   const raw = input.value.trim().toUpperCase();
   const usesPrefix = raw.startsWith("CONFIG_");
@@ -341,67 +65,54 @@ function updateAutocomplete() {
   );
 }
 
-function findRecords(configName, packages) {
-  const records = [];
-  for (const packageIndex of packages) {
-    const occurrences = packageIndex.data.entries[configName] || [];
-    if (occurrences.length === 0) continue;
+function renderSearchError(message) {
+  title.textContent = "Search failed";
+  count.textContent = "";
+  configViewer.hidden = true;
+  tbody.replaceChildren();
+  const row = document.createElement("tr");
+  const td = document.createElement("td");
+  td.colSpan = 5;
+  td.className = "empty";
+  td.textContent = message;
+  row.append(td);
+  tbody.append(row);
+}
 
-    const occurrenceByKernel = new Map(
-      occurrences.map((occurrence) => [occurrence.kernel, occurrence]),
-    );
+async function showConfigFromButton(button) {
+  configViewer.hidden = false;
+  configTitle.textContent = button.dataset.configTitle || "Config";
+  configLink.href = button.dataset.configUrl;
+  configBody.textContent = "Loading...";
 
-    for (const [kernelId, kernel] of Object.entries(packageIndex.data.kernels || {})) {
-      if (!kernel) continue;
-      const occurrence = occurrenceByKernel.get(kernelId);
-      records.push({
-        distribution: packageIndex.data.distribution,
-        packageName: packageIndex.data.package_name,
-        version: kernel.version,
-        architecture: kernel.architecture,
-        value: occurrence?.value || "-",
-        source: kernel.source,
-        configUrl: joinRelative(packageIndex.indexPath, kernel.config_path),
-      });
-    }
+  const response = await fetch(button.dataset.configUrl);
+  if (!response.ok) {
+    configBody.textContent = `Unable to load config: ${response.status}`;
+    return;
   }
-  records.sort((left, right) =>
-    [
-      left.distribution,
-      left.packageName,
-      left.version,
-      left.architecture,
-    ].join("\0").localeCompare([
-      right.distribution,
-      right.packageName,
-      right.version,
-      right.architecture,
-    ].join("\0")),
-  );
-  return records;
+  configBody.textContent = await response.text();
 }
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const configName = normalizeConfigName(input.value);
+  const configName = bareConfigName(input.value);
 
   try {
-    await ensurePackageIndexes();
-    const records = findRecords(configName, packageIndexes);
-    if (records.length === 0) {
-      title.textContent = configName;
-      count.textContent = "0 matches";
-      configViewer.hidden = true;
-      renderEmpty("No indexed kernel config contains this entry.");
+    const siteManifest = await ensureManifest();
+    if (!siteManifest.configs.includes(configName)) {
+      renderSearchError("No generated page exists for this config entry.");
       return;
     }
-    renderResults(configName, records);
+    window.location.href = `${script.src.replace(/app\.js$/, "")}CONFIG_/${encodeURIComponent(configName)}/`;
   } catch (error) {
-    title.textContent = "Index load failed";
-    count.textContent = "";
-    configViewer.hidden = true;
-    renderEmpty(error.message);
+    renderSearchError(error.message);
   }
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".arch-button[data-config-url]");
+  if (!button) return;
+  showConfigFromButton(button);
 });
 
 input.addEventListener("focus", () => {
@@ -411,7 +122,7 @@ input.addEventListener("focus", () => {
 });
 
 input.addEventListener("input", () => {
-  if (packageIndexes) {
+  if (manifest) {
     updateAutocomplete();
     return;
   }

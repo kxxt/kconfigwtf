@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="styles.css">
-    <script defer src="app.js" data-index-manifest="{{ manifest_file }}"></script>
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="{{ asset_prefix }}styles.css">
+    <script defer src="{{ asset_prefix }}app.js" data-index-manifest="{{ asset_prefix }}{{ manifest_file }}"></script>
   </head>
   <body>
     <main class="shell">
       <section class="lookup">
         <div>
-          <h1>{{ title }}</h1>
+          <h1>{{ site_title }}</h1>
           <p class="lede">Find Linux kernel package configs by Kconfig entry.</p>
         </div>
         <form id="search-form" class="search" role="search">
@@ -35,8 +35,8 @@
 
       <section class="results" aria-live="polite">
         <div class="result-header">
-          <h2 id="result-title">Enter a config entry</h2>
-          <span id="result-count"></span>
+          <h2 id="result-title">{{ result_title }}</h2>
+          <span id="result-count">{{ result_count }}</span>
         </div>
         <div class="table-wrap">
           <table>
@@ -50,15 +50,13 @@
               </tr>
             </thead>
             <tbody id="results-body">
-              <tr>
-                <td colspan="5" class="empty">No lookup has been run yet.</td>
-              </tr>
+              {{ table_body | safe }}
             </tbody>
           </table>
         </div>
       </section>
 
-      <section class="config-viewer" id="config-viewer" hidden>
+      <section class="config-viewer" id="config-viewer"{% if config_viewer_hidden %} hidden{% endif %}>
         <div class="result-header">
           <h2 id="config-title">Config</h2>
           <a id="config-link" href="#">raw</a>
