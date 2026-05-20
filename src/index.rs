@@ -261,6 +261,8 @@ impl PackageIndex {
         debug_assert_eq!(self.package_name, package.package_name);
 
         let kernel = kernel_id(&package.package_version, &package.architecture);
+        self.remove_kernel(&kernel);
+
         let config_path = config_relative_path(&package.package_version, &package.architecture);
         self.kernels.insert(
             kernel.clone(),
@@ -281,6 +283,14 @@ impl PackageIndex {
                     value,
                 });
         }
+    }
+
+    pub fn remove_kernel(&mut self, kernel: &str) {
+        self.kernels.remove(kernel);
+        self.entries.retain(|_, occurrences| {
+            occurrences.retain(|occurrence| occurrence.kernel != kernel);
+            !occurrences.is_empty()
+        });
     }
 
     pub fn sort_entries(&mut self) {
@@ -309,7 +319,10 @@ pub fn write_packages_to_data_dir(
         let distribution_segment = path_segment(distribution.as_str(), "distribution")?;
         let package_segment = path_segment(&package_name, "package")?;
         let package_dir = data_dir.join(distribution_segment).join(package_segment);
-        let mut index = PackageIndex::new(distribution, package_name);
+        fs::create_dir_all(&package_dir)
+            .with_context(|| format!("creating package directory {}", package_dir.display()))?;
+        let index_path = package_dir.join("index.json");
+        let mut index = read_or_create_package_index(&index_path, distribution, package_name)?;
 
         for package in packages {
             let version_segment = path_segment(&package.package_version, "version")?;
@@ -323,9 +336,6 @@ pub fn write_packages_to_data_dir(
         }
 
         index.sort_entries();
-        fs::create_dir_all(&package_dir)
-            .with_context(|| format!("creating package directory {}", package_dir.display()))?;
-        let index_path = package_dir.join("index.json");
         let json =
             serde_json::to_string_pretty(&index).context("serializing package config index")?;
         fs::write(&index_path, json)
@@ -334,6 +344,42 @@ pub fn write_packages_to_data_dir(
     }
 
     Ok(written_indexes)
+}
+
+fn read_or_create_package_index(
+    index_path: &Path,
+    distribution: Distribution,
+    package_name: String,
+) -> Result<PackageIndex> {
+    if !index_path.exists() {
+        return Ok(PackageIndex::new(distribution, package_name));
+    }
+
+    let json = fs::read_to_string(index_path)
+        .with_context(|| format!("reading existing package index {}", index_path.display()))?;
+    let mut index: PackageIndex = serde_json::from_str(&json)
+        .with_context(|| format!("parsing existing package index {}", index_path.display()))?;
+
+    if index.distribution != distribution {
+        bail!(
+            "existing package index {} has distribution {}, expected {}",
+            index_path.display(),
+            index.distribution,
+            distribution
+        );
+    }
+    if index.package_name != package_name {
+        bail!(
+            "existing package index {} has package {}, expected {}",
+            index_path.display(),
+            index.package_name,
+            package_name
+        );
+    }
+
+    index.schema_version = INDEX_SCHEMA_VERSION;
+    index.generated_at = Utc::now();
+    Ok(index)
 }
 
 pub fn kernel_id(version: &str, architecture: &Architecture) -> String {
@@ -528,6 +574,81 @@ NOT_A_CONFIG=y
             temp.path()
                 .join("debian/linux-image-amd64/index.json")
                 .exists()
+        );
+    }
+
+    #[test]
+    fn merges_existing_package_index_when_writing_more_architectures() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let amd64 = KernelConfigPackage {
+            distribution: Distribution::Debian,
+            package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Amd64,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+        let riscv64 = KernelConfigPackage {
+            distribution: Distribution::Debian,
+            package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Riscv64,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+
+        write_packages_to_data_dir([amd64], temp.path()).expect("write amd64");
+        write_packages_to_data_dir([riscv64], temp.path()).expect("write riscv64");
+
+        let index_path = temp
+            .path()
+            .join("debian/linux-image-<VERSION>-<ARCH>/index.json");
+        let index: PackageIndex = serde_json::from_str(
+            &fs::read_to_string(&index_path).expect("read merged package index"),
+        )
+        .expect("parse merged package index");
+        let bpf = index.entries.get("CONFIG_BPF").expect("CONFIG_BPF entry");
+
+        assert!(index.kernels.contains_key("6.1.0-1/amd64"));
+        assert!(index.kernels.contains_key("6.1.0-1/riscv64"));
+        assert_eq!(bpf.len(), 2);
+    }
+
+    #[test]
+    fn replaces_existing_kernel_entries_when_reindexing_same_kernel() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let package = KernelConfigPackage {
+            distribution: Distribution::Debian,
+            package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Amd64,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+        let updated_package = KernelConfigPackage {
+            config_text: "CONFIG_EXT4_FS=m\n".to_string(),
+            ..package.clone()
+        };
+
+        write_packages_to_data_dir([package], temp.path()).expect("write package");
+        write_packages_to_data_dir([updated_package], temp.path()).expect("rewrite package");
+
+        let index_path = temp
+            .path()
+            .join("debian/linux-image-<VERSION>-<ARCH>/index.json");
+        let index: PackageIndex = serde_json::from_str(
+            &fs::read_to_string(&index_path).expect("read rewritten package index"),
+        )
+        .expect("parse rewritten package index");
+
+        assert!(!index.entries.contains_key("CONFIG_BPF"));
+        assert_eq!(
+            index
+                .entries
+                .get("CONFIG_EXT4_FS")
+                .expect("CONFIG_EXT4_FS entry")
+                .len(),
+            1
         );
     }
 }
