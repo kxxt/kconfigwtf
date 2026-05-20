@@ -158,11 +158,6 @@ td {
   font-size: 0.9375rem;
 }
 
-td:nth-child(2),
-td:nth-child(3) {
-  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
-}
-
 tr:last-child td {
   border-bottom: 0;
 }
@@ -173,6 +168,7 @@ tr:last-child td {
 }
 
 .package-cell {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
   word-break: break-word;
 }
 
