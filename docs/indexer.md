@@ -8,10 +8,11 @@ index format and static site generator.
 1. A distribution backend implements `KernelConfigIndexer`.
 2. The backend retrieves kernel package metadata and raw kernel config files.
 3. The backend returns `KernelConfigPackage` values.
-4. `ConfigIndex::from_packages` parses assigned and missing-value `CONFIG_*`
-   entries.
-5. The CLI writes `index.json`.
-6. The site generator copies that JSON into a static site.
+4. `write_packages_to_data_dir` writes raw configs to
+   `data/<DISTRO>/<PACKAGE>/<VERSION>/<ARCH>/config`.
+5. The same data writer builds `data/<DISTRO>/<PACKAGE>/index.json`.
+6. The site generator scans `data/**/index.json`, copies the data tree, and
+   writes a static-site manifest.
 
 ## Distribution Backend Contract
 
@@ -27,8 +28,13 @@ Backends should populate:
 - `config_text`: raw Linux kernel config text.
 
 Backends should not emit one record per config entry. They should emit one
-record per discovered kernel config file and let the shared index builder parse
-and aggregate entries.
+record per discovered kernel config file and let the shared data writer persist
+raw configs and build package-level indexes.
+
+Package-level indexes store `distribution` and `package_name` once. Each
+`entries` occurrence points at a kernel key such as `6.1.4-1/amd64`, and the
+`kernels` map stores the version, architecture, config path, and source for
+that kernel.
 
 `Distribution::Other(String)` and `Architecture::Other(String)` keep the model
 extensible when adding distributions or architectures that do not have a named
@@ -58,4 +64,5 @@ ordering, snapshot pinning, and stricter kernel image package filtering.
 
 Add a module that implements `KernelConfigIndexer`, then wire it into the CLI as
 a new `index <distribution>` subcommand. Keep retrieval and package parsing in
-the backend, but reuse `ConfigIndex` for config parsing and JSON generation.
+the backend, but reuse `write_packages_to_data_dir` for config persistence and
+JSON generation.

@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
 };
-use kconfigwtf::index::{Architecture, ConfigIndex};
+use kconfigwtf::index::{Architecture, write_packages_to_data_dir};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
 #[derive(Debug, Parser)]
@@ -17,12 +17,12 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    /// Build a searchable kernel config index.
+    /// Retrieve kernel configs and write the data tree.
     Index {
         #[command(subcommand)]
         command: IndexCommand,
     },
-    /// Generate a static website from an existing index JSON file.
+    /// Generate a static website from a data directory.
     Site(SiteArgs),
 }
 
@@ -66,16 +66,16 @@ struct DebianArgs {
     #[arg(long)]
     max_packages: Option<usize>,
 
-    /// Output index JSON path.
-    #[arg(short, long, default_value = "dist/index.json")]
-    output: PathBuf,
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
 }
 
 #[derive(Debug, Args)]
 struct SiteArgs {
-    /// Input index JSON path.
-    #[arg(short, long, default_value = "dist/index.json")]
-    index: PathBuf,
+    /// Input data directory containing package indexes and raw configs.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
 
     /// Static site output directory.
     #[arg(short, long, default_value = "public")]
@@ -102,24 +102,8 @@ async fn index_debian(args: DebianArgs) -> Result<()> {
     let config = debian_config_from_args(&args)?;
     let indexer = DebianIndexer::new(config);
     let packages = indexer.index().await?;
-    let mut index = ConfigIndex::from_packages(packages);
-    index.sort_records();
-
-    if let Some(parent) = args
-        .output
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-    {
-        tokio::fs::create_dir_all(parent)
-            .await
-            .with_context(|| format!("creating output directory {}", parent.display()))?;
-    }
-
-    let json = serde_json::to_string_pretty(&index).context("serializing config index")?;
-    tokio::fs::write(&args.output, json)
-        .await
-        .with_context(|| format!("writing index {}", args.output.display()))?;
-
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
     Ok(())
 }
 
@@ -159,10 +143,5 @@ fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
 }
 
 fn generate_site(args: SiteArgs) -> Result<()> {
-    let index_json = std::fs::read_to_string(&args.index)
-        .with_context(|| format!("reading index {}", args.index.display()))?;
-    let index: ConfigIndex = serde_json::from_str(&index_json)
-        .with_context(|| format!("parsing index {}", args.index.display()))?;
-
-    SiteGenerator::new(args.title).generate(&index, args.output_dir)
+    SiteGenerator::new(args.title).generate(args.data_dir, args.output_dir)
 }

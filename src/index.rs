@@ -1,14 +1,17 @@
+use anyhow::{Context, Result, bail};
 use chrono::{DateTime, Utc};
 use serde::de;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
 use std::fmt;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::indexer::KernelConfigPackage;
 
-pub const INDEX_SCHEMA_VERSION: u32 = 3;
+pub const INDEX_SCHEMA_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
@@ -204,36 +207,49 @@ impl<'de> Deserialize<'de> for ConfigValue {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct KernelConfigRecord {
-    pub distribution: Distribution,
-    pub package_name: String,
-    pub package_version: String,
+pub struct PackageKernel {
+    pub version: String,
     pub architecture: Architecture,
-    pub value: ConfigValue,
+    pub config_path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ConfigIndex {
-    pub schema_version: u32,
-    pub generated_at: DateTime<Utc>,
-    pub entries: BTreeMap<String, Vec<KernelConfigRecord>>,
+pub struct PackageConfigOccurrence {
+    pub kernel: String,
+    pub value: ConfigValue,
 }
 
-impl Default for ConfigIndex {
-    fn default() -> Self {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PackageIndex {
+    pub schema_version: u32,
+    pub generated_at: DateTime<Utc>,
+    pub distribution: Distribution,
+    pub package_name: String,
+    pub kernels: BTreeMap<String, PackageKernel>,
+    pub entries: BTreeMap<String, Vec<PackageConfigOccurrence>>,
+}
+
+impl PackageIndex {
+    pub fn new(distribution: Distribution, package_name: impl Into<String>) -> Self {
         Self {
             schema_version: INDEX_SCHEMA_VERSION,
             generated_at: Utc::now(),
+            distribution,
+            package_name: package_name.into(),
+            kernels: BTreeMap::new(),
             entries: BTreeMap::new(),
         }
     }
-}
 
-impl ConfigIndex {
     pub fn from_packages(packages: impl IntoIterator<Item = KernelConfigPackage>) -> Self {
-        let mut index = Self::default();
+        let mut packages = packages.into_iter();
+        let first = packages
+            .next()
+            .expect("PackageIndex::from_packages requires at least one package");
+        let mut index = Self::new(first.distribution.clone(), first.package_name.clone());
+        index.add_package(first);
         for package in packages {
             index.add_package(package);
         }
@@ -241,39 +257,103 @@ impl ConfigIndex {
     }
 
     pub fn add_package(&mut self, package: KernelConfigPackage) {
+        debug_assert_eq!(self.distribution, package.distribution);
+        debug_assert_eq!(self.package_name, package.package_name);
+
+        let kernel = kernel_id(&package.package_version, &package.architecture);
+        let config_path = config_relative_path(&package.package_version, &package.architecture);
+        self.kernels.insert(
+            kernel.clone(),
+            PackageKernel {
+                version: package.package_version.clone(),
+                architecture: package.architecture.clone(),
+                config_path,
+                source: package.source.clone(),
+            },
+        );
+
         for (name, value) in parse_kernel_config(&package.config_text) {
             self.entries
                 .entry(name)
                 .or_default()
-                .push(KernelConfigRecord {
-                    distribution: package.distribution.clone(),
-                    package_name: package.package_name.clone(),
-                    package_version: package.package_version.clone(),
-                    architecture: package.architecture.clone(),
-                    source: package.source.clone(),
+                .push(PackageConfigOccurrence {
+                    kernel: kernel.clone(),
                     value,
                 });
         }
     }
 
-    pub fn sort_records(&mut self) {
-        for records in self.entries.values_mut() {
-            records.sort_by(|left, right| {
-                (
-                    &left.distribution,
-                    &left.package_name,
-                    &left.package_version,
-                    &left.architecture,
-                )
-                    .cmp(&(
-                        &right.distribution,
-                        &right.package_name,
-                        &right.package_version,
-                        &right.architecture,
-                    ))
-            });
+    pub fn sort_entries(&mut self) {
+        for occurrences in self.entries.values_mut() {
+            occurrences.sort_by(|left, right| left.kernel.cmp(&right.kernel));
         }
     }
+}
+
+pub fn write_packages_to_data_dir(
+    packages: impl IntoIterator<Item = KernelConfigPackage>,
+    data_dir: impl AsRef<Path>,
+) -> Result<Vec<PathBuf>> {
+    let data_dir = data_dir.as_ref();
+    let mut groups: BTreeMap<(Distribution, String), Vec<KernelConfigPackage>> = BTreeMap::new();
+
+    for package in packages {
+        groups
+            .entry((package.distribution.clone(), package.package_name.clone()))
+            .or_default()
+            .push(package);
+    }
+
+    let mut written_indexes = Vec::new();
+    for ((distribution, package_name), packages) in groups {
+        let distribution_segment = path_segment(distribution.as_str(), "distribution")?;
+        let package_segment = path_segment(&package_name, "package")?;
+        let package_dir = data_dir.join(distribution_segment).join(package_segment);
+        let mut index = PackageIndex::new(distribution, package_name);
+
+        for package in packages {
+            let version_segment = path_segment(&package.package_version, "version")?;
+            let architecture_segment = path_segment(package.architecture.as_str(), "architecture")?;
+            let config_dir = package_dir.join(version_segment).join(architecture_segment);
+            fs::create_dir_all(&config_dir)
+                .with_context(|| format!("creating config directory {}", config_dir.display()))?;
+            fs::write(config_dir.join("config"), &package.config_text)
+                .with_context(|| format!("writing {}", config_dir.join("config").display()))?;
+            index.add_package(package);
+        }
+
+        index.sort_entries();
+        fs::create_dir_all(&package_dir)
+            .with_context(|| format!("creating package directory {}", package_dir.display()))?;
+        let index_path = package_dir.join("index.json");
+        let json =
+            serde_json::to_string_pretty(&index).context("serializing package config index")?;
+        fs::write(&index_path, json)
+            .with_context(|| format!("writing {}", index_path.display()))?;
+        written_indexes.push(index_path);
+    }
+
+    Ok(written_indexes)
+}
+
+pub fn kernel_id(version: &str, architecture: &Architecture) -> String {
+    format!("{version}/{}", architecture.as_str())
+}
+
+pub fn config_relative_path(version: &str, architecture: &Architecture) -> String {
+    format!("{version}/{}/config", architecture.as_str())
+}
+
+fn path_segment<'a>(value: &'a str, label: &str) -> Result<&'a str> {
+    if value.is_empty()
+        || value == "."
+        || value == ".."
+        || value.contains('/')
+        || value.contains('\\')
+    {
+        bail!("invalid {label} path segment {value:?}");
+    }
+    Ok(value)
 }
 
 pub fn normalize_config_name(input: &str) -> String {
@@ -369,7 +449,7 @@ NOT_A_CONFIG=y
     }
 
     #[test]
-    fn builds_index_records_from_kernel_config_packages() {
+    fn builds_package_index_from_kernel_config_packages_without_entry_metadata_duplication() {
         let package = KernelConfigPackage {
             distribution: Distribution::Debian,
             package_name: "linux-image-amd64".to_string(),
@@ -379,12 +459,18 @@ NOT_A_CONFIG=y
             config_text: "CONFIG_BPF=y\nCONFIG_EXT4_FS=m\n# CONFIG_UNUSED is not set\n".to_string(),
         };
 
-        let index = ConfigIndex::from_packages([package]);
+        let index = PackageIndex::from_packages([package]);
 
         let bpf = index.entries.get("CONFIG_BPF").expect("CONFIG_BPF entry");
         assert_eq!(bpf.len(), 1);
-        assert_eq!(bpf[0].distribution, Distribution::Debian);
+        assert_eq!(index.distribution, Distribution::Debian);
+        assert_eq!(index.package_name, "linux-image-amd64");
+        assert_eq!(bpf[0].kernel, "6.1.0-1/amd64");
         assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
+        assert_eq!(
+            index.kernels["6.1.0-1/amd64"].config_path,
+            "6.1.0-1/amd64/config"
+        );
 
         let missing = index
             .entries
@@ -401,19 +487,47 @@ NOT_A_CONFIG=y
 
     #[test]
     fn serializes_typed_distribution_and_architecture_as_strings() {
-        let record = KernelConfigRecord {
+        let kernel = PackageKernel {
+            version: "6.1.0-1".to_string(),
+            architecture: Architecture::Amd64,
+            config_path: "6.1.0-1/amd64/config".to_string(),
+            source: None,
+        };
+
+        let json = serde_json::to_string(&kernel).expect("serialize kernel");
+
+        assert!(json.contains(r#""architecture":"amd64""#));
+        assert!(
+            serde_json::to_string(&ConfigValue::Missing)
+                .expect("serialize value")
+                .contains(r#""-""#)
+        );
+    }
+
+    #[test]
+    fn writes_data_tree_with_raw_config_and_package_index() {
+        let package = KernelConfigPackage {
             distribution: Distribution::Debian,
             package_name: "linux-image-amd64".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,
-            value: ConfigValue::Missing,
             source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
         };
+        let temp = tempfile::tempdir().expect("tempdir");
 
-        let json = serde_json::to_string(&record).expect("serialize record");
+        let indexes = write_packages_to_data_dir([package], temp.path()).expect("write data");
 
-        assert!(json.contains(r#""distribution":"debian""#));
-        assert!(json.contains(r#""architecture":"amd64""#));
-        assert!(json.contains(r#""value":"-""#));
+        assert_eq!(indexes.len(), 1);
+        assert!(
+            temp.path()
+                .join("debian/linux-image-amd64/6.1.0-1/amd64/config")
+                .exists()
+        );
+        assert!(
+            temp.path()
+                .join("debian/linux-image-amd64/index.json")
+                .exists()
+        );
     }
 }

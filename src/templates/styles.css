@@ -101,11 +101,16 @@ button:hover {
   background: var(--accent-hover);
 }
 
-.results {
+.results,
+.config-viewer {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
+}
+
+.config-viewer {
+  margin-top: 18px;
 }
 
 .result-header {
@@ -130,7 +135,7 @@ button:hover {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 860px;
 }
 
 th,
@@ -167,10 +172,39 @@ a {
   font-weight: 700;
 }
 
+.link-button {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  background: transparent;
+  color: var(--accent-hover);
+}
+
 .empty {
   color: var(--muted);
   text-align: center;
   padding: 28px 14px;
+}
+
+#config-body {
+  max-height: 520px;
+  margin: 0;
+  overflow: auto;
+  padding: 16px 18px;
+  background: #101820;
+  color: #edf2f7;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  white-space: pre;
 }
 
 @media (max-width: 760px) {

@@ -2,14 +2,14 @@
 
 kconfigwtf is a static Linux kernel config explorer. It builds an index of
 distribution kernel packages and generates a static website where users can
-search for a `CONFIG_*` entry and see which distribution enabled it, in which
-kernel package, at what version, and for which CPU architecture.
+search for a `CONFIG_*` entry, see matching distribution kernel packages, and
+open the raw kernel config that was indexed.
 
 The foundation has two parts:
 
 - A kernel config indexer layer with an extensible `KernelConfigIndexer` trait.
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
-  search UI from the index JSON.
+  search UI from package-level indexes under `data/`.
 
 The first implemented distribution backend is Debian.
 
@@ -29,13 +29,13 @@ cargo run -- index debian \
   --component main \
   --arch amd64 \
   --max-packages 25 \
-  --output dist/index.json
+  --data-dir data
 ```
 
 The Debian backend reads the `Packages.gz` file for each architecture, selects
 `linux-image-*` packages, downloads each `.deb`, extracts `/boot/config-*`, and
-indexes enabled config entries. Use `--max-packages` during development to avoid
-fetching a large number of packages.
+writes raw configs plus package-level indexes. Use `--max-packages` during
+development to avoid fetching a large number of packages.
 
 Offline indexing is also supported for tests and mirror snapshots:
 
@@ -44,7 +44,7 @@ cargo run -- index debian \
   --packages-file ./mirror/dists/stable/main/binary-amd64/Packages \
   --deb-root ./mirror \
   --arch amd64 \
-  --output dist/index.json
+  --data-dir data
 ```
 
 When `--packages-file` is used, `Filename` fields in the Packages file are
@@ -54,7 +54,7 @@ resolved relative to `--deb-root`.
 
 ```sh
 cargo run -- site \
-  --index dist/index.json \
+  --data-dir data \
   --output-dir public \
   --title kconfigwtf
 ```
@@ -64,9 +64,10 @@ The generated site consists of:
 - `index.html`
 - `app.js`
 - `styles.css`
-- `index.json`
+- `indexes.json`
+- `data/`, copied from the indexed data directory
 
-Because the site uses `fetch("index.json")`, serve it with any static file
+Because the site uses `fetch`, serve it with any static file
 server instead of opening `index.html` directly from disk:
 
 ```sh
@@ -95,26 +96,48 @@ pub trait KernelConfigIndexer: Send + Sync {
 ```
 
 Backends return raw kernel config text with typed package metadata. The shared
-`ConfigIndex` builder parses assigned entries and missing-value entries and
-writes the common JSON format.
+data writer stores each raw config and writes one package-level index per
+distribution/package pair.
 
-## Index Format
+## Data Layout
 
-The generated JSON is intentionally static-site friendly:
+Indexed data is intended to live in this repository:
+
+```text
+data/<DISTRO>/<PACKAGE>/<VERSION>/<ARCH>/config
+data/<DISTRO>/<PACKAGE>/index.json
+```
+
+For example:
+
+```text
+data/debian/linux-image-6.1.0-1-amd64/6.1.4-1/amd64/config
+data/debian/linux-image-6.1.0-1-amd64/index.json
+```
+
+Each package index stores package metadata once and refers to kernels by a
+compact kernel key, so `distribution` and `package_name` are not repeated for
+every Kconfig entry:
 
 ```json
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "generated_at": "2026-05-20T00:00:00Z",
+  "distribution": "debian",
+  "package_name": "linux-image-6.1.0-1-amd64",
+  "kernels": {
+    "6.1.4-1/amd64": {
+      "version": "6.1.4-1",
+      "architecture": "amd64",
+      "config_path": "6.1.4-1/amd64/config",
+      "source": "https://deb.debian.org/debian/pool/main/l/linux/linux-image.deb#boot/config-6.1.0-1-amd64"
+    }
+  },
   "entries": {
     "CONFIG_BPF": [
       {
-        "distribution": "debian",
-        "package_name": "linux-image-6.1.0-1-amd64",
-        "package_version": "6.1.4-1",
-        "architecture": "amd64",
-        "value": "built_in",
-        "source": "https://deb.debian.org/debian/pool/main/l/linux/linux-image.deb#boot/config-6.1.0-1-amd64"
+        "kernel": "6.1.4-1/amd64",
+        "value": "built_in"
       }
     ]
   }
@@ -133,6 +156,11 @@ as stable lowercase strings in JSON. Known values include `debian` for
 distribution and Debian architectures such as `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.
+
+The static site generator scans `data/**/index.json`, validates those package
+indexes, copies the data tree into the site output, and writes `indexes.json` so
+the browser can discover every package index without relying on directory
+listing support from the static host.
 
 ## Test
 

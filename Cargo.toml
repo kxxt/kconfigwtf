@@ -21,6 +21,7 @@ tokio = { version = "1.43", features = ["fs", "macros", "rt-multi-thread"] }
 xz2 = "0.1"
 zstd = "0.13"
 ar = "0.9"
+walkdir = "2.5"
 
 [dev-dependencies]
 assert_cmd = "2.0"

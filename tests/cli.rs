@@ -4,28 +4,37 @@ use std::io::Write;
 use assert_cmd::Command;
 use flate2::Compression;
 use flate2::write::GzEncoder;
-use kconfigwtf::index::{Architecture, ConfigIndex, ConfigValue, Distribution, KernelConfigRecord};
+use kconfigwtf::index::{
+    Architecture, ConfigValue, Distribution, PackageIndex, write_packages_to_data_dir,
+};
+use kconfigwtf::indexer::KernelConfigPackage;
 use predicates::prelude::*;
 use tar::{Builder, Header};
 
 #[test]
-fn site_command_generates_static_site_from_index_json() {
+fn site_command_generates_static_site_from_data_directory() {
     let temp = tempfile::tempdir().expect("tempdir");
-    let index_path = temp.path().join("index.json");
+    let data_dir = temp.path().join("data");
     let site_dir = temp.path().join("public");
-
-    fs::write(
-        &index_path,
-        serde_json::to_string_pretty(&sample_index()).expect("serialize index"),
+    write_packages_to_data_dir(
+        [KernelConfigPackage {
+            distribution: Distribution::Debian,
+            package_name: "linux-image-amd64".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Amd64,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        }],
+        &data_dir,
     )
-    .expect("write index");
+    .expect("write data");
 
     Command::cargo_bin("kconfigwtf")
         .expect("binary")
         .args([
             "site",
-            "--index",
-            index_path.to_str().expect("index path"),
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
             "--output-dir",
             site_dir.to_str().expect("site dir"),
             "--title",
@@ -37,7 +46,12 @@ fn site_command_generates_static_site_from_index_json() {
     assert!(site_dir.join("index.html").exists());
     assert!(site_dir.join("app.js").exists());
     assert!(site_dir.join("styles.css").exists());
-    assert!(site_dir.join("index.json").exists());
+    assert!(site_dir.join("indexes.json").exists());
+    assert!(
+        site_dir
+            .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
+            .exists()
+    );
     assert!(
         fs::read_to_string(site_dir.join("index.html"))
             .expect("read html")
@@ -51,7 +65,7 @@ fn debian_index_command_indexes_local_packages_file() {
     let deb_root = temp.path().join("mirror");
     let deb_path = deb_root.join("pool/main/l/linux/linux-image-test.deb");
     let packages_path = temp.path().join("Packages");
-    let output_path = temp.path().join("dist/index.json");
+    let data_dir = temp.path().join("data");
 
     fs::create_dir_all(deb_path.parent().expect("deb parent")).expect("create pool");
     fs::write(
@@ -76,20 +90,33 @@ fn debian_index_command_indexes_local_packages_file() {
             deb_root.to_str().expect("deb root"),
             "--arch",
             "amd64",
-            "--output",
-            output_path.to_str().expect("output path"),
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
         ])
         .assert()
         .success();
 
-    let index: ConfigIndex =
-        serde_json::from_str(&fs::read_to_string(&output_path).expect("read output"))
-            .expect("parse output index");
+    let config_path = data_dir.join("debian/linux-image-6.1.0-1-amd64/6.1.4-1/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read raw config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("debian/linux-image-6.1.0-1-amd64/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read output"))
+            .expect("parse package index");
     let bpf = index.entries.get("CONFIG_BPF").expect("CONFIG_BPF");
 
     assert_eq!(bpf.len(), 1);
-    assert_eq!(bpf[0].distribution, Distribution::Debian);
-    assert_eq!(bpf[0].architecture, Architecture::Amd64);
+    assert_eq!(index.distribution, Distribution::Debian);
+    assert_eq!(index.package_name, "linux-image-6.1.0-1-amd64");
+    assert_eq!(
+        index.kernels["6.1.4-1/amd64"].architecture,
+        Architecture::Amd64
+    );
     assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
     assert_eq!(
         index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
@@ -114,22 +141,6 @@ fn debian_index_command_requires_deb_root_for_local_packages_file() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("--deb-root is required"));
-}
-
-fn sample_index() -> ConfigIndex {
-    let mut index = ConfigIndex::default();
-    index.entries.insert(
-        "CONFIG_BPF".to_string(),
-        vec![KernelConfigRecord {
-            distribution: Distribution::Debian,
-            package_name: "linux-image-6.1.0-1-amd64".to_string(),
-            package_version: "6.1.4-1".to_string(),
-            architecture: Architecture::Amd64,
-            value: ConfigValue::BuiltIn,
-            source: None,
-        }],
-    );
-    index
 }
 
 fn minimal_deb_with_config(config: &str) -> Vec<u8> {
