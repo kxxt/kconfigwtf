@@ -345,15 +345,21 @@ function findRecords(configName, packages) {
   const records = [];
   for (const packageIndex of packages) {
     const occurrences = packageIndex.data.entries[configName] || [];
-    for (const occurrence of occurrences) {
-      const kernel = packageIndex.data.kernels[occurrence.kernel];
+    if (occurrences.length === 0) continue;
+
+    const occurrenceByKernel = new Map(
+      occurrences.map((occurrence) => [occurrence.kernel, occurrence]),
+    );
+
+    for (const [kernelId, kernel] of Object.entries(packageIndex.data.kernels || {})) {
       if (!kernel) continue;
+      const occurrence = occurrenceByKernel.get(kernelId);
       records.push({
         distribution: packageIndex.data.distribution,
         packageName: packageIndex.data.package_name,
         version: kernel.version,
         architecture: kernel.architecture,
-        value: occurrence.value,
+        value: occurrence?.value || "-",
         source: kernel.source,
         configUrl: joinRelative(packageIndex.indexPath, kernel.config_path),
       });
