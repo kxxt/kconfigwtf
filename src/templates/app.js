@@ -17,6 +17,7 @@ function normalizeConfigName(value) {
 function displayValue(value) {
   if (value === "built_in") return "y";
   if (value === "module") return "m";
+  if (value === "-") return "-";
   if (value && typeof value === "object" && "other" in value) return value.other;
   return String(value ?? "");
 }

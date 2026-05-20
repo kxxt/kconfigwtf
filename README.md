@@ -94,8 +94,9 @@ pub trait KernelConfigIndexer: Send + Sync {
 }
 ```
 
-Backends return raw kernel config text with package metadata. The shared
-`ConfigIndex` builder parses enabled entries and writes the common JSON format.
+Backends return raw kernel config text with typed package metadata. The shared
+`ConfigIndex` builder parses assigned entries and missing-value entries and
+writes the common JSON format.
 
 ## Index Format
 
@@ -103,7 +104,7 @@ The generated JSON is intentionally static-site friendly:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 3,
   "generated_at": "2026-05-20T00:00:00Z",
   "entries": {
     "CONFIG_BPF": [
@@ -124,10 +125,14 @@ The generated JSON is intentionally static-site friendly:
 
 - `"built_in"` for `CONFIG_FOO=y`
 - `"module"` for `CONFIG_FOO=m`
+- `"-"` for `# CONFIG_FOO is not set`
 - `{ "other": "..." }` for string, numeric, or other assigned values
 
-Disabled entries such as `# CONFIG_FOO is not set` are not indexed because the
-primary query is “which distribution enabled this config entry?”.
+`distribution` and `architecture` are represented as Rust enums and serialized
+as stable lowercase strings in JSON. Known values include `debian` for
+distribution and Debian architectures such as `amd64`, `arm64`, `armhf`, `i386`,
+`ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
+an `Other(String)` enum variant.
 
 ## Test
 

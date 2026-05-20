@@ -4,7 +4,7 @@ use std::io::Write;
 use assert_cmd::Command;
 use flate2::Compression;
 use flate2::write::GzEncoder;
-use kconfigwtf::index::{ConfigIndex, ConfigValue, KernelConfigRecord};
+use kconfigwtf::index::{Architecture, ConfigIndex, ConfigValue, Distribution, KernelConfigRecord};
 use predicates::prelude::*;
 use tar::{Builder, Header};
 
@@ -88,10 +88,13 @@ fn debian_index_command_indexes_local_packages_file() {
     let bpf = index.entries.get("CONFIG_BPF").expect("CONFIG_BPF");
 
     assert_eq!(bpf.len(), 1);
-    assert_eq!(bpf[0].distribution, "debian");
-    assert_eq!(bpf[0].architecture, "amd64");
+    assert_eq!(bpf[0].distribution, Distribution::Debian);
+    assert_eq!(bpf[0].architecture, Architecture::Amd64);
     assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
-    assert!(!index.entries.contains_key("CONFIG_UNUSED"));
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
 }
 
 #[test]
@@ -118,10 +121,10 @@ fn sample_index() -> ConfigIndex {
     index.entries.insert(
         "CONFIG_BPF".to_string(),
         vec![KernelConfigRecord {
-            distribution: "debian".to_string(),
+            distribution: Distribution::Debian,
             package_name: "linux-image-6.1.0-1-amd64".to_string(),
             package_version: "6.1.4-1".to_string(),
-            architecture: "amd64".to_string(),
+            architecture: Architecture::Amd64,
             value: ConfigValue::BuiltIn,
             source: None,
         }],

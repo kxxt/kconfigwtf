@@ -8,6 +8,7 @@ use flate2::read::GzDecoder;
 use tar::Archive;
 use xz2::read::XzDecoder;
 
+use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
 const DEFAULT_PACKAGE_PREFIX: &str = "linux-image-";
@@ -26,7 +27,7 @@ pub enum DebianPackageBase {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DebianPackageFeed {
-    pub architecture: String,
+    pub architecture: Architecture,
     pub packages: PackageIndexLocation,
     pub deb_base: DebianPackageBase,
 }
@@ -43,7 +44,7 @@ impl DebianIndexerConfig {
         mirror: impl Into<String>,
         suite: impl AsRef<str>,
         component: impl AsRef<str>,
-        architectures: impl IntoIterator<Item = String>,
+        architectures: impl IntoIterator<Item = Architecture>,
     ) -> Self {
         let mirror = mirror.into().trim_end_matches('/').to_string();
         let suite = suite.as_ref();
@@ -159,7 +160,7 @@ impl KernelConfigIndexer for DebianIndexer {
 
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
-                        distribution: "debian".to_string(),
+                        distribution: Distribution::Debian,
                         package_name: candidate.name.clone(),
                         package_version: candidate.version.clone(),
                         architecture: feed.architecture.clone(),

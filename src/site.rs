@@ -58,7 +58,7 @@ impl SiteGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::index::{ConfigIndex, ConfigValue, KernelConfigRecord};
+    use crate::index::{Architecture, ConfigIndex, ConfigValue, Distribution, KernelConfigRecord};
 
     #[test]
     fn writes_static_site_files() {
@@ -66,10 +66,10 @@ mod tests {
         index.entries.insert(
             "CONFIG_BPF".to_string(),
             vec![KernelConfigRecord {
-                distribution: "debian".to_string(),
+                distribution: Distribution::Debian,
                 package_name: "linux-image-6.1.0-1-amd64".to_string(),
                 package_version: "6.1.4-1".to_string(),
-                architecture: "amd64".to_string(),
+                architecture: Architecture::Amd64,
                 value: ConfigValue::BuiltIn,
                 source: None,
             }],

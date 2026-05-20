@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
 };
-use kconfigwtf::index::ConfigIndex;
+use kconfigwtf::index::{Architecture, ConfigIndex};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
 #[derive(Debug, Parser)]
@@ -48,7 +48,7 @@ struct DebianArgs {
 
     /// CPU architecture to index. May be passed more than once.
     #[arg(long = "arch", default_value = "amd64")]
-    architectures: Vec<String>,
+    architectures: Vec<Architecture>,
 
     /// Local Debian Packages or Packages.gz file. Useful for offline indexing and tests.
     #[arg(long)]
@@ -133,7 +133,7 @@ fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
             .architectures
             .first()
             .cloned()
-            .unwrap_or_else(|| "amd64".to_string());
+            .unwrap_or(Architecture::Amd64);
 
         DebianIndexerConfig {
             feeds: vec![DebianPackageFeed {

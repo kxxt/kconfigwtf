@@ -8,7 +8,8 @@ index format and static site generator.
 1. A distribution backend implements `KernelConfigIndexer`.
 2. The backend retrieves kernel package metadata and raw kernel config files.
 3. The backend returns `KernelConfigPackage` values.
-4. `ConfigIndex::from_packages` parses enabled `CONFIG_*` entries.
+4. `ConfigIndex::from_packages` parses assigned and missing-value `CONFIG_*`
+   entries.
 5. The CLI writes `index.json`.
 6. The site generator copies that JSON into a static site.
 
@@ -16,16 +17,22 @@ index format and static site generator.
 
 Backends should populate:
 
-- `distribution`: stable lowercase distribution id, for example `debian`.
+- `distribution`: typed `Distribution` enum value, for example
+  `Distribution::Debian`.
 - `package_name`: the binary package that shipped the config.
 - `package_version`: the binary package version.
-- `architecture`: the CPU architecture represented by the config.
+- `architecture`: typed `Architecture` enum value, for example
+  `Architecture::Amd64`.
 - `source`: optional URL or path to the package and config file.
 - `config_text`: raw Linux kernel config text.
 
 Backends should not emit one record per config entry. They should emit one
 record per discovered kernel config file and let the shared index builder parse
 and aggregate entries.
+
+`Distribution::Other(String)` and `Architecture::Other(String)` keep the model
+extensible when adding distributions or architectures that do not have a named
+variant yet.
 
 ## Debian Backend
 

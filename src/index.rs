@@ -1,16 +1,150 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::de;
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::BTreeMap;
+use std::fmt;
+use std::str::FromStr;
 
 use crate::indexer::KernelConfigPackage;
 
-pub const INDEX_SCHEMA_VERSION: u32 = 1;
+pub const INDEX_SCHEMA_VERSION: u32 = 3;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Distribution {
+    Debian,
+    Other(String),
+}
+
+impl Distribution {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Debian => "debian",
+            Self::Other(value) => value.as_str(),
+        }
+    }
+}
+
+impl fmt::Display for Distribution {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Distribution {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let normalized = input.trim().to_ascii_lowercase();
+        if normalized.is_empty() {
+            return Err("distribution cannot be empty".to_string());
+        }
+
+        Ok(match normalized.as_str() {
+            "debian" => Self::Debian,
+            other => Self::Other(other.to_string()),
+        })
+    }
+}
+
+impl Serialize for Distribution {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Distribution {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+        raw.parse().map_err(de::Error::custom)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Architecture {
+    Amd64,
+    Arm64,
+    Armhf,
+    I386,
+    Ppc64el,
+    Riscv64,
+    S390x,
+    Other(String),
+}
+
+impl Architecture {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Amd64 => "amd64",
+            Self::Arm64 => "arm64",
+            Self::Armhf => "armhf",
+            Self::I386 => "i386",
+            Self::Ppc64el => "ppc64el",
+            Self::Riscv64 => "riscv64",
+            Self::S390x => "s390x",
+            Self::Other(value) => value.as_str(),
+        }
+    }
+}
+
+impl fmt::Display for Architecture {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Architecture {
+    type Err = String;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        let normalized = input.trim().to_ascii_lowercase();
+        if normalized.is_empty() {
+            return Err("architecture cannot be empty".to_string());
+        }
+
+        Ok(match normalized.as_str() {
+            "amd64" | "x86_64" => Self::Amd64,
+            "arm64" | "aarch64" => Self::Arm64,
+            "armhf" => Self::Armhf,
+            "i386" | "x86" => Self::I386,
+            "ppc64el" => Self::Ppc64el,
+            "riscv64" => Self::Riscv64,
+            "s390x" => Self::S390x,
+            other => Self::Other(other.to_string()),
+        })
+    }
+}
+
+impl Serialize for Architecture {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Architecture {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+        raw.parse().map_err(de::Error::custom)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConfigValue {
     BuiltIn,
     Module,
+    Missing,
     Other(String),
 }
 
@@ -19,17 +153,62 @@ impl ConfigValue {
         match self {
             Self::BuiltIn => "y",
             Self::Module => "m",
+            Self::Missing => "-",
             Self::Other(value) => value.as_str(),
+        }
+    }
+}
+
+impl Serialize for ConfigValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Self::BuiltIn => serializer.serialize_str("built_in"),
+            Self::Module => serializer.serialize_str("module"),
+            Self::Missing => serializer.serialize_str("-"),
+            Self::Other(value) => {
+                let mut map = serializer.serialize_map(Some(1))?;
+                map.serialize_entry("other", value)?;
+                map.end()
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ConfigValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum RawConfigValue {
+            String(String),
+            Other { other: String },
+        }
+
+        match RawConfigValue::deserialize(deserializer)? {
+            RawConfigValue::String(value) => match value.as_str() {
+                "built_in" => Ok(Self::BuiltIn),
+                "module" => Ok(Self::Module),
+                "-" => Ok(Self::Missing),
+                other => Err(de::Error::custom(format!(
+                    "unknown config value string {other:?}"
+                ))),
+            },
+            RawConfigValue::Other { other } => Ok(Self::Other(other)),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KernelConfigRecord {
-    pub distribution: String,
+    pub distribution: Distribution,
     pub package_name: String,
     pub package_version: String,
-    pub architecture: String,
+    pub architecture: Architecture,
     pub value: ConfigValue,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
@@ -62,7 +241,7 @@ impl ConfigIndex {
     }
 
     pub fn add_package(&mut self, package: KernelConfigPackage) {
-        for (name, value) in parse_enabled_kernel_config(&package.config_text) {
+        for (name, value) in parse_kernel_config(&package.config_text) {
             self.entries
                 .entry(name)
                 .or_default()
@@ -106,12 +285,22 @@ pub fn normalize_config_name(input: &str) -> String {
     }
 }
 
-pub fn parse_enabled_kernel_config(config_text: &str) -> BTreeMap<String, ConfigValue> {
+pub fn parse_kernel_config(config_text: &str) -> BTreeMap<String, ConfigValue> {
     let mut entries = BTreeMap::new();
 
     for line in config_text.lines() {
         let line = line.trim();
-        if line.is_empty() || line.starts_with("# CONFIG_") || line.starts_with("##") {
+        if line.is_empty() || line.starts_with("##") {
+            continue;
+        }
+
+        if let Some(name) = line
+            .strip_prefix("# ")
+            .and_then(|line| line.strip_suffix(" is not set"))
+        {
+            if name.starts_with("CONFIG_") {
+                entries.insert(name.to_string(), ConfigValue::Missing);
+            }
             continue;
         }
 
@@ -135,13 +324,20 @@ pub fn parse_enabled_kernel_config(config_text: &str) -> BTreeMap<String, Config
     entries
 }
 
+pub fn parse_enabled_kernel_config(config_text: &str) -> BTreeMap<String, ConfigValue> {
+    parse_kernel_config(config_text)
+        .into_iter()
+        .filter(|(_, value)| *value != ConfigValue::Missing)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn parses_enabled_config_values_and_ignores_disabled_entries() {
-        let parsed = parse_enabled_kernel_config(
+    fn parses_config_values_and_missing_entries() {
+        let parsed = parse_kernel_config(
             r#"
 CONFIG_BPF=y
 CONFIG_NF_CONNTRACK=m
@@ -160,32 +356,64 @@ NOT_A_CONFIG=y
             parsed.get("CONFIG_CMDLINE"),
             Some(&ConfigValue::Other("\"console=ttyS0\"".to_string()))
         );
-        assert!(!parsed.contains_key("CONFIG_UNUSED"));
+        assert_eq!(parsed.get("CONFIG_UNUSED"), Some(&ConfigValue::Missing));
         assert!(!parsed.contains_key("NOT_A_CONFIG"));
+    }
+
+    #[test]
+    fn keeps_compatibility_helper_for_enabled_only_entries() {
+        let parsed = parse_enabled_kernel_config("CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n");
+
+        assert!(parsed.contains_key("CONFIG_BPF"));
+        assert!(!parsed.contains_key("CONFIG_UNUSED"));
     }
 
     #[test]
     fn builds_index_records_from_kernel_config_packages() {
         let package = KernelConfigPackage {
-            distribution: "debian".to_string(),
+            distribution: Distribution::Debian,
             package_name: "linux-image-amd64".to_string(),
             package_version: "6.1.0-1".to_string(),
-            architecture: "amd64".to_string(),
+            architecture: Architecture::Amd64,
             source: Some("https://example.invalid/linux-image.deb".to_string()),
-            config_text: "CONFIG_BPF=y\nCONFIG_EXT4_FS=m\n".to_string(),
+            config_text: "CONFIG_BPF=y\nCONFIG_EXT4_FS=m\n# CONFIG_UNUSED is not set\n".to_string(),
         };
 
         let index = ConfigIndex::from_packages([package]);
 
         let bpf = index.entries.get("CONFIG_BPF").expect("CONFIG_BPF entry");
         assert_eq!(bpf.len(), 1);
-        assert_eq!(bpf[0].distribution, "debian");
+        assert_eq!(bpf[0].distribution, Distribution::Debian);
         assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
+
+        let missing = index
+            .entries
+            .get("CONFIG_UNUSED")
+            .expect("CONFIG_UNUSED entry");
+        assert_eq!(missing[0].value, ConfigValue::Missing);
     }
 
     #[test]
     fn normalizes_user_supplied_config_names() {
         assert_eq!(normalize_config_name("bpf"), "CONFIG_BPF");
         assert_eq!(normalize_config_name(" config_ext4_fs "), "CONFIG_EXT4_FS");
+    }
+
+    #[test]
+    fn serializes_typed_distribution_and_architecture_as_strings() {
+        let record = KernelConfigRecord {
+            distribution: Distribution::Debian,
+            package_name: "linux-image-amd64".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Amd64,
+            value: ConfigValue::Missing,
+            source: None,
+        };
+
+        let json = serde_json::to_string(&record).expect("serialize record");
+
+        assert!(json.contains(r#""distribution":"debian""#));
+        assert!(json.contains(r#""architecture":"amd64""#));
+        assert!(json.contains(r#""value":"-""#));
     }
 }
