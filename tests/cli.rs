@@ -71,10 +71,14 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(html.contains(r#"list="config-options""#));
     assert!(html.contains(r#"placeholder="BPF""#));
     assert!(html.contains(r#"<datalist id="config-options"></datalist>"#));
+    assert!(html.contains("Versions / architectures"));
 
     let app = fs::read_to_string(site_dir.join("app.js")).expect("read app js");
     assert!(!app.contains("collectConfigNames"));
     assert!(app.contains("manifest.configs"));
+    assert!(app.contains("groupRecords"));
+    assert!(app.contains("rowSpan"));
+    assert!(app.contains("kernel-tag"));
     assert!(app.contains("CONFIG_"));
 }
 

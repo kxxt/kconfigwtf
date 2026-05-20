@@ -18,6 +18,7 @@ let manifest = null;
 let manifestPromise = null;
 let configNames = [];
 const maxSuggestions = 200;
+const maxArchitecturesPerTag = 4;
 
 function normalizeConfigName(value) {
   const normalized = value.trim().toUpperCase();
@@ -47,7 +48,7 @@ function renderEmpty(message) {
   tbody.replaceChildren();
   const row = document.createElement("tr");
   const td = document.createElement("td");
-  td.colSpan = 7;
+  td.colSpan = 5;
   td.className = "empty";
   td.textContent = message;
   row.append(td);
@@ -68,41 +69,200 @@ async function showConfig(record) {
   configBody.textContent = await response.text();
 }
 
+async function showConfigGroup(records) {
+  const sorted = records
+    .slice()
+    .sort((left, right) =>
+      [left.version, left.architecture].join("\0").localeCompare(
+        [right.version, right.architecture].join("\0"),
+      ),
+    );
+  await showConfig(sorted[0]);
+  if (sorted.length > 1) {
+    configTitle.textContent = `${sorted[0].packageName} ${sorted[0].version} ${sorted[0].architecture} (first of ${sorted.length})`;
+  }
+}
+
+function groupRecords(records) {
+  const distributionMap = new Map();
+  for (const record of records) {
+    let distribution = distributionMap.get(record.distribution);
+    if (!distribution) {
+      distribution = {
+        distribution: record.distribution,
+        packageMap: new Map(),
+        packages: [],
+      };
+      distributionMap.set(record.distribution, distribution);
+    }
+
+    let packageGroup = distribution.packageMap.get(record.packageName);
+    if (!packageGroup) {
+      packageGroup = {
+        packageName: record.packageName,
+        valueMap: new Map(),
+        valueGroups: [],
+      };
+      distribution.packageMap.set(record.packageName, packageGroup);
+      distribution.packages.push(packageGroup);
+    }
+
+    const value = displayValue(record.value);
+    let valueGroup = packageGroup.valueMap.get(value);
+    if (!valueGroup) {
+      valueGroup = {
+        value,
+        records: [],
+      };
+      packageGroup.valueMap.set(value, valueGroup);
+      packageGroup.valueGroups.push(valueGroup);
+    }
+    valueGroup.records.push(record);
+  }
+
+  const distributions = Array.from(distributionMap.values()).sort((left, right) =>
+    left.distribution.localeCompare(right.distribution),
+  );
+
+  for (const distribution of distributions) {
+    distribution.packages.sort((left, right) =>
+      left.packageName.localeCompare(right.packageName),
+    );
+    distribution.rowSpan = 0;
+
+    for (const packageGroup of distribution.packages) {
+      packageGroup.valueGroups.sort((left, right) =>
+        left.value.localeCompare(right.value),
+      );
+      packageGroup.rowSpan = packageGroup.valueGroups.length;
+      distribution.rowSpan += packageGroup.rowSpan;
+    }
+  }
+
+  return distributions;
+}
+
+function versionTags(records) {
+  const versionMap = new Map();
+  for (const record of records) {
+    let version = versionMap.get(record.version);
+    if (!version) {
+      version = {
+        version: record.version,
+        architectures: new Map(),
+      };
+      versionMap.set(record.version, version);
+    }
+    if (!version.architectures.has(record.architecture)) {
+      version.architectures.set(record.architecture, []);
+    }
+    version.architectures.get(record.architecture).push(record);
+  }
+
+  return Array.from(versionMap.values())
+    .sort((left, right) => left.version.localeCompare(right.version))
+    .map((version) => {
+      const architectures = Array.from(version.architectures.keys()).sort();
+      const records = architectures.flatMap((architecture) =>
+        version.architectures.get(architecture),
+      );
+      return {
+        version: version.version,
+        architectures:
+          architectures.length > maxArchitecturesPerTag
+            ? `${architectures.length} archs`
+            : architectures.join(", "),
+        title: `${version.version}: ${architectures.join(", ")}`,
+        records,
+      };
+    });
+}
+
+function tagsCell(records) {
+  const td = document.createElement("td");
+  const tags = document.createElement("div");
+  tags.className = "tag-list";
+
+  for (const tag of versionTags(records)) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "kernel-tag";
+    button.title = tag.title;
+    const version = document.createElement("span");
+    version.className = "tag-version";
+    version.textContent = tag.version;
+    const architectures = document.createElement("span");
+    architectures.className = "tag-architectures";
+    architectures.textContent = tag.architectures;
+    button.append(version, architectures);
+    button.addEventListener("click", () => showConfigGroup(tag.records));
+    tags.append(button);
+  }
+
+  td.append(tags);
+  return td;
+}
+
+function sourcesCell(records) {
+  const td = document.createElement("td");
+  const sources = Array.from(
+    new Map(
+      records
+        .filter((record) => record.source)
+        .map((record) => [record.source, record]),
+    ).values(),
+  );
+
+  if (sources.length === 0) {
+    td.textContent = "";
+  } else if (sources.length === 1) {
+    const link = document.createElement("a");
+    link.href = sources[0].source;
+    link.textContent = "package";
+    td.append(link);
+  } else {
+    td.textContent = `${sources.length} packages`;
+  }
+
+  return td;
+}
+
 function renderResults(configName, records) {
   title.textContent = configName;
   count.textContent = `${records.length} match${records.length === 1 ? "" : "es"}`;
   tbody.replaceChildren();
 
-  for (const record of records) {
-    const row = document.createElement("tr");
-    row.append(
-      cell(record.distribution),
-      cell(record.packageName),
-      cell(record.version),
-      cell(record.architecture),
-      cell(displayValue(record.value)),
-    );
+  for (const distribution of groupRecords(records)) {
+    let wroteDistribution = false;
+    for (const packageGroup of distribution.packages) {
+      let wrotePackage = false;
+      for (const valueGroup of packageGroup.valueGroups) {
+        const row = document.createElement("tr");
 
-    const config = document.createElement("td");
-    const configButton = document.createElement("button");
-    configButton.type = "button";
-    configButton.className = "link-button";
-    configButton.textContent = "view";
-    configButton.addEventListener("click", () => showConfig(record));
-    config.append(configButton);
-    row.append(config);
+        if (!wroteDistribution) {
+          const distributionCell = cell(distribution.distribution);
+          distributionCell.rowSpan = distribution.rowSpan;
+          distributionCell.className = "group-cell";
+          row.append(distributionCell);
+          wroteDistribution = true;
+        }
 
-    const source = document.createElement("td");
-    if (record.source) {
-      const link = document.createElement("a");
-      link.href = record.source;
-      link.textContent = "package";
-      source.append(link);
-    } else {
-      source.textContent = "";
+        if (!wrotePackage) {
+          const packageCell = cell(packageGroup.packageName);
+          packageCell.rowSpan = packageGroup.rowSpan;
+          packageCell.className = "group-cell package-cell";
+          row.append(packageCell);
+          wrotePackage = true;
+        }
+
+        row.append(
+          cell(valueGroup.value),
+          tagsCell(valueGroup.records),
+          sourcesCell(valueGroup.records),
+        );
+        tbody.append(row);
+      }
     }
-    row.append(source);
-    tbody.append(row);
   }
 }
 
