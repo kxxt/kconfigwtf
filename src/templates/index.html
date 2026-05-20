@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="app.js" data-index-file="{{ index_file }}"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="lookup">
+        <div>
+          <h1>{{ title }}</h1>
+          <p class="lede">Find Linux distributions that enable a kernel config entry.</p>
+        </div>
+        <form id="search-form" class="search" role="search">
+          <label for="config-input">Kernel config</label>
+          <div class="search-row">
+            <input
+              id="config-input"
+              name="config"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="CONFIG_BPF"
+              required
+            >
+            <button type="submit">Search</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="results" aria-live="polite">
+        <div class="result-header">
+          <h2 id="result-title">Enter a config entry</h2>
+          <span id="result-count"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Distribution</th>
+                <th>Package</th>
+                <th>Version</th>
+                <th>Architecture</th>
+                <th>Value</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <tr>
+                <td colspan="6" class="empty">No lookup has been run yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
