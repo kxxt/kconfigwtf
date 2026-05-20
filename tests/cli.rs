@@ -79,6 +79,8 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(app.contains("groupRecords"));
     assert!(app.contains("rowSpan"));
     assert!(app.contains("kernel-tag"));
+    assert!(app.contains("arch-button"));
+    assert!(app.contains("renderArchitectureButtons"));
     assert!(app.contains("CONFIG_"));
 }
 

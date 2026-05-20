@@ -69,20 +69,6 @@ async function showConfig(record) {
   configBody.textContent = await response.text();
 }
 
-async function showConfigGroup(records) {
-  const sorted = records
-    .slice()
-    .sort((left, right) =>
-      [left.version, left.architecture].join("\0").localeCompare(
-        [right.version, right.architecture].join("\0"),
-      ),
-    );
-  await showConfig(sorted[0]);
-  if (sorted.length > 1) {
-    configTitle.textContent = `${sorted[0].packageName} ${sorted[0].version} ${sorted[0].architecture} (first of ${sorted.length})`;
-  }
-}
-
 function groupRecords(records) {
   const distributionMap = new Map();
   for (const record of records) {
@@ -168,10 +154,12 @@ function versionTags(records) {
       );
       return {
         version: version.version,
-        architectures:
-          architectures.length > maxArchitecturesPerTag
-            ? `${architectures.length} archs`
-            : architectures.join(", "),
+        architectures: architectures.map((architecture) => ({
+          name: architecture,
+          records: version.architectures.get(architecture),
+        })),
+        isCollapsed: architectures.length > maxArchitecturesPerTag,
+        architectureSummary: `${architectures.length} archs`,
         title: `${version.version}: ${architectures.join(", ")}`,
         records,
       };
@@ -183,20 +171,44 @@ function tagsCell(records) {
   const tags = document.createElement("div");
   tags.className = "tag-list";
 
-  for (const tag of versionTags(records)) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "kernel-tag";
-    button.title = tag.title;
-    const version = document.createElement("span");
-    version.className = "tag-version";
-    version.textContent = tag.version;
-    const architectures = document.createElement("span");
-    architectures.className = "tag-architectures";
-    architectures.textContent = tag.architectures;
-    button.append(version, architectures);
-    button.addEventListener("click", () => showConfigGroup(tag.records));
-    tags.append(button);
+  for (const version of versionTags(records)) {
+    const group = document.createElement("div");
+    group.className = "kernel-tag";
+    group.title = version.title;
+
+    const label = document.createElement("span");
+    label.className = "tag-version";
+    label.textContent = version.version;
+    group.append(label);
+
+    const archList = document.createElement("span");
+    archList.className = "tag-architectures";
+    group.append(archList);
+
+    const renderArchitectureButtons = () => {
+      archList.replaceChildren();
+      for (const architecture of version.architectures) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "arch-button";
+        button.textContent = architecture.name;
+        button.addEventListener("click", () => showConfig(architecture.records[0]));
+        archList.append(button);
+      }
+    };
+
+    if (version.isCollapsed) {
+      const expand = document.createElement("button");
+      expand.type = "button";
+      expand.className = "arch-button arch-summary";
+      expand.textContent = version.architectureSummary;
+      expand.addEventListener("click", renderArchitectureButtons);
+      archList.append(expand);
+    } else {
+      renderArchitectureButtons();
+    }
+
+    tags.append(group);
   }
 
   td.append(tags);

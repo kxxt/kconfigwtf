@@ -178,7 +178,7 @@ a {
 }
 
 .link-button,
-.kernel-tag {
+.arch-button {
   min-height: 0;
   border: 0;
   border-radius: 0;
@@ -190,7 +190,7 @@ a {
 }
 
 .link-button:hover,
-.kernel-tag:hover {
+.arch-button:hover {
   background: transparent;
   color: var(--accent-hover);
 }
@@ -204,7 +204,7 @@ a {
 .kernel-tag {
   display: inline-flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 1px;
   max-width: 100%;
   border: 1px solid #b9d5cc;
@@ -229,9 +229,23 @@ a {
 }
 
 .tag-architectures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
   color: var(--muted);
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.arch-button {
+  color: var(--accent);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.arch-summary {
+  color: var(--muted);
 }
 
 .empty {
