@@ -15,6 +15,7 @@ const configBody = document.querySelector("#config-body");
 let manifest = null;
 let manifestPromise = null;
 let configNames = [];
+let isNavigating = false;
 const maxSuggestions = 200;
 
 function bareConfigName(value) {
@@ -79,6 +80,24 @@ function renderSearchError(message) {
   tbody.append(row);
 }
 
+function configPageUrl(configName) {
+  return `${script.src.replace(/app\.js$/, "")}CONFIG_/${encodeURIComponent(configName)}/`;
+}
+
+function navigateToConfig(configName) {
+  isNavigating = true;
+  window.location.href = configPageUrl(configName);
+}
+
+function navigateIfExactConfig() {
+  if (isNavigating) return;
+  const configName = bareConfigName(input.value);
+  if (!configName) return;
+  if (configNames.includes(configName)) {
+    navigateToConfig(configName);
+  }
+}
+
 async function showConfigFromButton(button) {
   configViewer.hidden = false;
   configTitle.textContent = button.dataset.configTitle || "Config";
@@ -103,7 +122,7 @@ form.addEventListener("submit", async (event) => {
       renderSearchError("No generated page exists for this config entry.");
       return;
     }
-    window.location.href = `${script.src.replace(/app\.js$/, "")}CONFIG_/${encodeURIComponent(configName)}/`;
+    navigateToConfig(configName);
   } catch (error) {
     renderSearchError(error.message);
   }
@@ -124,9 +143,24 @@ input.addEventListener("focus", () => {
 input.addEventListener("input", () => {
   if (manifest) {
     updateAutocomplete();
+    navigateIfExactConfig();
     return;
   }
-  ensureManifest().catch(() => {
-    options.replaceChildren();
-  });
+  ensureManifest()
+    .then(navigateIfExactConfig)
+    .catch(() => {
+      options.replaceChildren();
+    });
+});
+
+input.addEventListener("change", () => {
+  if (manifest) {
+    navigateIfExactConfig();
+    return;
+  }
+  ensureManifest()
+    .then(navigateIfExactConfig)
+    .catch(() => {
+      options.replaceChildren();
+    });
 });

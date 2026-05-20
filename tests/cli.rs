@@ -91,6 +91,10 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(app.contains("manifest.configs"));
     assert!(app.contains("arch-button"));
     assert!(app.contains("window.location.href"));
+    assert!(app.contains(r#"input.addEventListener("input""#));
+    assert!(app.contains(r#"input.addEventListener("change""#));
+    assert!(app.contains("navigateIfExactConfig"));
+    assert!(app.contains("navigateToConfig(configName)"));
     assert!(app.contains("CONFIG_"));
 }
 
