@@ -2,8 +2,9 @@
 
 kconfigwtf is a static Linux kernel config explorer. It builds an index of
 distribution kernel packages and generates a static website where users can
-search for a `CONFIG_*` entry, see matching distribution kernel packages, and
-open the raw kernel config that was indexed.
+search for a Kconfig entry such as `BPF`, see matching distribution kernel
+packages, and open the raw kernel config that was indexed. The website also
+accepts explicit `CONFIG_*` input such as `CONFIG_BPF`.
 
 The foundation has two parts:
 
@@ -75,6 +76,10 @@ python3 -m http.server 8000 --directory public
 ```
 
 Then open `http://localhost:8000`.
+
+The search box autocompletes Kconfig names from a pre-generated list in
+`indexes.json`. Suggestions are shown without the `CONFIG_` prefix unless the
+user has already typed it.
 
 ## Architecture
 
@@ -158,9 +163,10 @@ distribution and Debian architectures such as `amd64`, `arm64`, `armhf`, `i386`,
 an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
-indexes, copies the data tree into the site output, and writes `indexes.json` so
-the browser can discover every package index without relying on directory
-listing support from the static host.
+indexes, copies the data tree into the site output, and writes `indexes.json`.
+That manifest contains both the package index URLs and a sorted list of
+available Kconfig names for autocomplete, avoiding a browser-side full index
+scan before search.
 
 ## Test
 

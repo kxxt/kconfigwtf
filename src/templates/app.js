@@ -3,6 +3,7 @@ const manifestFile = script?.dataset.indexManifest || "indexes.json";
 
 const form = document.querySelector("#search-form");
 const input = document.querySelector("#config-input");
+const options = document.querySelector("#config-options");
 const title = document.querySelector("#result-title");
 const count = document.querySelector("#result-count");
 const tbody = document.querySelector("#results-body");
@@ -12,6 +13,11 @@ const configLink = document.querySelector("#config-link");
 const configBody = document.querySelector("#config-body");
 
 let packageIndexes = null;
+let packageIndexesPromise = null;
+let manifest = null;
+let manifestPromise = null;
+let configNames = [];
+const maxSuggestions = 200;
 
 function normalizeConfigName(value) {
   const normalized = value.trim().toUpperCase();
@@ -108,13 +114,58 @@ async function fetchJson(path) {
   return response.json();
 }
 
+async function ensureManifest() {
+  if (manifest) return manifest;
+  manifestPromise ||= fetchJson(manifestFile);
+  try {
+    manifest = await manifestPromise;
+    configNames = (manifest.configs || []).slice().sort((left, right) =>
+      left.localeCompare(right),
+    );
+    updateAutocomplete();
+    return manifest;
+  } catch (error) {
+    manifestPromise = null;
+    throw error;
+  }
+}
+
 async function loadPackageIndexes() {
-  const manifest = await fetchJson(manifestFile);
+  const siteManifest = await ensureManifest();
   return Promise.all(
-    manifest.indexes.map(async (indexPath) => ({
+    siteManifest.indexes.map(async (indexPath) => ({
       indexPath,
       data: await fetchJson(indexPath),
     })),
+  );
+}
+
+async function ensurePackageIndexes() {
+  if (packageIndexes) return packageIndexes;
+  packageIndexesPromise ||= loadPackageIndexes();
+  try {
+    packageIndexes = await packageIndexesPromise;
+    return packageIndexes;
+  } catch (error) {
+    packageIndexesPromise = null;
+    throw error;
+  }
+}
+
+function updateAutocomplete() {
+  const raw = input.value.trim().toUpperCase();
+  const usesPrefix = raw.startsWith("CONFIG_");
+  const query = usesPrefix ? raw.slice("CONFIG_".length) : raw;
+  const matches = configNames
+    .filter((name) => name.startsWith(query))
+    .slice(0, maxSuggestions);
+
+  options.replaceChildren(
+    ...matches.map((name) => {
+      const option = document.createElement("option");
+      option.value = usesPrefix ? `CONFIG_${name}` : name;
+      return option;
+    }),
   );
 }
 
@@ -157,7 +208,7 @@ form.addEventListener("submit", async (event) => {
   const configName = normalizeConfigName(input.value);
 
   try {
-    packageIndexes ||= await loadPackageIndexes();
+    await ensurePackageIndexes();
     const records = findRecords(configName, packageIndexes);
     if (records.length === 0) {
       title.textContent = configName;
@@ -173,4 +224,20 @@ form.addEventListener("submit", async (event) => {
     configViewer.hidden = true;
     renderEmpty(error.message);
   }
+});
+
+input.addEventListener("focus", () => {
+  ensureManifest().catch(() => {
+    options.replaceChildren();
+  });
+});
+
+input.addEventListener("input", () => {
+  if (packageIndexes) {
+    updateAutocomplete();
+    return;
+  }
+  ensureManifest().catch(() => {
+    options.replaceChildren();
+  });
 });

@@ -12,7 +12,8 @@ index format and static site generator.
    `data/<DISTRO>/<PACKAGE>/<VERSION>/<ARCH>/config`.
 5. The same data writer builds `data/<DISTRO>/<PACKAGE>/index.json`.
 6. The site generator scans `data/**/index.json`, copies the data tree, and
-   writes a static-site manifest.
+   writes a static-site manifest containing package index URLs plus the complete
+   Kconfig name list for autocomplete.
 
 ## Distribution Backend Contract
 

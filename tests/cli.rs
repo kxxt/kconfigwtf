@@ -11,6 +11,12 @@ use kconfigwtf::indexer::KernelConfigPackage;
 use predicates::prelude::*;
 use tar::{Builder, Header};
 
+#[derive(serde::Deserialize)]
+struct TestManifest {
+    indexes: Vec<String>,
+    configs: Vec<String>,
+}
+
 #[test]
 fn site_command_generates_static_site_from_data_directory() {
     let temp = tempfile::tempdir().expect("tempdir");
@@ -23,7 +29,7 @@ fn site_command_generates_static_site_from_data_directory() {
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,
             source: None,
-            config_text: "CONFIG_BPF=y\n".to_string(),
+            config_text: "CONFIG_BPF=y\nCONFIG_EXT4_FS=m\n".to_string(),
         }],
         &data_dir,
     )
@@ -47,16 +53,29 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(site_dir.join("app.js").exists());
     assert!(site_dir.join("styles.css").exists());
     assert!(site_dir.join("indexes.json").exists());
+    let manifest: TestManifest =
+        serde_json::from_str(&fs::read_to_string(site_dir.join("indexes.json")).expect("manifest"))
+            .expect("parse manifest");
+    assert_eq!(
+        manifest.indexes,
+        vec!["data/debian/linux-image-amd64/index.json"]
+    );
+    assert_eq!(manifest.configs, vec!["BPF", "EXT4_FS"]);
     assert!(
         site_dir
             .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
             .exists()
     );
-    assert!(
-        fs::read_to_string(site_dir.join("index.html"))
-            .expect("read html")
-            .contains("kconfigwtf test")
-    );
+    let html = fs::read_to_string(site_dir.join("index.html")).expect("read html");
+    assert!(html.contains("kconfigwtf test"));
+    assert!(html.contains(r#"list="config-options""#));
+    assert!(html.contains(r#"placeholder="BPF""#));
+    assert!(html.contains(r#"<datalist id="config-options"></datalist>"#));
+
+    let app = fs::read_to_string(site_dir.join("app.js")).expect("read app js");
+    assert!(!app.contains("collectConfigNames"));
+    assert!(app.contains("manifest.configs"));
+    assert!(app.contains("CONFIG_"));
 }
 
 #[test]
