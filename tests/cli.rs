@@ -9,6 +9,7 @@ use kconfigwtf::index::{
 };
 use kconfigwtf::indexer::KernelConfigPackage;
 use predicates::prelude::*;
+use rpm::{BuildConfig, CompressionType, FileOptions, PackageBuilder};
 use tar::{Builder, Header};
 
 #[derive(serde::Deserialize)]
@@ -182,6 +183,98 @@ fn debian_index_command_requires_deb_root_for_local_packages_file() {
         .stderr(predicate::str::contains("--deb-root is required"));
 }
 
+#[test]
+fn fedora_index_command_requires_rpm_root_for_local_repomd_file() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repomd_path = temp.path().join("repomd.xml");
+    fs::write(&repomd_path, "").expect("write repomd");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "fedora",
+            "--repomd-file",
+            repomd_path.to_str().expect("repomd path"),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--rpm-root is required"));
+}
+
+#[test]
+fn fedora_index_command_indexes_local_repo_metadata() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let repodata = repo_root.join("repodata");
+    let packages_dir = repo_root.join("Packages/k");
+    let rpm_path = packages_dir.join("kernel-core-test.rpm");
+    let primary_path = repodata.join("primary.xml.gz");
+    let repomd_path = repodata.join("repomd.xml");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&packages_dir).expect("create packages dir");
+    fs::create_dir_all(&repodata).expect("create repodata dir");
+    fs::write(&rpm_path, minimal_rpm_with_config("CONFIG_BPF=y\n")).expect("write rpm");
+    fs::write(
+        &primary_path,
+        gzip_bytes(
+            r#"<metadata>
+  <package type="rpm">
+    <name>kernel-core</name>
+    <arch>x86_64</arch>
+    <version epoch="0" ver="6.12.0" rel="1.fc99"/>
+    <location href="Packages/k/kernel-core-test.rpm"/>
+  </package>
+</metadata>"#,
+        ),
+    )
+    .expect("write primary");
+    fs::write(
+        &repomd_path,
+        r#"<repomd>
+  <data type="primary"><location href="repodata/primary.xml.gz"/></data>
+</repomd>"#,
+    )
+    .expect("write repomd");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "fedora",
+            "--repomd-file",
+            repomd_path.to_str().expect("repomd path"),
+            "--rpm-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("fedora/kernel-core/0:6.12.0-1.fc99/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read fedora config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("fedora/kernel-core/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read fedora index"))
+            .expect("parse fedora index");
+    assert_eq!(index.distribution, Distribution::Fedora);
+    assert_eq!(index.package_name, "kernel-core");
+    assert_eq!(
+        index.kernels["0:6.12.0-1.fc99/amd64"].architecture,
+        Architecture::Amd64
+    );
+}
+
 fn minimal_deb_with_config(config: &str) -> Vec<u8> {
     let mut tarball = Vec::new();
     {
@@ -208,6 +301,29 @@ fn minimal_deb_with_config(config: &str) -> Vec<u8> {
     append_ar_member(&mut deb, "control.tar.gz", &[]);
     append_ar_member(&mut deb, "data.tar.gz", &data_tar_gz);
     deb
+}
+
+fn minimal_rpm_with_config(config: &str) -> Vec<u8> {
+    let mut package_builder =
+        PackageBuilder::new("kernel-core", "6.12.0", "MIT", "x86_64", "kernel");
+    package_builder
+        .release("1.fc99")
+        .using_config(BuildConfig::v4().compression(CompressionType::Gzip))
+        .with_file_contents(
+            config.as_bytes(),
+            FileOptions::new("/boot/config-6.12.0-1.fc99.x86_64"),
+        )
+        .expect("add config");
+    let package = package_builder.build().expect("build rpm");
+    let mut bytes = Vec::new();
+    package.write(&mut bytes).expect("write rpm");
+    bytes
+}
+
+fn gzip_bytes(input: &str) -> Vec<u8> {
+    let mut gz = GzEncoder::new(Vec::new(), Compression::default());
+    gz.write_all(input.as_bytes()).expect("write gzip");
+    gz.finish().expect("finish gzip")
 }
 
 fn append_ar_member(ar: &mut Vec<u8>, name: &str, data: &[u8]) {

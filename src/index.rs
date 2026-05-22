@@ -16,6 +16,7 @@ pub const INDEX_SCHEMA_VERSION: u32 = 4;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
     Debian,
+    Fedora,
     Other(String),
 }
 
@@ -23,6 +24,7 @@ impl Distribution {
     pub fn as_str(&self) -> &str {
         match self {
             Self::Debian => "debian",
+            Self::Fedora => "fedora",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -45,6 +47,7 @@ impl FromStr for Distribution {
 
         Ok(match normalized.as_str() {
             "debian" => Self::Debian,
+            "fedora" => Self::Fedora,
             other => Self::Other(other.to_string()),
         })
     }

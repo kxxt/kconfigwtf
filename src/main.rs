@@ -5,6 +5,9 @@ use clap::{Args, Parser, Subcommand};
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
 };
+use kconfigwtf::fedora::{
+    FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
+};
 use kconfigwtf::index::{Architecture, write_packages_to_data_dir};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
@@ -30,6 +33,8 @@ enum Command {
 enum IndexCommand {
     /// Index Debian kernel packages from a mirror or a local Packages file.
     Debian(DebianArgs),
+    /// Index Fedora kernel packages from a repository or local repo metadata.
+    Fedora(FedoraArgs),
 }
 
 #[derive(Debug, Args)]
@@ -72,6 +77,44 @@ struct DebianArgs {
 }
 
 #[derive(Debug, Args)]
+struct FedoraArgs {
+    /// Fedora mirror root used for remote indexing.
+    #[arg(
+        long,
+        default_value = "https://download.fedoraproject.org/pub/fedora/linux"
+    )]
+    mirror: String,
+
+    /// Fedora release to index. Use rawhide for Fedora development/rawhide.
+    #[arg(long, default_value = "rawhide")]
+    release: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Fedora repodata/repomd.xml file. Useful for offline indexing and tests.
+    #[arg(long)]
+    repomd_file: Option<PathBuf>,
+
+    /// Local repository root used to resolve repodata and RPM hrefs from --repomd-file.
+    #[arg(long)]
+    rpm_root: Option<PathBuf>,
+
+    /// Fedora RPM package name to index.
+    #[arg(long, default_value = "kernel-core")]
+    package_name: String,
+
+    /// Limit the number of Fedora packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct SiteArgs {
     /// Input data directory containing package indexes and raw configs.
     #[arg(long, default_value = "data")]
@@ -94,6 +137,9 @@ async fn main() -> Result<()> {
         Command::Index {
             command: IndexCommand::Debian(args),
         } => index_debian(args).await,
+        Command::Index {
+            command: IndexCommand::Fedora(args),
+        } => index_fedora(args).await,
         Command::Site(args) => generate_site(args),
     }
 }
@@ -101,6 +147,15 @@ async fn main() -> Result<()> {
 async fn index_debian(args: DebianArgs) -> Result<()> {
     let config = debian_config_from_args(&args)?;
     let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_fedora(args: FedoraArgs) -> Result<()> {
+    let config = fedora_config_from_args(&args)?;
+    let indexer = FedoraIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
@@ -138,6 +193,40 @@ fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
     };
 
     config.package_name_prefix = args.package_prefix.clone();
+    config.max_packages = args.max_packages;
+    Ok(config)
+}
+
+fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
+    let mut config = if let Some(repomd_file) = &args.repomd_file {
+        let Some(rpm_root) = &args.rpm_root else {
+            bail!("--rpm-root is required when --repomd-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        FedoraIndexerConfig {
+            feeds: vec![FedoraRepoFeed {
+                architecture,
+                repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
+                package_base: FedoraPackageBase::Path(rpm_root.clone()),
+            }],
+            package_name: args.package_name.clone(),
+            max_packages: args.max_packages,
+        }
+    } else {
+        FedoraIndexerConfig::from_mirror(
+            args.mirror.clone(),
+            &args.release,
+            args.architectures.clone(),
+        )
+    };
+
+    config.package_name = args.package_name.clone();
     config.max_packages = args.max_packages;
     Ok(config)
 }

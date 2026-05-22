@@ -1,4 +1,5 @@
 pub mod debian;
+pub mod fedora;
 pub mod index;
 pub mod indexer;
 pub mod site;

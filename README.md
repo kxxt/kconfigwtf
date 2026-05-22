@@ -12,7 +12,7 @@ The foundation has two parts:
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
   search UI from package-level indexes under `data/`.
 
-The first implemented distribution backend is Debian.
+The first implemented distribution backends are Debian and Fedora.
 
 ## Install
 
@@ -50,6 +50,36 @@ cargo run -- index debian \
 
 When `--packages-file` is used, `Filename` fields in the Packages file are
 resolved relative to `--deb-root`.
+
+## Generate A Fedora Index
+
+Index Fedora `kernel-core` packages from a mirror:
+
+```sh
+cargo run -- index fedora \
+  --release rawhide \
+  --arch x86_64 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+The Fedora backend reads `repodata/repomd.xml`, follows the primary metadata
+location, selects matching RPMs, extracts `/boot/config-*` from each package,
+and writes raw configs plus package-level indexes. Use `--max-packages` during
+development to avoid downloading many large kernel RPMs.
+
+Offline indexing is also supported for tests and mirror snapshots:
+
+```sh
+cargo run -- index fedora \
+  --repomd-file ./mirror/repodata/repomd.xml \
+  --rpm-root ./mirror \
+  --arch x86_64 \
+  --data-dir data
+```
+
+When `--repomd-file` is used, primary metadata and RPM `href` fields are
+resolved relative to `--rpm-root`.
 
 ## Generate The Static Site
 
@@ -91,6 +121,8 @@ The crate is split into focused modules:
 - `indexer`: shared distribution indexer trait and package payload type.
 - `debian`: Debian `Packages` parser, package selection, `.deb` extraction, and
   indexer implementation.
+- `fedora`: Fedora `repomd.xml` / primary metadata parser, RPM extraction, and
+  indexer implementation.
 - `site`: static site rendering using MiniJinja templates.
 
 Distribution backends implement:
@@ -120,6 +152,8 @@ For example:
 ```text
 data/debian/linux-image-<VERSION>-<ARCH>/6.1.4-1/amd64/config
 data/debian/linux-image-<VERSION>-<ARCH>/index.json
+data/fedora/kernel-core/0:6.12.0-1.fc99/amd64/config
+data/fedora/kernel-core/index.json
 ```
 
 Each package index stores package metadata once and refers to kernels by a

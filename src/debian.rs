@@ -6,7 +6,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
 use tar::Archive;
-use xz2::read::XzDecoder;
+use liblzma::read::XzDecoder;
 
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
