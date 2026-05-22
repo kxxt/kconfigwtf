@@ -187,6 +187,52 @@ fn debian_index_command_requires_deb_root_for_local_packages_file() {
 }
 
 #[test]
+fn ubuntu_index_command_indexes_local_packages_file() {
+    apt_index_command_indexes_local_packages_file(AptCliCase {
+        command: "ubuntu",
+        distribution: Distribution::Ubuntu,
+        package_name: "linux-modules-6.14.0-29-generic",
+        package_version: "6.14.0-29.29~24.04.1",
+        expected_config_path: "ubuntu/linux-image-<VERSION>-generic/6.14.0-29.29~24.04.1/amd64/config",
+        expected_index_path: "ubuntu/linux-image-<VERSION>-generic/index.json",
+        expected_index_package_name: "linux-image-<VERSION>-generic",
+        extra_packages: &[],
+    });
+}
+
+#[test]
+fn kali_index_command_indexes_local_packages_file() {
+    apt_index_command_indexes_local_packages_file(AptCliCase {
+        command: "kali",
+        distribution: Distribution::Kali,
+        package_name: "linux-base-6.19.14+kali-amd64",
+        package_version: "6.19.14-1+kali1",
+        expected_config_path: "kali/linux-image-<VERSION>-<ARCH>/6.19.14-1+kali1/amd64/config",
+        expected_index_path: "kali/linux-image-<VERSION>-<ARCH>/index.json",
+        expected_index_package_name: "linux-image-<VERSION>-<ARCH>",
+        extra_packages: &[],
+    });
+}
+
+#[test]
+fn proxmox_index_command_indexes_local_packages_file() {
+    apt_index_command_indexes_local_packages_file(AptCliCase {
+        command: "proxmox",
+        distribution: Distribution::Proxmox,
+        package_name: "proxmox-kernel-6.11.0-1-pve",
+        package_version: "6.11.0-1",
+        expected_config_path: "proxmox/proxmox-kernel-<VERSION>-pve/6.11.0-1/amd64/config",
+        expected_index_path: "proxmox/proxmox-kernel-<VERSION>-pve/index.json",
+        expected_index_package_name: "proxmox-kernel-<VERSION>-pve",
+        extra_packages: &[(
+            "proxmox-kernel-6.11.0-1-pve-signed",
+            "6.11.0-1",
+            "pool/p/proxmox-signed.deb",
+        )],
+    });
+}
+
+#[test]
 fn arch_index_command_requires_package_root_for_local_db_file() {
     let temp = tempfile::tempdir().expect("tempdir");
     let db_path = temp.path().join("core.db");
@@ -205,6 +251,79 @@ fn arch_index_command_requires_package_root_for_local_db_file() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("--package-root is required"));
+}
+
+struct AptCliCase<'a> {
+    command: &'a str,
+    distribution: Distribution,
+    package_name: &'a str,
+    package_version: &'a str,
+    expected_config_path: &'a str,
+    expected_index_path: &'a str,
+    expected_index_package_name: &'a str,
+    extra_packages: &'a [(&'a str, &'a str, &'a str)],
+}
+
+fn apt_index_command_indexes_local_packages_file(case: AptCliCase<'_>) {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let deb_root = temp.path().join("mirror");
+    let deb_path = deb_root.join("pool/main/l/linux/kernel.deb");
+    let packages_path = temp.path().join("Packages");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(deb_path.parent().expect("deb parent")).expect("create pool");
+    fs::write(
+        &deb_path,
+        minimal_deb_with_config("CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n"),
+    )
+    .expect("write deb");
+
+    let mut packages = format!(
+        "Package: {}\nVersion: {}\nArchitecture: amd64\nFilename: pool/main/l/linux/kernel.deb\n\n",
+        case.package_name, case.package_version
+    );
+    for (name, version, filename) in case.extra_packages {
+        packages.push_str(&format!(
+            "Package: {name}\nVersion: {version}\nArchitecture: amd64\nFilename: {filename}\n\n"
+        ));
+    }
+    fs::write(&packages_path, packages).expect("write packages");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            case.command,
+            "--packages-file",
+            packages_path.to_str().expect("packages path"),
+            "--deb-root",
+            deb_root.to_str().expect("deb root"),
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join(case.expected_config_path);
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read raw config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join(case.expected_index_path);
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read output"))
+            .expect("parse package index");
+    assert_eq!(index.distribution, case.distribution);
+    assert_eq!(index.package_name, case.expected_index_package_name);
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
 }
 
 #[test]

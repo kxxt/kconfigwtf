@@ -80,7 +80,8 @@ The backend currently looks for kernel configs under paths such as
 
 ## Debian Backend
 
-The Debian backend supports two retrieval modes:
+The Debian backend is an APT repository backend used by Debian, Ubuntu, Kali,
+and Proxmox. It supports two retrieval modes:
 
 - Mirror mode, using `dists/<suite>/<component>/binary-<arch>/Packages.gz`.
 - Local mode, using `--packages-file` and resolving package `Filename` values
@@ -97,6 +98,30 @@ formats:
 
 Future Debian improvements can add source package metadata, package version
 ordering, snapshot pinning, and stricter kernel image package filtering.
+
+## Ubuntu, Kali, And Proxmox Backends
+
+Ubuntu, Kali, and Proxmox reuse the APT backend with different distribution
+values and defaults:
+
+- Ubuntu defaults to `http://archive.ubuntu.com/ubuntu`,
+  `noble-updates`, `main`, and `linux-modules-`.
+- Kali defaults to `http://http.kali.org/kali`, `kali-rolling`, `main`, and
+  `linux-base-`.
+- Proxmox defaults to `http://download.proxmox.com/debian/pve`, `bookworm`,
+  `pve-no-subscription`, and `proxmox-kernel-`.
+
+The Proxmox CLI requires package names to contain `-pve` and excludes signed
+and signed-template variants by default, so package-level indexes are built
+from unsigned kernel image packages rather than meta packages.
+
+APT-style package names that embed the kernel version or architecture are
+normalized before indexing. Ubuntu configs are extracted from `linux-modules-*`
+packages, Kali configs are extracted from `linux-base-*` packages, and both are
+displayed as `linux-image-*` package names. For example,
+`linux-modules-6.14.0-29-generic` becomes `linux-image-<VERSION>-generic`, and
+`linux-base-6.19.14+kali-amd64` becomes `linux-image-<VERSION>-<ARCH>`.
+`proxmox-kernel-6.11.0-1-pve` becomes `proxmox-kernel-<VERSION>-pve`.
 
 ## Fedora Backend
 

@@ -40,6 +40,12 @@ enum IndexCommand {
     Debian(DebianArgs),
     /// Index Fedora kernel packages from a repository or local repo metadata.
     Fedora(FedoraArgs),
+    /// Index Kali Linux kernel packages from a mirror or a local Packages file.
+    Kali(KaliArgs),
+    /// Index Proxmox VE kernel packages from a mirror or a local Packages file.
+    Proxmox(ProxmoxArgs),
+    /// Index Ubuntu kernel packages from a mirror or a local Packages file.
+    Ubuntu(UbuntuArgs),
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -156,6 +162,123 @@ struct DebianArgs {
 }
 
 #[derive(Debug, Args)]
+struct UbuntuArgs {
+    /// Ubuntu mirror root used for remote indexing.
+    #[arg(long, default_value = "http://archive.ubuntu.com/ubuntu")]
+    mirror: String,
+
+    /// Ubuntu suite to index when using a mirror.
+    #[arg(long, default_value = "noble-updates")]
+    suite: String,
+
+    /// Ubuntu archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Ubuntu Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the Ubuntu Packages index.
+    #[arg(long, default_value = "linux-modules-")]
+    package_prefix: String,
+
+    /// Limit the number of Ubuntu packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct KaliArgs {
+    /// Kali mirror root used for remote indexing.
+    #[arg(long, default_value = "http://http.kali.org/kali")]
+    mirror: String,
+
+    /// Kali suite to index when using a mirror.
+    #[arg(long, default_value = "kali-rolling")]
+    suite: String,
+
+    /// Kali archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Kali Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the Kali Packages index.
+    #[arg(long, default_value = "linux-base-")]
+    package_prefix: String,
+
+    /// Limit the number of Kali packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct ProxmoxArgs {
+    /// Proxmox mirror root used for remote indexing.
+    #[arg(long, default_value = "http://download.proxmox.com/debian/pve")]
+    mirror: String,
+
+    /// Debian suite backing the Proxmox repository.
+    #[arg(long, default_value = "bookworm")]
+    suite: String,
+
+    /// Proxmox repository component to index.
+    #[arg(long, default_value = "pve-no-subscription")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Proxmox Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the Proxmox Packages index.
+    #[arg(long, default_value = "proxmox-kernel-")]
+    package_prefix: String,
+
+    /// Limit the number of Proxmox packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct FedoraArgs {
     /// Fedora mirror root used for remote indexing.
     #[arg(
@@ -222,6 +345,15 @@ async fn main() -> Result<()> {
         Command::Index {
             command: IndexCommand::Fedora(args),
         } => index_fedora(args).await,
+        Command::Index {
+            command: IndexCommand::Kali(args),
+        } => index_kali(args).await,
+        Command::Index {
+            command: IndexCommand::Proxmox(args),
+        } => index_proxmox(args).await,
+        Command::Index {
+            command: IndexCommand::Ubuntu(args),
+        } => index_ubuntu(args).await,
         Command::Site(args) => generate_site(args),
     }
 }
@@ -247,6 +379,71 @@ async fn index_debian(args: DebianArgs) -> Result<()> {
 async fn index_fedora(args: FedoraArgs) -> Result<()> {
     let config = fedora_config_from_args(&args)?;
     let indexer = FedoraIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_ubuntu(args: UbuntuArgs) -> Result<()> {
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Ubuntu,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_kali(args: KaliArgs) -> Result<()> {
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Kali,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_proxmox(args: ProxmoxArgs) -> Result<()> {
+    let required = ["-pve".to_string()];
+    let excluded = ["-signed".to_string(), "-signed-template".to_string()];
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Proxmox,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &required,
+        excluded_package_substrings: &excluded,
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
@@ -294,6 +491,36 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
 }
 
 fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
+    apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Debian,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })
+}
+
+struct AptConfigArgs<'a> {
+    distribution: Distribution,
+    mirror: &'a str,
+    suite: &'a str,
+    component: &'a str,
+    architectures: &'a [Architecture],
+    packages_file: Option<&'a PathBuf>,
+    deb_root: Option<&'a PathBuf>,
+    package_prefix: &'a str,
+    required_package_substrings: &'a [String],
+    excluded_package_substrings: &'a [String],
+    max_packages: Option<usize>,
+}
+
+fn apt_config_from_args(args: AptConfigArgs<'_>) -> Result<DebianIndexerConfig> {
     let mut config = if let Some(packages_file) = &args.packages_file {
         let Some(deb_root) = &args.deb_root else {
             bail!("--deb-root is required when --packages-file is used");
@@ -306,24 +533,31 @@ fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
             .unwrap_or(Architecture::Amd64);
 
         DebianIndexerConfig {
+            distribution: args.distribution.clone(),
             feeds: vec![DebianPackageFeed {
                 architecture,
-                packages: PackageIndexLocation::Path(packages_file.clone()),
-                deb_base: DebianPackageBase::Path(deb_root.clone()),
+                packages: PackageIndexLocation::Path((*packages_file).clone()),
+                deb_base: DebianPackageBase::Path((*deb_root).clone()),
             }],
-            package_name_prefix: args.package_prefix.clone(),
+            package_name_prefix: args.package_prefix.to_string(),
+            required_package_substrings: args.required_package_substrings.to_vec(),
+            excluded_package_substrings: args.excluded_package_substrings.to_vec(),
             max_packages: args.max_packages,
         }
     } else {
-        DebianIndexerConfig::from_mirror(
-            args.mirror.clone(),
-            &args.suite,
-            &args.component,
-            args.architectures.clone(),
-        )
+        let mut config = DebianIndexerConfig::from_mirror(
+            args.mirror.to_string(),
+            args.suite,
+            args.component,
+            args.architectures.to_vec(),
+        );
+        config.distribution = args.distribution.clone();
+        config
     };
 
-    config.package_name_prefix = args.package_prefix.clone();
+    config.package_name_prefix = args.package_prefix.to_string();
+    config.required_package_substrings = args.required_package_substrings.to_vec();
+    config.excluded_package_substrings = args.excluded_package_substrings.to_vec();
     config.max_packages = args.max_packages;
     Ok(config)
 }

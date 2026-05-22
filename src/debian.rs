@@ -34,8 +34,11 @@ pub struct DebianPackageFeed {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DebianIndexerConfig {
+    pub distribution: Distribution,
     pub feeds: Vec<DebianPackageFeed>,
     pub package_name_prefix: String,
+    pub required_package_substrings: Vec<String>,
+    pub excluded_package_substrings: Vec<String>,
     pub max_packages: Option<usize>,
 }
 
@@ -61,8 +64,11 @@ impl DebianIndexerConfig {
             .collect();
 
         Self {
+            distribution: Distribution::Debian,
             feeds,
             package_name_prefix: DEFAULT_PACKAGE_PREFIX.to_string(),
+            required_package_substrings: Vec::new(),
+            excluded_package_substrings: Vec::new(),
             max_packages: None,
         }
     }
@@ -142,6 +148,7 @@ impl DebianIndexer {
 impl KernelConfigIndexer for DebianIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
+        let mut selected_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let package_index = self.load_package_index(&feed.packages).await?;
@@ -149,8 +156,11 @@ impl KernelConfigIndexer for DebianIndexer {
             let candidates = select_kernel_packages(
                 &parse_packages_index(&package_index_text),
                 &self.config.package_name_prefix,
+                &self.config.required_package_substrings,
+                &self.config.excluded_package_substrings,
                 self.config.max_packages,
             );
+            selected_package_count += candidates.len();
 
             for candidate in candidates {
                 let (source, deb_bytes) =
@@ -160,9 +170,10 @@ impl KernelConfigIndexer for DebianIndexer {
 
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
-                        distribution: Distribution::Debian,
-                        package_name: normalize_debian_kernel_package_name(
+                        distribution: self.config.distribution.clone(),
+                        package_name: normalize_apt_kernel_package_name(
                             &candidate.name,
+                            &self.config.package_name_prefix,
                             &feed.architecture,
                         ),
                         package_version: candidate.version.clone(),
@@ -172,6 +183,21 @@ impl KernelConfigIndexer for DebianIndexer {
                     });
                 }
             }
+        }
+
+        if selected_package_count == 0 {
+            bail!(
+                "APT indexer for {} did not find any packages matching prefix {:?}",
+                self.config.distribution,
+                self.config.package_name_prefix
+            );
+        }
+
+        if packages.is_empty() {
+            bail!(
+                "APT indexer for {} selected {selected_package_count} package(s), but none contained a kernel config",
+                self.config.distribution
+            );
         }
 
         Ok(packages)
@@ -226,6 +252,8 @@ pub fn parse_packages_index(input: &str) -> Vec<BTreeMap<String, String>> {
 pub fn select_kernel_packages(
     stanzas: &[BTreeMap<String, String>],
     package_name_prefix: &str,
+    required_substrings: &[String],
+    excluded_substrings: &[String],
     max_packages: Option<usize>,
 ) -> Vec<DebianPackageCandidate> {
     let mut candidates = stanzas
@@ -235,6 +263,12 @@ pub fn select_kernel_packages(
             if !name.starts_with(package_name_prefix)
                 || name.contains("-dbg")
                 || name.contains("-dbgsym")
+                || required_substrings
+                    .iter()
+                    .any(|substring| !name.contains(substring))
+                || excluded_substrings
+                    .iter()
+                    .any(|substring| name.contains(substring))
             {
                 return None;
             }
@@ -263,9 +297,18 @@ pub fn select_kernel_packages(
 }
 
 pub fn normalize_debian_kernel_package_name(name: &str, architecture: &Architecture) -> String {
-    let Some(rest) = name.strip_prefix(DEFAULT_PACKAGE_PREFIX) else {
+    normalize_apt_kernel_package_name(name, DEFAULT_PACKAGE_PREFIX, architecture)
+}
+
+pub fn normalize_apt_kernel_package_name(
+    name: &str,
+    package_name_prefix: &str,
+    architecture: &Architecture,
+) -> String {
+    let Some(rest) = name.strip_prefix(package_name_prefix) else {
         return name.to_string();
     };
+    let output_prefix = normalized_output_prefix(package_name_prefix);
 
     let mut segments = rest.split('-').collect::<Vec<_>>();
     if let Some(architecture_index) = segments
@@ -277,12 +320,20 @@ pub fn normalize_debian_kernel_package_name(name: &str, architecture: &Architect
 
     let version_prefix_len = kernel_version_prefix_len(&segments);
     if version_prefix_len == 0 {
-        return format!("{DEFAULT_PACKAGE_PREFIX}{}", segments.join("-"));
+        return format!("{output_prefix}{}", segments.join("-"));
     }
 
     let mut normalized = vec!["<VERSION>"];
     normalized.extend_from_slice(&segments[version_prefix_len..]);
-    format!("{DEFAULT_PACKAGE_PREFIX}{}", normalized.join("-"))
+    format!("{output_prefix}{}", normalized.join("-"))
+}
+
+fn normalized_output_prefix(package_name_prefix: &str) -> &str {
+    match package_name_prefix {
+        "linux-base-" => "linux-image-",
+        "linux-modules-" => "linux-image-",
+        other => other,
+    }
 }
 
 fn kernel_version_prefix_len(segments: &[&str]) -> usize {
@@ -455,10 +506,36 @@ Filename: pool/main/b/bash/bash.deb
 "#,
         );
 
-        let selected = select_kernel_packages(&stanzas, "linux-image-", None);
+        let selected = select_kernel_packages(&stanzas, "linux-image-", &[], &[], None);
 
         assert_eq!(selected.len(), 1);
         assert_eq!(selected[0].name, "linux-image-6.1.0-1-amd64");
+    }
+
+    #[test]
+    fn selects_packages_with_required_and_excluded_substrings() {
+        let stanzas = parse_packages_index(
+            r#"Package: proxmox-kernel-6.11.0-1-pve-signed
+Version: 6.11.0-1
+Filename: signed.deb
+
+Package: proxmox-kernel-6.11.0-1-pve
+Version: 6.11.0-1
+Filename: unsigned.deb
+
+Package: proxmox-kernel-6.11
+Version: 6.11.0-1
+Filename: meta.deb
+"#,
+        );
+        let required = ["-pve".to_string()];
+        let excluded = ["-signed".to_string()];
+
+        let selected =
+            select_kernel_packages(&stanzas, "proxmox-kernel-", &required, &excluded, None);
+
+        assert_eq!(selected.len(), 1);
+        assert_eq!(selected[0].name, "proxmox-kernel-6.11.0-1-pve");
     }
 
     #[test]
@@ -498,6 +575,30 @@ Filename: pool/main/b/bash/bash.deb
         assert_eq!(
             normalize_debian_kernel_package_name("linux-image-6.1.0-1-amd64", &Architecture::Amd64),
             "linux-image-<VERSION>-<ARCH>"
+        );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "linux-base-6.19.14+kali-amd64",
+                "linux-base-",
+                &Architecture::Amd64,
+            ),
+            "linux-image-<VERSION>-<ARCH>"
+        );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "linux-modules-6.14.0-29-generic",
+                "linux-modules-",
+                &Architecture::Amd64,
+            ),
+            "linux-image-<VERSION>-generic"
+        );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "proxmox-kernel-6.11.0-1-pve",
+                "proxmox-kernel-",
+                &Architecture::Amd64,
+            ),
+            "proxmox-kernel-<VERSION>-pve"
         );
     }
 

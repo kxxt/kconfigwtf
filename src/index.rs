@@ -19,7 +19,10 @@ pub enum Distribution {
     CachyOS,
     Debian,
     Fedora,
+    Kali,
     Parabola,
+    Proxmox,
+    Ubuntu,
     Other(String),
 }
 
@@ -30,7 +33,10 @@ impl Distribution {
             Self::CachyOS => "cachyos",
             Self::Debian => "debian",
             Self::Fedora => "fedora",
+            Self::Kali => "kali",
             Self::Parabola => "parabola",
+            Self::Proxmox => "proxmox",
+            Self::Ubuntu => "ubuntu",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -56,7 +62,10 @@ impl FromStr for Distribution {
             "cachyos" | "cachy-os" => Self::CachyOS,
             "debian" => Self::Debian,
             "fedora" => Self::Fedora,
+            "kali" => Self::Kali,
             "parabola" => Self::Parabola,
+            "proxmox" | "pve" => Self::Proxmox,
+            "ubuntu" => Self::Ubuntu,
             other => Self::Other(other.to_string()),
         })
     }

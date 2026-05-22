@@ -12,8 +12,9 @@ The foundation has two parts:
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
   search UI from package-level indexes under `data/`.
 
-The first implemented distribution backends are Debian, Fedora, and
-Arch-family pacman repositories for Arch Linux, Parabola, and CachyOS.
+The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
+Fedora, and Arch-family pacman repositories for Arch Linux, Parabola, and
+CachyOS.
 
 ## Install
 
@@ -51,6 +52,57 @@ cargo run -- index debian \
 
 When `--packages-file` is used, `Filename` fields in the Packages file are
 resolved relative to `--deb-root`.
+
+## Generate Ubuntu, Kali, And Proxmox Indexes
+
+Ubuntu, Kali, and Proxmox use the same APT package index and `.deb` extraction
+machinery as Debian, with distribution-specific defaults:
+
+```sh
+cargo run -- index ubuntu \
+  --suite noble-updates \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+
+cargo run -- index kali \
+  --suite kali-rolling \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+
+cargo run -- index proxmox \
+  --suite bookworm \
+  --component pve-no-subscription \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+Default mirrors are:
+
+- Ubuntu: `http://archive.ubuntu.com/ubuntu`
+- Kali: `http://http.kali.org/kali`
+- Proxmox: `http://download.proxmox.com/debian/pve`
+
+The Ubuntu backend selects `linux-modules-*` packages, and the Kali backend
+selects `linux-base-*` packages, because those packages carry `/boot/config-*`
+in current repositories. Package names are normalized back to `linux-image-*`
+in the generated data and UI. The Proxmox backend selects unsigned
+`proxmox-kernel-*-pve` packages and skips signed, signed-template, and meta
+packages that do not directly provide a config.
+
+Offline indexing works the same as Debian:
+
+```sh
+cargo run -- index ubuntu \
+  --packages-file ./mirror/dists/noble-updates/main/binary-amd64/Packages \
+  --deb-root ./mirror \
+  --arch amd64 \
+  --data-dir data
+```
 
 ## Generate A Fedora Index
 
@@ -165,8 +217,8 @@ The crate is split into focused modules:
 - `indexer`: shared distribution indexer trait and package payload type.
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, and CachyOS.
-- `debian`: Debian `Packages` parser, package selection, `.deb` extraction, and
-  indexer implementation.
+- `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
+  indexer implementation used by Debian, Ubuntu, Kali, and Proxmox.
 - `fedora`: Fedora `repomd.xml` / primary metadata parser, RPM extraction, and
   indexer implementation.
 - `site`: static site rendering using MiniJinja templates.
@@ -202,6 +254,8 @@ data/fedora/kernel-core/0:6.12.0-1.fc99/amd64/config
 data/fedora/kernel-core/index.json
 data/archlinux/linux/6.12.1.arch1-1/amd64/config
 data/archlinux/linux/index.json
+data/ubuntu/linux-image-<VERSION>-generic/6.14.0-29.29~24.04.1/amd64/config
+data/proxmox/proxmox-kernel-<VERSION>-pve/6.11.0-1/amd64/config
 ```
 
 Each package index stores package metadata once and refers to kernels by a
@@ -242,10 +296,10 @@ every Kconfig entry:
 
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
-distribution plus `archlinux`, `parabola`, `cachyos`, and `fedora`.
-Architectures include `amd64`, `arm64`, `armhf`, `i386`, `ppc64el`, `riscv64`,
-and `s390x`. Unknown future values are preserved through an `Other(String)`
-enum variant.
+distribution plus `ubuntu`, `kali`, `proxmox`, `archlinux`, `parabola`,
+`cachyos`, and `fedora`. Architectures include `amd64`, `arm64`, `armhf`,
+`i386`, `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved
+through an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
 indexes, copies the data tree into the site output, writes `indexes.json`, and
