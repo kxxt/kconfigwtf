@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 use async_trait::async_trait;
@@ -9,6 +10,8 @@ use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
 const DEFAULT_TARGET: &str = "kernel_aarch64";
 const DEFAULT_CONFIG_ARTIFACT: &str = "kernel_aarch64_dot_config";
+const BOOT_IMAGE_ARTIFACT: &str = "boot.img";
+const BUILD_INFO_ARTIFACT: &str = "BUILD_INFO";
 pub const DEFAULT_DISCOVERY_URL: &str =
     "https://source.android.com/docs/core/architecture/kernel/gki1-overview";
 
@@ -91,37 +94,105 @@ impl AndroidGkiIndexer {
 
     async fn load_config(&self, build_id: &str) -> Result<(String, String)> {
         match &self.config.artifact_base {
-            AndroidArtifactBase::Ci => {
-                let url = android_ci_raw_artifact_url(
-                    build_id,
-                    &self.config.target,
-                    &self.config.config_artifact,
-                );
-                let response = self
-                    .client
-                    .get(&url)
-                    .send()
-                    .await
-                    .with_context(|| format!("requesting Android GKI config {url}"))?
-                    .error_for_status()
-                    .with_context(|| format!("Android GKI config returned an error: {url}"))?;
-                let text = response
-                    .text()
-                    .await
-                    .with_context(|| format!("reading Android GKI config {url}"))?;
-                Ok((url, text))
-            }
-            AndroidArtifactBase::Path(root) => {
-                let path = root
-                    .join(build_id)
-                    .join(&self.config.target)
-                    .join(&self.config.config_artifact);
-                let text = tokio::fs::read_to_string(&path)
-                    .await
-                    .with_context(|| format!("reading Android GKI config {}", path.display()))?;
-                Ok((path.display().to_string(), text))
+            AndroidArtifactBase::Ci => self.load_config_from_ci(build_id).await,
+            AndroidArtifactBase::Path(root) => self.load_config_from_local(root, build_id).await,
+        }
+    }
+
+    async fn load_config_from_ci(&self, build_id: &str) -> Result<(String, String)> {
+        let artifacts = self.load_ci_artifact_list(build_id).await?;
+
+        if artifacts.iter().any(|artifact| artifact == &self.config.config_artifact) {
+            let url = android_ci_raw_artifact_url(
+                build_id,
+                &self.config.target,
+                &self.config.config_artifact,
+            );
+            let text = self
+                .download_ci_text(&url)
+                .await
+                .with_context(|| format!("downloading Android GKI config {url}"))?;
+            if looks_like_kernel_config(&text) {
+                return Ok((url, text));
             }
         }
+
+        if artifacts.iter().any(|artifact| artifact == BOOT_IMAGE_ARTIFACT) {
+            let url =
+                android_ci_raw_artifact_url(build_id, &self.config.target, BOOT_IMAGE_ARTIFACT);
+            let bytes = self
+                .download_ci_bytes(&url)
+                .await
+                .with_context(|| format!("downloading Android GKI boot image {url}"))?;
+            let config_text = extract_ikconfig_from_image(&bytes)
+                .with_context(|| format!("extracting IKCONFIG from {url}"))?;
+            return Ok((format!("{url}#ikconfig"), config_text));
+        }
+
+        bail!(
+            "Android CI build {build_id} for target {} did not provide {} or {BOOT_IMAGE_ARTIFACT}",
+            self.config.target,
+            self.config.config_artifact
+        );
+    }
+
+    async fn load_config_from_local(&self, root: &Path, build_id: &str) -> Result<(String, String)> {
+        let artifact_dir = root.join(build_id).join(&self.config.target);
+        let dot_config = artifact_dir.join(&self.config.config_artifact);
+        if dot_config.is_file() {
+            let text = tokio::fs::read_to_string(&dot_config)
+                .await
+                .with_context(|| format!("reading Android GKI config {}", dot_config.display()))?;
+            if looks_like_kernel_config(&text) {
+                return Ok((dot_config.display().to_string(), text));
+            }
+        }
+
+        let boot_img = artifact_dir.join(BOOT_IMAGE_ARTIFACT);
+        if boot_img.is_file() {
+            let bytes = tokio::fs::read(&boot_img)
+                .await
+                .with_context(|| format!("reading Android GKI boot image {}", boot_img.display()))?;
+            let config_text = extract_ikconfig_from_image(&bytes)
+                .with_context(|| format!("extracting IKCONFIG from {}", boot_img.display()))?;
+            return Ok((format!("{}#ikconfig", boot_img.display()), config_text));
+        }
+
+        bail!(
+            "Android artifacts for build {build_id} under {} did not provide {} or {BOOT_IMAGE_ARTIFACT}",
+            artifact_dir.display(),
+            self.config.config_artifact
+        );
+    }
+
+    async fn load_ci_artifact_list(&self, build_id: &str) -> Result<Vec<String>> {
+        let url = android_ci_raw_artifact_url(build_id, &self.config.target, BUILD_INFO_ARTIFACT);
+        let text = self
+            .download_ci_text(&url)
+            .await
+            .with_context(|| format!("downloading Android CI BUILD_INFO {url}"))?;
+        parse_build_info_artifacts(&text)
+    }
+
+    async fn download_ci_text(&self, url: &str) -> Result<String> {
+        let bytes = self.download_ci_bytes(url).await?;
+        String::from_utf8(bytes).with_context(|| format!("decoding Android CI artifact {url}"))
+    }
+
+    async fn download_ci_bytes(&self, url: &str) -> Result<Vec<u8>> {
+        let response = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .with_context(|| format!("requesting Android CI artifact {url}"))?
+            .error_for_status()
+            .with_context(|| format!("Android CI artifact returned an error: {url}"))?;
+        response
+            .bytes()
+            .await
+            .map(|bytes| bytes.to_vec())
+            .with_context(|| format!("reading Android CI artifact {url}"))
     }
 }
 
@@ -142,6 +213,13 @@ impl KernelConfigIndexer for AndroidGkiIndexer {
         let mut packages = Vec::new();
         for release in releases {
             let (source, config_text) = self.load_config(&release.kernel_bid).await?;
+            if !looks_like_kernel_config(&config_text) {
+                bail!(
+                    "Android GKI build {} ({}) did not produce a kernel config (source: {source})",
+                    release.kernel_bid,
+                    release.tag
+                );
+            }
             packages.push(KernelConfigPackage {
                 distribution: Distribution::Android,
                 package_name: metadata.name.clone(),
@@ -177,9 +255,28 @@ pub struct AndroidRelease {
     pub kernel_bid: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct AndroidBuildInfo {
+    target: AndroidBuildInfoTarget,
+}
+
+#[derive(Debug, Deserialize)]
+struct AndroidBuildInfoTarget {
+    dir_list: Vec<String>,
+}
+
 pub fn parse_release_builds(input: &str) -> Result<AndroidReleaseBuilds> {
     let json = extract_json_object(input)?;
     serde_json::from_str(json).context("parsing Android GKI release builds JSON")
+}
+
+pub fn parse_build_info_artifacts(input: &str) -> Result<Vec<String>> {
+    if looks_like_html(input) {
+        bail!("Android CI BUILD_INFO response was HTML instead of JSON");
+    }
+    let build_info: AndroidBuildInfo =
+        serde_json::from_str(input).context("parsing Android CI BUILD_INFO JSON")?;
+    Ok(build_info.target.dir_list)
 }
 
 pub fn discover_release_build_branches(input: &str) -> Vec<String> {
@@ -235,6 +332,106 @@ pub fn android_release_builds_url(branch: &str) -> String {
 
 pub fn android_ci_raw_artifact_url(build_id: &str, target: &str, artifact: &str) -> String {
     format!("https://ci.android.com/builds/submitted/{build_id}/{target}/latest/raw/{artifact}")
+}
+
+pub fn looks_like_kernel_config(text: &str) -> bool {
+    if looks_like_html(text) || text.trim().is_empty() {
+        return false;
+    }
+
+    text.lines().take(200).any(|line| {
+        let line = line.trim();
+        line.starts_with("CONFIG_")
+            || line.starts_with("# CONFIG_")
+            || line.contains("Kernel Configuration")
+    })
+}
+
+pub fn extract_ikconfig_from_image(image: &[u8]) -> Result<String> {
+    let script = locate_extract_ikconfig_script()?;
+    let temp_path = std::env::temp_dir().join(format!(
+        "kconfigwtf-boot-{}-{}.img",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or(0)
+    ));
+    std::fs::write(&temp_path, image)
+        .with_context(|| format!("writing temporary boot image {}", temp_path.display()))?;
+
+    let output = Command::new("sh")
+        .arg(&script)
+        .arg(&temp_path)
+        .output()
+        .with_context(|| format!("running {}", script.display()))?;
+    let _ = std::fs::remove_file(&temp_path);
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!(
+            "extract-ikconfig failed for {}: {stderr}",
+            temp_path.display()
+        );
+    }
+
+    let config = String::from_utf8(output.stdout).context("decoding extract-ikconfig stdout")?;
+    if !looks_like_kernel_config(&config) {
+        bail!("extract-ikconfig output did not look like a kernel config");
+    }
+    Ok(config)
+}
+
+fn locate_extract_ikconfig_script() -> Result<PathBuf> {
+    if let Ok(path) = std::env::var("EXTRACT_IKCONFIG") {
+        let path = PathBuf::from(path);
+        if path.is_file() {
+            return Ok(path);
+        }
+        bail!(
+            "EXTRACT_IKCONFIG is set but {} does not exist",
+            path.display()
+        );
+    }
+
+    let bundled = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("scripts/extract-ikconfig");
+    if bundled.is_file() {
+        return Ok(bundled);
+    }
+
+    if let Ok(path) = which_extract_ikconfig() {
+        return Ok(path);
+    }
+
+    bail!(
+        "extract-ikconfig was not found; set EXTRACT_IKCONFIG or install the kernel script"
+    );
+}
+
+fn which_extract_ikconfig() -> Result<PathBuf> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("command -v extract-ikconfig")
+        .output()
+        .context("locating extract-ikconfig in PATH")?;
+    if !output.status.success() {
+        bail!("extract-ikconfig is not available in PATH");
+    }
+    let path = String::from_utf8(output.stdout)
+        .context("decoding extract-ikconfig path")?
+        .trim()
+        .to_string();
+    if path.is_empty() {
+        bail!("extract-ikconfig is not available in PATH");
+    }
+    Ok(PathBuf::from(path))
+}
+
+fn looks_like_html(text: &str) -> bool {
+    let trimmed = text.trim_start();
+    trimmed.starts_with("<!DOCTYPE")
+        || trimmed.starts_with("<html")
+        || trimmed.contains("<artifact-page")
 }
 
 fn extract_json_object(input: &str) -> Result<&str> {
@@ -367,6 +564,41 @@ mod tests {
         );
 
         assert_eq!(branches, vec!["android16-6.12", "android15-6.6"]);
+    }
+
+    #[test]
+    fn rejects_html_as_kernel_config() {
+        assert!(!looks_like_kernel_config(
+            "<!DOCTYPE html><html><body><artifact-page></artifact-page></body></html>"
+        ));
+        assert!(looks_like_kernel_config(
+            "# Linux/arm64 6.12.23 Kernel Configuration\nCONFIG_BPF=y\n"
+        ));
+    }
+
+    #[test]
+    fn parses_build_info_artifact_list() {
+        let artifacts = parse_build_info_artifacts(
+            r#"{"target":{"dir_list":["boot.img","kernel_aarch64_dot_config"]}}"#,
+        )
+        .expect("parse BUILD_INFO");
+
+        assert!(artifacts.contains(&"boot.img".to_string()));
+        assert!(artifacts.contains(&"kernel_aarch64_dot_config".to_string()));
+    }
+
+    #[test]
+    fn extracts_ikconfig_from_boot_image_when_available() {
+        let boot_img = PathBuf::from("/tmp/boot.img");
+        if !boot_img.is_file() {
+            return;
+        }
+
+        let bytes = std::fs::read(&boot_img).expect("read boot.img");
+        let config = extract_ikconfig_from_image(&bytes).expect("extract ikconfig");
+
+        assert!(config.contains("CONFIG_"));
+        assert!(config.lines().count() > 1000);
     }
 
     fn release(tag: &str, date: &str, build_id: &str) -> AndroidRelease {

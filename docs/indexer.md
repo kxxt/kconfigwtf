@@ -92,14 +92,19 @@ retrieval modes:
   and `--release-builds-root`.
 
 The release-build metadata lists Android CI build IDs as `kernel_bid`. For each
-selected build, the backend downloads the raw Android CI artifact
-`kernel_aarch64_dot_config` from:
+selected build, the backend reads Android CI `BUILD_INFO` and prefers the raw
+`kernel_aarch64_dot_config` artifact when it exists. Older builds that do not
+publish that file fall back to downloading `boot.img` and running the kernel's
+`extract-ikconfig` script (bundled under `scripts/extract-ikconfig`).
 
 ```text
 https://ci.android.com/builds/submitted/<kernel_bid>/kernel_aarch64/latest/raw/kernel_aarch64_dot_config
+https://ci.android.com/builds/submitted/<kernel_bid>/kernel_aarch64/latest/raw/boot.img
 ```
 
-This is cheaper and more reliable than extracting IKCONFIG from `boot.img`.
+Missing `kernel_aarch64_dot_config` URLs redirect to an HTML artifact browser
+page; the backend ignores that response and uses the `boot.img` fallback
+instead.
 The backend stores `Distribution::Android`, uses the branch name from release
 metadata as the package name, and uses the release tag as the package version.
 

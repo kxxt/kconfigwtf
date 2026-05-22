@@ -156,10 +156,11 @@ cargo run -- index android \
 ```
 
 The Android backend reads the Source Android GKI release-build JSON pages, then
-downloads `kernel_aarch64_dot_config` directly from Android CI for each
-selected build. It does not need to extract the config from `boot.img`. The
-distribution is stored as `android`, and the package name is the branch name
-from the release metadata, for example `android16-6.12`.
+checks Android CI `BUILD_INFO` for each selected build. Newer builds publish
+`kernel_aarch64_dot_config` directly; older builds only provide `boot.img`, so
+the backend extracts IKCONFIG with the bundled `scripts/extract-ikconfig`
+helper. The distribution is stored as `android`, and the package name is the
+branch name from the release metadata, for example `android16-6.12`.
 
 Offline indexing is also supported for tests and snapshots:
 
