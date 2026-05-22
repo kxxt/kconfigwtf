@@ -16,6 +16,7 @@ let manifest = null;
 let manifestPromise = null;
 let configNames = [];
 let isNavigating = false;
+let previousInputValue = "";
 const maxSuggestions = 200;
 
 function bareConfigName(value) {
@@ -98,6 +99,31 @@ function navigateIfExactConfig() {
   }
 }
 
+function shouldNavigateFromInputEvent(event) {
+  const currentValue = input.value;
+  const previousValue = previousInputValue;
+  previousInputValue = currentValue;
+
+  if (!currentValue || currentValue === previousValue) {
+    return false;
+  }
+
+  const inputType = event.inputType || "";
+  if (inputType === "insertReplacementText") {
+    return true;
+  }
+
+  if (
+    inputType === "insertText" ||
+    inputType.startsWith("delete") ||
+    inputType.startsWith("history")
+  ) {
+    return false;
+  }
+
+  return Math.abs(currentValue.length - previousValue.length) > 1;
+}
+
 async function showConfigFromButton(button) {
   configViewer.hidden = false;
   configTitle.textContent = button.dataset.configTitle || "Config";
@@ -140,14 +166,21 @@ input.addEventListener("focus", () => {
   });
 });
 
-input.addEventListener("input", () => {
+input.addEventListener("input", (event) => {
+  const shouldNavigate = shouldNavigateFromInputEvent(event);
   if (manifest) {
     updateAutocomplete();
-    navigateIfExactConfig();
+    if (shouldNavigate) {
+      navigateIfExactConfig();
+    }
     return;
   }
   ensureManifest()
-    .then(navigateIfExactConfig)
+    .then(() => {
+      if (shouldNavigate) {
+        navigateIfExactConfig();
+      }
+    })
     .catch(() => {
       options.replaceChildren();
     });

@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow, bail};
 use async_trait::async_trait;
 use flate2::read::GzDecoder;
-use tar::Archive;
 use liblzma::read::XzDecoder;
+use tar::Archive;
 
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};

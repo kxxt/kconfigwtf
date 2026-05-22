@@ -599,7 +599,7 @@ mod tests {
         package_builder
             .release("300.fc44")
             .using_config(BuildConfig::v4().compression(CompressionType::Gzip))
-            .with_file_contents(&[], FileOptions::new("/boot/config-6.19.10-300.fc44.x86_64"))
+            .with_file_contents([], FileOptions::new("/boot/config-6.19.10-300.fc44.x86_64"))
             .expect("add boot placeholder")
             .with_file_contents(
                 b"CONFIG_BPF=y\n",
@@ -613,10 +613,7 @@ mod tests {
         let configs = extract_kernel_configs_from_rpm(&rpm).expect("extract configs");
 
         assert_eq!(configs.len(), 1);
-        assert_eq!(
-            configs[0].0,
-            "/lib/modules/6.19.10-300.fc44.x86_64/config"
-        );
+        assert_eq!(configs[0].0, "/lib/modules/6.19.10-300.fc44.x86_64/config");
         assert!(configs[0].1.contains("CONFIG_BPF=y"));
     }
 
