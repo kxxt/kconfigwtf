@@ -13,8 +13,8 @@ The foundation has two parts:
   search UI from package-level indexes under `data/`.
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
-Fedora, and Arch-family pacman repositories for Arch Linux, Parabola, and
-CachyOS.
+Fedora, Android AOSP GKI, and Arch-family pacman repositories for Arch Linux,
+Parabola, and CachyOS.
 
 ## Install
 
@@ -134,6 +134,46 @@ cargo run -- index fedora \
 When `--repomd-file` is used, primary metadata and RPM `href` fields are
 resolved relative to `--rpm-root`.
 
+## Generate An Android AOSP GKI Index
+
+Index Android GKI release builds from AOSP release metadata. By default, the
+CLI discovers release-build branches from the Source Android GKI overview page:
+
+```sh
+cargo run -- index android \
+  --max-builds 5 \
+  --data-dir data
+```
+
+Use `--branch` one or more times to index a selected subset:
+
+```sh
+cargo run -- index android \
+  --branch android16-6.12 \
+  --branch android15-6.6 \
+  --max-builds 5 \
+  --data-dir data
+```
+
+The Android backend reads the Source Android GKI release-build JSON pages, then
+downloads `kernel_aarch64_dot_config` directly from Android CI for each
+selected build. It does not need to extract the config from `boot.img`. The
+distribution is stored as `android`, and the package name is the branch name
+from the release metadata, for example `android16-6.12`.
+
+Offline indexing is also supported for tests and snapshots:
+
+```sh
+cargo run -- index android \
+  --release-builds-file ./gki-android16-6_12-release-builds.html \
+  --artifact-root ./artifacts \
+  --max-builds 1 \
+  --data-dir data
+```
+
+When `--release-builds-file` is used, configs are resolved as
+`<artifact-root>/<kernel_bid>/<target>/<config-artifact>`.
+
 ## Generate An Arch-Family Index
 
 Index Arch Linux kernel packages from a pacman mirror:
@@ -215,6 +255,8 @@ The crate is split into focused modules:
 
 - `index`: JSON schema, config parser, normalization, and index aggregation.
 - `indexer`: shared distribution indexer trait and package payload type.
+- `android`: Android AOSP GKI release metadata parser and Android CI
+  `kernel_aarch64_dot_config` retriever.
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, and CachyOS.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
@@ -254,6 +296,8 @@ data/fedora/kernel-core/0:6.12.0-1.fc99/amd64/config
 data/fedora/kernel-core/index.json
 data/archlinux/linux/6.12.1.arch1-1/amd64/config
 data/archlinux/linux/index.json
+data/android/android16-6.12/android16-6.12-2026-03_r32/arm64/config
+data/android/android16-6.12/index.json
 data/ubuntu/linux-image-<VERSION>-generic/6.14.0-29.29~24.04.1/amd64/config
 data/proxmox/proxmox-kernel-<VERSION>-pve/6.11.0-1/amd64/config
 ```
@@ -296,10 +340,10 @@ every Kconfig entry:
 
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
-distribution plus `ubuntu`, `kali`, `proxmox`, `archlinux`, `parabola`,
-`cachyos`, and `fedora`. Architectures include `amd64`, `arm64`, `armhf`,
-`i386`, `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved
-through an `Other(String)` enum variant.
+distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `archlinux`,
+`parabola`, `cachyos`, and `fedora`. Architectures include `amd64`, `arm64`,
+`armhf`, `i386`, `ppc64el`, `riscv64`, and `s390x`. Unknown future values are
+preserved through an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
 indexes, copies the data tree into the site output, writes `indexes.json`, and

@@ -15,6 +15,7 @@ pub const INDEX_SCHEMA_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
+    Android,
     ArchLinux,
     CachyOS,
     Debian,
@@ -29,6 +30,7 @@ pub enum Distribution {
 impl Distribution {
     pub fn as_str(&self) -> &str {
         match self {
+            Self::Android => "android",
             Self::ArchLinux => "archlinux",
             Self::CachyOS => "cachyos",
             Self::Debian => "debian",
@@ -58,6 +60,7 @@ impl FromStr for Distribution {
         }
 
         Ok(match normalized.as_str() {
+            "android" => Self::Android,
             "arch" | "archlinux" | "arch-linux" => Self::ArchLinux,
             "cachyos" | "cachy-os" => Self::CachyOS,
             "debian" => Self::Debian,

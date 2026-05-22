@@ -78,6 +78,31 @@ The backend currently looks for kernel configs under paths such as
 `usr/lib/modules/*/build/.config`, `lib/modules/*/build/.config`, and
 `boot/config-*`.
 
+## Android AOSP GKI Backend
+
+The Android backend indexes AOSP GKI release builds. It supports three
+retrieval modes:
+
+- Discovery mode, using the Source Android GKI overview page to discover
+  release-build branches, then fetching each branch release-build JSON page.
+- Selected branch mode, using `--branch` one or more times to fetch specific
+  release-build JSON pages.
+- Local mode, using `--release-builds-file` and resolving configs under
+  `--artifact-root`. Offline discovery tests can also use `--discovery-file`
+  and `--release-builds-root`.
+
+The release-build metadata lists Android CI build IDs as `kernel_bid`. For each
+selected build, the backend downloads the raw Android CI artifact
+`kernel_aarch64_dot_config` from:
+
+```text
+https://ci.android.com/builds/submitted/<kernel_bid>/kernel_aarch64/latest/raw/kernel_aarch64_dot_config
+```
+
+This is cheaper and more reliable than extracting IKCONFIG from `boot.img`.
+The backend stores `Distribution::Android`, uses the branch name from release
+metadata as the package name, and uses the release tag as the package version.
+
 ## Debian Backend
 
 The Debian backend is an APT repository backend used by Debian, Ubuntu, Kali,

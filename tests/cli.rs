@@ -187,6 +187,172 @@ fn debian_index_command_requires_deb_root_for_local_packages_file() {
 }
 
 #[test]
+fn android_index_command_requires_artifact_root_for_local_release_builds_file() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let release_builds_path = temp.path().join("release-builds.json");
+    fs::write(&release_builds_path, "{}").expect("write release builds");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "android",
+            "--release-builds-file",
+            release_builds_path.to_str().expect("release builds path"),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--artifact-root is required"));
+}
+
+#[test]
+fn android_index_command_indexes_local_release_builds_metadata() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let release_builds_path = temp.path().join("release-builds.html");
+    let artifact_root = temp.path().join("artifacts");
+    let config_path = artifact_root
+        .join("13586339")
+        .join("kernel_aarch64")
+        .join("kernel_aarch64_dot_config");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(config_path.parent().expect("config parent")).expect("create artifacts");
+    fs::write(
+        &release_builds_path,
+        r#"<devsite-code><pre><code>
+{
+  "name": "android16-6.12",
+  "branches": [
+    {
+      "name": "android16-6.12-2025-06",
+      "kernel_version": "6.12.23",
+      "releases": [
+        {
+          "tag": "android16-6.12-2025-06_r1",
+          "date": "2025-06-12",
+          "sha1": "2d954fcf3d1b73a41d0fa498324da357ec96cbdf",
+          "kernel_bid": "13586339"
+        }
+      ]
+    }
+  ]
+}
+</code></pre></devsite-code>"#,
+    )
+    .expect("write release builds");
+    fs::write(&config_path, "CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n")
+        .expect("write android config");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "android",
+            "--branch",
+            "android16-6.12",
+            "--release-builds-file",
+            release_builds_path.to_str().expect("release builds path"),
+            "--artifact-root",
+            artifact_root.to_str().expect("artifact root"),
+            "--max-builds",
+            "1",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let output_config =
+        data_dir.join("android/android16-6.12/android16-6.12-2025-06_r1/arm64/config");
+    assert!(output_config.exists());
+    assert!(
+        fs::read_to_string(&output_config)
+            .expect("read android config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("android/android16-6.12/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read android index"))
+            .expect("parse android index");
+    assert_eq!(index.distribution, Distribution::Android);
+    assert_eq!(index.package_name, "android16-6.12");
+    assert_eq!(
+        index.kernels["android16-6.12-2025-06_r1/arm64"].architecture,
+        Architecture::Arm64
+    );
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
+}
+
+#[test]
+fn android_index_command_discovers_branches_from_local_overview() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let discovery_path = temp.path().join("overview.html");
+    let release_builds_root = temp.path().join("release-builds");
+    let artifact_root = temp.path().join("artifacts");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&release_builds_root).expect("create release builds root");
+    fs::write(
+        &discovery_path,
+        r#"
+<a href="/docs/core/architecture/kernel/gki-android16-6_12-release-builds">android16-6.12</a>
+<a href="/docs/core/architecture/kernel/gki-android15-6_6-release-builds">android15-6.6</a>
+"#,
+    )
+    .expect("write discovery page");
+    write_android_release_builds(
+        &release_builds_root.join("gki-android16-6_12-release-builds.html"),
+        "android16-6.12",
+        "android16-6.12-2025-06",
+        "android16-6.12-2025-06_r1",
+        "13586339",
+    );
+    write_android_release_builds(
+        &release_builds_root.join("gki-android15-6_6-release-builds.html"),
+        "android15-6.6",
+        "android15-6.6-2025-04",
+        "android15-6.6-2025-04_r1",
+        "12445566",
+    );
+    write_android_config(&artifact_root, "13586339", "CONFIG_ANDROID16=y\n");
+    write_android_config(&artifact_root, "12445566", "CONFIG_ANDROID15=y\n");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "android",
+            "--discovery-file",
+            discovery_path.to_str().expect("discovery path"),
+            "--release-builds-root",
+            release_builds_root.to_str().expect("release builds root"),
+            "--artifact-root",
+            artifact_root.to_str().expect("artifact root"),
+            "--max-builds",
+            "1",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    assert!(
+        data_dir
+            .join("android/android16-6.12/android16-6.12-2025-06_r1/arm64/config")
+            .exists()
+    );
+    assert!(
+        data_dir
+            .join("android/android15-6.6/android15-6.6-2025-04_r1/arm64/config")
+            .exists()
+    );
+}
+
+#[test]
 fn ubuntu_index_command_indexes_local_packages_file() {
     apt_index_command_indexes_local_packages_file(AptCliCase {
         command: "ubuntu",
@@ -198,6 +364,49 @@ fn ubuntu_index_command_indexes_local_packages_file() {
         expected_index_package_name: "linux-image-<VERSION>-generic",
         extra_packages: &[],
     });
+}
+
+fn write_android_release_builds(
+    path: &std::path::Path,
+    name: &str,
+    branch: &str,
+    tag: &str,
+    build_id: &str,
+) {
+    fs::write(
+        path,
+        format!(
+            r#"<devsite-code><pre><code>
+{{
+  "name": "{name}",
+  "branches": [
+    {{
+      "name": "{branch}",
+      "kernel_version": "6.12.23",
+      "releases": [
+        {{
+          "tag": "{tag}",
+          "date": "2025-06-12",
+          "sha1": "2d954fcf3d1b73a41d0fa498324da357ec96cbdf",
+          "kernel_bid": "{build_id}"
+        }}
+      ]
+    }}
+  ]
+}}
+</code></pre></devsite-code>"#
+        ),
+    )
+    .expect("write android release builds");
+}
+
+fn write_android_config(artifact_root: &std::path::Path, build_id: &str, config: &str) {
+    let config_path = artifact_root
+        .join(build_id)
+        .join("kernel_aarch64")
+        .join("kernel_aarch64_dot_config");
+    fs::create_dir_all(config_path.parent().expect("config parent")).expect("create artifacts");
+    fs::write(config_path, config).expect("write android config");
 }
 
 #[test]

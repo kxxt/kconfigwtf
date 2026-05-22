@@ -2,6 +2,10 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand, ValueEnum};
+use kconfigwtf::android::{
+    AndroidArtifactBase, AndroidGkiIndexer, AndroidGkiIndexerConfig, AndroidReleaseBuildsLocation,
+    discover_release_build_branches,
+};
 use kconfigwtf::arch::{
     ArchDatabaseLocation, ArchIndexer, ArchIndexerConfig, ArchPackageBase, ArchRepoFeed,
 };
@@ -26,7 +30,7 @@ enum Command {
     /// Retrieve kernel configs and write the data tree.
     Index {
         #[command(subcommand)]
-        command: IndexCommand,
+        command: Box<IndexCommand>,
     },
     /// Generate a static website from a data directory.
     Site(SiteArgs),
@@ -34,6 +38,8 @@ enum Command {
 
 #[derive(Debug, Subcommand)]
 enum IndexCommand {
+    /// Index Android AOSP GKI kernel configs from release build metadata.
+    Android(AndroidArgs),
     /// Index Arch Linux family kernel packages from a pacman repository or local sync database.
     Arch(ArchArgs),
     /// Index Debian kernel packages from a mirror or a local Packages file.
@@ -46,6 +52,65 @@ enum IndexCommand {
     Proxmox(ProxmoxArgs),
     /// Index Ubuntu kernel packages from a mirror or a local Packages file.
     Ubuntu(UbuntuArgs),
+}
+
+#[derive(Debug, Args)]
+struct AndroidArgs {
+    /// Android GKI branch/package name to index. Repeat to index a selected subset.
+    #[arg(long = "branch")]
+    branches: Vec<String>,
+
+    /// Source Android GKI overview URL used to discover branches when --branch is omitted.
+    #[arg(
+        long,
+        default_value = "https://source.android.com/docs/core/architecture/kernel/gki1-overview"
+    )]
+    discovery_url: String,
+
+    /// Local Source Android GKI overview page used to discover branches offline.
+    #[arg(long)]
+    discovery_file: Option<PathBuf>,
+
+    /// Local directory containing release-build pages for discovered branches.
+    ///
+    /// Files are resolved as <release-builds-root>/gki-<branch-slug>-release-builds.json,
+    /// falling back to .html.
+    #[arg(long)]
+    release_builds_root: Option<PathBuf>,
+
+    /// Release builds JSON page URL. Defaults to the Source Android page for --branch.
+    #[arg(long)]
+    release_builds_url: Option<String>,
+
+    /// Local release builds JSON or JSON HTML page. Useful for offline indexing and tests.
+    #[arg(long)]
+    release_builds_file: Option<PathBuf>,
+
+    /// Local artifact root used with --release-builds-file.
+    ///
+    /// Files are resolved as <artifact-root>/<kernel_bid>/<target>/<config-artifact>.
+    #[arg(long)]
+    artifact_root: Option<PathBuf>,
+
+    /// Android CI target containing the GKI artifacts.
+    #[arg(long, default_value = "kernel_aarch64")]
+    target: String,
+
+    /// Artifact name containing the kernel .config.
+    #[arg(long, default_value = "kernel_aarch64_dot_config")]
+    config_artifact: String,
+
+    /// CPU architecture to store for indexed configs.
+    #[arg(long = "arch", default_value = "arm64")]
+    architecture: Architecture,
+
+    /// Limit the number of Android GKI builds fetched, newest first.
+    #[arg(long)]
+    max_builds: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -336,26 +401,29 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Index {
-            command: IndexCommand::Arch(args),
-        } => index_arch(args).await,
-        Command::Index {
-            command: IndexCommand::Debian(args),
-        } => index_debian(args).await,
-        Command::Index {
-            command: IndexCommand::Fedora(args),
-        } => index_fedora(args).await,
-        Command::Index {
-            command: IndexCommand::Kali(args),
-        } => index_kali(args).await,
-        Command::Index {
-            command: IndexCommand::Proxmox(args),
-        } => index_proxmox(args).await,
-        Command::Index {
-            command: IndexCommand::Ubuntu(args),
-        } => index_ubuntu(args).await,
+        Command::Index { command } => match *command {
+            IndexCommand::Android(args) => index_android(args).await,
+            IndexCommand::Arch(args) => index_arch(args).await,
+            IndexCommand::Debian(args) => index_debian(args).await,
+            IndexCommand::Fedora(args) => index_fedora(args).await,
+            IndexCommand::Kali(args) => index_kali(args).await,
+            IndexCommand::Proxmox(args) => index_proxmox(args).await,
+            IndexCommand::Ubuntu(args) => index_ubuntu(args).await,
+        },
         Command::Site(args) => generate_site(args),
     }
+}
+
+async fn index_android(args: AndroidArgs) -> Result<()> {
+    let configs = android_configs_from_args(&args).await?;
+    let mut packages = Vec::new();
+    for config in configs {
+        let indexer = AndroidGkiIndexer::new(config);
+        packages.extend(indexer.index().await?);
+    }
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
 }
 
 async fn index_arch(args: ArchArgs) -> Result<()> {
@@ -448,6 +516,145 @@ async fn index_proxmox(args: ProxmoxArgs) -> Result<()> {
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
     Ok(())
+}
+
+async fn android_configs_from_args(args: &AndroidArgs) -> Result<Vec<AndroidGkiIndexerConfig>> {
+    if args.release_builds_url.is_some() && args.release_builds_file.is_some() {
+        bail!("--release-builds-url and --release-builds-file are mutually exclusive");
+    }
+    if args.release_builds_root.is_some()
+        && (args.release_builds_url.is_some() || args.release_builds_file.is_some())
+    {
+        bail!(
+            "--release-builds-root cannot be combined with --release-builds-url or --release-builds-file"
+        );
+    }
+    if (args.release_builds_url.is_some() || args.release_builds_file.is_some())
+        && args.branches.len() > 1
+    {
+        bail!("explicit release-builds input can only be combined with one --branch");
+    }
+
+    let release_builds_locations = if let Some(path) = &args.release_builds_file {
+        let Some(artifact_root) = &args.artifact_root else {
+            bail!("--artifact-root is required when --release-builds-file is used");
+        };
+        vec![(
+            args.branches
+                .first()
+                .cloned()
+                .unwrap_or_else(|| "android".to_string()),
+            AndroidReleaseBuildsLocation::Path(path.clone()),
+            AndroidArtifactBase::Path(artifact_root.clone()),
+        )]
+    } else if let Some(url) = &args.release_builds_url {
+        vec![(
+            args.branches
+                .first()
+                .cloned()
+                .unwrap_or_else(|| "android".to_string()),
+            AndroidReleaseBuildsLocation::Url(url.clone()),
+            android_artifact_base(args),
+        )]
+    } else if !args.branches.is_empty() {
+        args.branches
+            .iter()
+            .map(|branch| {
+                let config = AndroidGkiIndexerConfig::from_branch(branch.clone());
+                let release_builds = if let Some(root) = &args.release_builds_root {
+                    AndroidReleaseBuildsLocation::Path(android_release_builds_path(root, branch)?)
+                } else {
+                    config.release_builds.clone()
+                };
+                Ok((branch.clone(), release_builds, android_artifact_base(args)))
+            })
+            .collect::<Result<Vec<_>>>()?
+    } else {
+        let discovery = load_android_discovery(args).await?;
+        let branches = discover_release_build_branches(&discovery);
+        if branches.is_empty() {
+            bail!("Android GKI discovery page did not contain any release-build branches");
+        }
+        branches
+            .into_iter()
+            .map(|branch| {
+                let config = AndroidGkiIndexerConfig::from_branch(branch.clone());
+                let release_builds = if let Some(root) = &args.release_builds_root {
+                    AndroidReleaseBuildsLocation::Path(android_release_builds_path(root, &branch)?)
+                } else {
+                    config.release_builds.clone()
+                };
+                Ok((branch, release_builds, android_artifact_base(args)))
+            })
+            .collect::<Result<Vec<_>>>()?
+    };
+
+    release_builds_locations
+        .into_iter()
+        .map(|(branch, release_builds, artifact_base)| {
+            let mut config = AndroidGkiIndexerConfig::from_branch(branch);
+            config.release_builds = release_builds;
+            config.artifact_base = artifact_base;
+            config.target = args.target.clone();
+            config.config_artifact = args.config_artifact.clone();
+            config.architecture = args.architecture.clone();
+            config.max_builds = args.max_builds;
+            Ok(config)
+        })
+        .collect()
+}
+
+async fn load_android_discovery(args: &AndroidArgs) -> Result<String> {
+    if let Some(path) = &args.discovery_file {
+        return tokio::fs::read_to_string(path)
+            .await
+            .with_context(|| format!("reading Android GKI discovery page {}", path.display()));
+    }
+
+    let response = reqwest::get(&args.discovery_url)
+        .await
+        .with_context(|| {
+            format!(
+                "requesting Android GKI discovery page {}",
+                args.discovery_url
+            )
+        })?
+        .error_for_status()
+        .with_context(|| {
+            format!(
+                "Android GKI discovery page returned an error: {}",
+                args.discovery_url
+            )
+        })?;
+    response
+        .text()
+        .await
+        .with_context(|| format!("reading Android GKI discovery page {}", args.discovery_url))
+}
+
+fn android_artifact_base(args: &AndroidArgs) -> AndroidArtifactBase {
+    args.artifact_root
+        .as_ref()
+        .map(|root| AndroidArtifactBase::Path(root.clone()))
+        .unwrap_or(AndroidArtifactBase::Ci)
+}
+
+fn android_release_builds_path(root: &std::path::Path, branch: &str) -> Result<PathBuf> {
+    let slug = branch.replace('.', "_");
+    let json_path = root.join(format!("gki-{slug}-release-builds.json"));
+    if json_path.exists() {
+        return Ok(json_path);
+    }
+
+    let html_path = root.join(format!("gki-{slug}-release-builds.html"));
+    if html_path.exists() {
+        return Ok(html_path);
+    }
+
+    bail!(
+        "release builds file for {branch} was not found under {}",
+        root.display()
+    )
 }
 
 fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
