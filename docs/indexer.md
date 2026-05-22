@@ -92,10 +92,12 @@ retrieval modes:
   and `--release-builds-root`.
 
 The release-build metadata lists Android CI build IDs as `kernel_bid`. For each
-selected build, the backend reads Android CI `BUILD_INFO` and prefers the raw
-`kernel_aarch64_dot_config` artifact when it exists. Older builds that do not
-publish that file fall back to downloading `boot.img` and running the kernel's
-`extract-ikconfig` script (bundled under `scripts/extract-ikconfig`).
+selected build, the backend reads Android CI `BUILD_INFO` and tries config
+sources in order: `kernel_aarch64_dot_config`, then `boot.img`, `boot-gz.img`,
+`vmlinux`, `Image`, and `boot-lz4.img`. Sources other than the dot-config file
+are decoded with the bundled `scripts/extract-ikconfig` helper. Some older
+branches (for example `android12-5.10`) publish only `vmlinux`/`Image` and not
+`boot.img`.
 
 ```text
 https://ci.android.com/builds/submitted/<kernel_bid>/kernel_aarch64/latest/raw/kernel_aarch64_dot_config
