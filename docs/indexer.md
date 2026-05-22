@@ -21,7 +21,7 @@ index format and static site generator.
 Backends should populate:
 
 - `distribution`: typed `Distribution` enum value, for example
-  `Distribution::Debian`.
+  `Distribution::Debian` or `Distribution::ArchLinux`.
 - `package_name`: the binary package that shipped the config.
 - `package_version`: the binary package version.
 - `architecture`: typed `Architecture` enum value, for example
@@ -48,6 +48,36 @@ details. The Debian backend replaces the kernel version and architecture in
 `linux-image-*` package names with `<VERSION>` and `<ARCH>` so related kernels
 share one package-level index.
 
+## Arch-Family Backend
+
+The Arch-family backend supports Arch Linux, Parabola, and CachyOS through the
+same pacman repository implementation. It supports two retrieval modes:
+
+- Mirror mode, using a pacman sync database such as
+  `<repo>/os/<arch>/<repo>.db` for Arch Linux and Parabola.
+- Local mode, using `--db-file` and resolving package filenames under
+  `--package-root`.
+
+CachyOS uses the same pacman database format but defaults to the
+`<repo>/<arch>/<repo>.db` mirror layout.
+
+The backend parses package `desc` files from the sync database, selects
+`*-headers` package names matching `--package-prefix`, and extracts config
+files from `.pkg.tar.*` packages. Arch Linux stores the build config in header
+packages such as `linux-headers`; the backend strips the `-headers` suffix from
+the indexed package name so the data tree and UI show the kernel package name
+(`linux`, `linux-lts`, `linux-cachyos`, and similar names). Supported archive
+compression formats are:
+
+- `.pkg.tar`
+- `.pkg.tar.gz`
+- `.pkg.tar.xz`
+- `.pkg.tar.zst` / `.pkg.tar.zstd`
+
+The backend currently looks for kernel configs under paths such as
+`usr/lib/modules/*/build/.config`, `lib/modules/*/build/.config`, and
+`boot/config-*`.
+
 ## Debian Backend
 
 The Debian backend supports two retrieval modes:
@@ -67,6 +97,18 @@ formats:
 
 Future Debian improvements can add source package metadata, package version
 ordering, snapshot pinning, and stricter kernel image package filtering.
+
+## Fedora Backend
+
+The Fedora backend supports two retrieval modes:
+
+- Mirror mode, using `repodata/repomd.xml` and the referenced primary metadata.
+- Local mode, using `--repomd-file` and resolving primary metadata and RPM
+  `href` values under `--rpm-root`.
+
+The backend selects matching RPM package names, currently defaulting to
+`kernel-core`, and extracts `/boot/config-*` or `lib/modules/*/config` from RPM
+payloads.
 
 ## Adding Another Distribution
 

@@ -12,7 +12,8 @@ The foundation has two parts:
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
   search UI from package-level indexes under `data/`.
 
-The first implemented distribution backends are Debian and Fedora.
+The first implemented distribution backends are Debian, Fedora, and
+Arch-family pacman repositories for Arch Linux, Parabola, and CachyOS.
 
 ## Install
 
@@ -81,6 +82,49 @@ cargo run -- index fedora \
 When `--repomd-file` is used, primary metadata and RPM `href` fields are
 resolved relative to `--rpm-root`.
 
+## Generate An Arch-Family Index
+
+Index Arch Linux kernel packages from a pacman mirror:
+
+```sh
+cargo run -- index arch \
+  --distribution archlinux \
+  --repository core \
+  --arch x86_64 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+The Arch-family backend reads a pacman sync database such as `core.db`, selects
+kernel header packages matching `--package-prefix` (default `linux`), downloads
+each `.pkg.tar.*` package, extracts kernel config files such as
+`usr/lib/modules/*/build/.config`, and writes raw configs plus package-level
+indexes. Arch Linux stores the build config in packages such as
+`linux-headers`, so the backend strips the `-headers` suffix when writing the
+data tree and UI package name.
+
+Parabola and CachyOS use the same backend with distro-specific default mirror
+and repository values:
+
+```sh
+cargo run -- index arch --distribution parabola --arch x86_64 --data-dir data
+cargo run -- index arch --distribution cachyos --arch x86_64 --data-dir data
+```
+
+Offline indexing is also supported for tests and mirror snapshots:
+
+```sh
+cargo run -- index arch \
+  --distribution archlinux \
+  --db-file ./mirror/core/os/x86_64/core.db \
+  --package-root ./mirror/core/os/x86_64 \
+  --arch x86_64 \
+  --data-dir data
+```
+
+When `--db-file` is used, package filenames from the sync database are resolved
+relative to `--package-root`.
+
 ## Generate The Static Site
 
 ```sh
@@ -119,6 +163,8 @@ The crate is split into focused modules:
 
 - `index`: JSON schema, config parser, normalization, and index aggregation.
 - `indexer`: shared distribution indexer trait and package payload type.
+- `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
+  indexer implementation for Arch Linux, Parabola, and CachyOS.
 - `debian`: Debian `Packages` parser, package selection, `.deb` extraction, and
   indexer implementation.
 - `fedora`: Fedora `repomd.xml` / primary metadata parser, RPM extraction, and
@@ -154,6 +200,8 @@ data/debian/linux-image-<VERSION>-<ARCH>/6.1.4-1/amd64/config
 data/debian/linux-image-<VERSION>-<ARCH>/index.json
 data/fedora/kernel-core/0:6.12.0-1.fc99/amd64/config
 data/fedora/kernel-core/index.json
+data/archlinux/linux/6.12.1.arch1-1/amd64/config
+data/archlinux/linux/index.json
 ```
 
 Each package index stores package metadata once and refers to kernels by a
@@ -194,9 +242,10 @@ every Kconfig entry:
 
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
-distribution and Debian architectures such as `amd64`, `arm64`, `armhf`, `i386`,
-`ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
-an `Other(String)` enum variant.
+distribution plus `archlinux`, `parabola`, `cachyos`, and `fedora`.
+Architectures include `amd64`, `arm64`, `armhf`, `i386`, `ppc64el`, `riscv64`,
+and `s390x`. Unknown future values are preserved through an `Other(String)`
+enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
 indexes, copies the data tree into the site output, writes `indexes.json`, and
@@ -211,4 +260,5 @@ cargo test
 ```
 
 The test suite includes unit tests for config parsing, Debian Packages parsing,
-`.deb` extraction, and site generation, plus integration tests for the CLI.
+Fedora repository metadata, pacman sync databases, package extraction, and site
+generation, plus integration tests for the CLI.

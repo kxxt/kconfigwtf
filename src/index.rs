@@ -15,16 +15,22 @@ pub const INDEX_SCHEMA_VERSION: u32 = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
+    ArchLinux,
+    CachyOS,
     Debian,
     Fedora,
+    Parabola,
     Other(String),
 }
 
 impl Distribution {
     pub fn as_str(&self) -> &str {
         match self {
+            Self::ArchLinux => "archlinux",
+            Self::CachyOS => "cachyos",
             Self::Debian => "debian",
             Self::Fedora => "fedora",
+            Self::Parabola => "parabola",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -46,8 +52,11 @@ impl FromStr for Distribution {
         }
 
         Ok(match normalized.as_str() {
+            "arch" | "archlinux" | "arch-linux" => Self::ArchLinux,
+            "cachyos" | "cachy-os" => Self::CachyOS,
             "debian" => Self::Debian,
             "fedora" => Self::Fedora,
+            "parabola" => Self::Parabola,
             other => Self::Other(other.to_string()),
         })
     }

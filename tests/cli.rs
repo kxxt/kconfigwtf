@@ -187,6 +187,104 @@ fn debian_index_command_requires_deb_root_for_local_packages_file() {
 }
 
 #[test]
+fn arch_index_command_requires_package_root_for_local_db_file() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let db_path = temp.path().join("core.db");
+    fs::write(&db_path, "").expect("write db");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "arch",
+            "--distribution",
+            "cachyos",
+            "--db-file",
+            db_path.to_str().expect("db path"),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--package-root is required"));
+}
+
+#[test]
+fn arch_index_command_indexes_local_sync_database() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let package_path = repo_root.join("linux-headers-6.12.1.arch1-1-x86_64.pkg.tar.zst");
+    let db_path = temp.path().join("core.db");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&repo_root).expect("create repo root");
+    fs::write(
+        &package_path,
+        minimal_arch_package_with_config("CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n"),
+    )
+    .expect("write arch package");
+    fs::write(
+        &db_path,
+        gzip_raw_bytes(&tar_with_file(
+            "linux-6.12.1.arch1-1/desc",
+            br#"%FILENAME%
+linux-headers-6.12.1.arch1-1-x86_64.pkg.tar.zst
+
+%NAME%
+linux-headers
+
+%VERSION%
+6.12.1.arch1-1
+
+%ARCH%
+x86_64
+"#,
+        )),
+    )
+    .expect("write sync database");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "arch",
+            "--distribution",
+            "archlinux",
+            "--db-file",
+            db_path.to_str().expect("db path"),
+            "--package-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("archlinux/linux/6.12.1.arch1-1/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read arch config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("archlinux/linux/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read arch index"))
+            .expect("parse arch index");
+    assert_eq!(index.distribution, Distribution::ArchLinux);
+    assert_eq!(index.package_name, "linux");
+    assert_eq!(
+        index.kernels["6.12.1.arch1-1/amd64"].architecture,
+        Architecture::Amd64
+    );
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
+}
+
+#[test]
 fn fedora_index_command_requires_rpm_root_for_local_repomd_file() {
     let temp = tempfile::tempdir().expect("tempdir");
     let repomd_path = temp.path().join("repomd.xml");
@@ -327,6 +425,39 @@ fn gzip_bytes(input: &str) -> Vec<u8> {
     let mut gz = GzEncoder::new(Vec::new(), Compression::default());
     gz.write_all(input.as_bytes()).expect("write gzip");
     gz.finish().expect("finish gzip")
+}
+
+fn gzip_raw_bytes(input: &[u8]) -> Vec<u8> {
+    let mut gz = GzEncoder::new(Vec::new(), Compression::default());
+    gz.write_all(input).expect("write gzip");
+    gz.finish().expect("finish gzip")
+}
+
+fn minimal_arch_package_with_config(config: &str) -> Vec<u8> {
+    zstd::encode_all(
+        tar_with_file(
+            "usr/lib/modules/6.12.1-arch1-1/build/.config",
+            config.as_bytes(),
+        )
+        .as_slice(),
+        0,
+    )
+    .expect("write zstd")
+}
+
+fn tar_with_file(path: &str, contents: &[u8]) -> Vec<u8> {
+    let mut tarball = Vec::new();
+    {
+        let mut builder = Builder::new(&mut tarball);
+        let mut header = Header::new_gnu();
+        header.set_size(contents.len() as u64);
+        header.set_cksum();
+        builder
+            .append_data(&mut header, path, contents)
+            .expect("append file");
+        builder.finish().expect("finish tar");
+    }
+    tarball
 }
 
 fn append_ar_member(ar: &mut Vec<u8>, name: &str, data: &[u8]) {

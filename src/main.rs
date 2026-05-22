@@ -1,14 +1,17 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
+use kconfigwtf::arch::{
+    ArchDatabaseLocation, ArchIndexer, ArchIndexerConfig, ArchPackageBase, ArchRepoFeed,
+};
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
 };
 use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
-use kconfigwtf::index::{Architecture, write_packages_to_data_dir};
+use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
 #[derive(Debug, Parser)]
@@ -31,10 +34,86 @@ enum Command {
 
 #[derive(Debug, Subcommand)]
 enum IndexCommand {
+    /// Index Arch Linux family kernel packages from a pacman repository or local sync database.
+    Arch(ArchArgs),
     /// Index Debian kernel packages from a mirror or a local Packages file.
     Debian(DebianArgs),
     /// Index Fedora kernel packages from a repository or local repo metadata.
     Fedora(FedoraArgs),
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum ArchDistributionArg {
+    #[value(alias = "arch", alias = "archlinux")]
+    ArchLinux,
+    Parabola,
+    #[value(alias = "cachyos", alias = "cachy-os")]
+    CachyOS,
+}
+
+impl ArchDistributionArg {
+    fn distribution(self) -> Distribution {
+        match self {
+            Self::ArchLinux => Distribution::ArchLinux,
+            Self::Parabola => Distribution::Parabola,
+            Self::CachyOS => Distribution::CachyOS,
+        }
+    }
+
+    fn default_mirror(self) -> &'static str {
+        match self {
+            Self::ArchLinux => "https://geo.mirror.pkgbuild.com",
+            Self::Parabola => "https://repo.parabola.nu",
+            Self::CachyOS => "https://mirror.cachyos.org/repo",
+        }
+    }
+
+    fn default_repository(self) -> &'static str {
+        match self {
+            Self::ArchLinux => "core",
+            Self::Parabola => "libre",
+            Self::CachyOS => "cachyos-v3",
+        }
+    }
+}
+
+#[derive(Debug, Args)]
+struct ArchArgs {
+    /// Arch-family distribution to index.
+    #[arg(long, value_enum, default_value_t = ArchDistributionArg::ArchLinux)]
+    distribution: ArchDistributionArg,
+
+    /// Pacman mirror root used for remote indexing.
+    #[arg(long)]
+    mirror: Option<String>,
+
+    /// Pacman repository to index.
+    #[arg(long)]
+    repository: Option<String>,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local pacman sync database file. Useful for offline indexing and tests.
+    #[arg(long)]
+    db_file: Option<PathBuf>,
+
+    /// Local repository root used to resolve package filenames from --db-file.
+    #[arg(long)]
+    package_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the pacman sync database.
+    #[arg(long, default_value = "linux")]
+    package_prefix: String,
+
+    /// Limit the number of pacman packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
 }
 
 #[derive(Debug, Args)]
@@ -135,6 +214,9 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Command::Index {
+            command: IndexCommand::Arch(args),
+        } => index_arch(args).await,
+        Command::Index {
             command: IndexCommand::Debian(args),
         } => index_debian(args).await,
         Command::Index {
@@ -142,6 +224,15 @@ async fn main() -> Result<()> {
         } => index_fedora(args).await,
         Command::Site(args) => generate_site(args),
     }
+}
+
+async fn index_arch(args: ArchArgs) -> Result<()> {
+    let config = arch_config_from_args(&args)?;
+    let indexer = ArchIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
 }
 
 async fn index_debian(args: DebianArgs) -> Result<()> {
@@ -160,6 +251,46 @@ async fn index_fedora(args: FedoraArgs) -> Result<()> {
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
     Ok(())
+}
+
+fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
+    let distribution = args.distribution.distribution();
+    let mut config = if let Some(db_file) = &args.db_file {
+        let Some(package_root) = &args.package_root else {
+            bail!("--package-root is required when --db-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        ArchIndexerConfig {
+            feeds: vec![ArchRepoFeed {
+                distribution,
+                architecture,
+                database: ArchDatabaseLocation::Path(db_file.clone()),
+                package_base: ArchPackageBase::Path(package_root.clone()),
+            }],
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+        }
+    } else {
+        let mirror = args
+            .mirror
+            .clone()
+            .unwrap_or_else(|| args.distribution.default_mirror().to_string());
+        let repository = args
+            .repository
+            .clone()
+            .unwrap_or_else(|| args.distribution.default_repository().to_string());
+        ArchIndexerConfig::from_mirror(distribution, mirror, repository, args.architectures.clone())
+    };
+
+    config.package_name_prefix = args.package_prefix.clone();
+    config.max_packages = args.max_packages;
+    Ok(config)
 }
 
 fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
