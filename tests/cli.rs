@@ -940,6 +940,111 @@ fn openeuler_index_command_indexes_local_repo_metadata() {
     });
 }
 
+#[test]
+fn openanolis_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "openanolis",
+        release: None,
+        distribution: Distribution::OpenAnolis,
+        package_name: "kernel",
+        expected_config_path: "openanolis/kernel/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "openanolis/kernel/index.json",
+    });
+}
+
+#[test]
+fn opensuse_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "opensuse",
+        release: None,
+        distribution: Distribution::OpenSUSE,
+        package_name: "kernel-default",
+        expected_config_path: "opensuse/kernel-default/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "opensuse/kernel-default/index.json",
+    });
+}
+
+#[test]
+fn opensuse_index_command_indexes_kernel_vanilla_by_default() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let repodata = repo_root.join("repodata");
+    let packages_dir = repo_root.join("x86_64");
+    let default_rpm_path = packages_dir.join("kernel-default-test.rpm");
+    let vanilla_rpm_path = packages_dir.join("kernel-vanilla-test.rpm");
+    let primary_path = repodata.join("primary.xml.gz");
+    let repomd_path = repodata.join("repomd.xml");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&packages_dir).expect("create packages dir");
+    fs::create_dir_all(&repodata).expect("create repodata dir");
+    fs::write(
+        &default_rpm_path,
+        minimal_rpm_with_config("CONFIG_DEFAULT=y\n"),
+    )
+    .expect("write default rpm");
+    fs::write(
+        &vanilla_rpm_path,
+        minimal_rpm_with_config("CONFIG_VANILLA=y\n"),
+    )
+    .expect("write vanilla rpm");
+    fs::write(
+        &primary_path,
+        gzip_bytes(
+            r#"<metadata>
+  <package type="rpm">
+    <name>kernel-default</name>
+    <arch>x86_64</arch>
+    <version epoch="0" ver="7.0.9" rel="1.1"/>
+    <location href="x86_64/kernel-default-test.rpm"/>
+  </package>
+  <package type="rpm">
+    <name>kernel-vanilla</name>
+    <arch>x86_64</arch>
+    <version epoch="0" ver="7.0.9" rel="1.1"/>
+    <location href="x86_64/kernel-vanilla-test.rpm"/>
+  </package>
+</metadata>"#,
+        ),
+    )
+    .expect("write primary");
+    fs::write(
+        &repomd_path,
+        r#"<repomd>
+  <data type="primary"><location href="repodata/primary.xml.gz"/></data>
+</repomd>"#,
+    )
+    .expect("write repomd");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "opensuse",
+            "--repomd-file",
+            repomd_path.to_str().expect("repomd path"),
+            "--rpm-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    assert!(
+        data_dir
+            .join("opensuse/kernel-default/0:7.0.9-1.1/amd64/config")
+            .exists()
+    );
+    assert!(
+        data_dir
+            .join("opensuse/kernel-vanilla/0:7.0.9-1.1/amd64/config")
+            .exists()
+    );
+}
+
 struct RpmCliCase<'a> {
     command: &'a str,
     release: Option<&'a str>,

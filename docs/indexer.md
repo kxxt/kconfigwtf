@@ -177,8 +177,8 @@ displayed as `linux-image-*` package names. For example,
 ## RPM-Family Backend
 
 The RPM-family backend is implemented in the Fedora module and supports Fedora,
-RHEL, CentOS Stream, AlmaLinux, Rocky Linux, and openEuler. It supports two
-retrieval modes:
+RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler, and
+openSUSE. It supports two retrieval modes:
 
 - Mirror mode, using `repodata/repomd.xml` and the referenced primary metadata.
 - Local mode, using `--repomd-file` and resolving primary metadata and RPM
@@ -186,8 +186,10 @@ retrieval modes:
 
 The backend selects matching RPM package names, currently defaulting to
 `kernel-core` for Fedora and modern Enterprise Linux distributions, `kernel`
-for CentOS 6/7, and `kernel` for openEuler. It extracts `/boot/config-*` or
-`lib/modules/*/config` from RPM payloads.
+for CentOS 6/7, and `kernel` for openAnolis and openEuler. openSUSE defaults
+to `kernel-default`, `kernel-vanilla`, `kernel-longterm`, and
+`kernel-kvmsmall`. It extracts `/boot/config-*` or `lib/modules/*/config` from
+RPM payloads.
 
 Default mirror layouts are:
 
@@ -202,7 +204,12 @@ Default mirror layouts are:
 - CentOS Stream: `<mirror>/<release>/<repo>/<arch>/os`, using
   `mirror.stream.centos.org` by default.
 - AlmaLinux and Rocky Linux: `<mirror>/<release>/<repo>/<arch>/os`.
+- openAnolis: `<mirror>/<release>/<repo>/<arch>/os`, defaulting to release
+  `23.1`, repository `os`, and package `kernel`. Release `8` defaults to
+  repository `BaseOS`.
 - openEuler: `<mirror>/<release>/<repo>/<arch>`.
+- openSUSE Tumbleweed: `<mirror>/tumbleweed/repo/<repo>`.
+- openSUSE Leap: `<mirror>/distribution/leap/<release>/repo/<repo>`.
 
 ## Adding Another Distribution
 

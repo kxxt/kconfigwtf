@@ -36,6 +36,7 @@ pub struct FedoraIndexerConfig {
     pub distribution: Distribution,
     pub feeds: Vec<FedoraRepoFeed>,
     pub package_name: String,
+    pub package_names: Vec<String>,
     pub max_packages: Option<usize>,
 }
 
@@ -63,6 +64,7 @@ impl FedoraIndexerConfig {
             distribution: Distribution::Fedora,
             feeds,
             package_name: DEFAULT_PACKAGE_NAME.to_string(),
+            package_names: vec![DEFAULT_PACKAGE_NAME.to_string()],
             max_packages: None,
         }
     }
@@ -142,6 +144,7 @@ impl FedoraIndexer {
 impl KernelConfigIndexer for FedoraIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
+        let mut selected_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let repomd = self.load_metadata(&feed.repomd).await?;
@@ -154,10 +157,11 @@ impl KernelConfigIndexer for FedoraIndexer {
                 .with_context(|| format!("decoding Fedora primary metadata {primary_source}"))?;
             let candidates = select_kernel_packages(
                 &parse_primary_metadata(&primary_text)?,
-                &self.config.package_name,
+                &self.config.package_names,
                 Some(feed.architecture.clone()),
                 self.config.max_packages,
             );
+            selected_package_count += candidates.len();
 
             for candidate in candidates {
                 let (source, rpm_bytes) = self
@@ -177,6 +181,19 @@ impl KernelConfigIndexer for FedoraIndexer {
                     });
                 }
             }
+        }
+
+        if selected_package_count == 0 {
+            bail!(
+                "RPM indexer did not find any packages named {:?}",
+                self.config.package_name
+            );
+        }
+
+        if packages.is_empty() {
+            bail!(
+                "RPM indexer selected {selected_package_count} package(s), but none contained a kernel config"
+            );
         }
 
         Ok(packages)
@@ -290,13 +307,13 @@ pub fn parse_primary_metadata(primary_xml: &str) -> Result<Vec<FedoraPackageCand
 
 pub fn select_kernel_packages(
     packages: &[FedoraPackageCandidate],
-    package_name: &str,
+    package_names: &[String],
     architecture: Option<Architecture>,
     max_packages: Option<usize>,
 ) -> Vec<FedoraPackageCandidate> {
     let mut selected = packages
         .iter()
-        .filter(|package| package.name == package_name)
+        .filter(|package| package_names.iter().any(|name| name == &package.name))
         .filter(|package| {
             architecture
                 .as_ref()
@@ -431,10 +448,15 @@ fn is_kernel_config_path(path: &str) -> bool {
         return true;
     }
 
-    segments.len() >= 3
+    (segments.len() >= 3
         && segments[0] == "lib"
         && segments[1] == "modules"
-        && segments[segments.len() - 1] == "config"
+        && segments[segments.len() - 1] == "config")
+        || (segments.len() >= 4
+            && segments[0] == "usr"
+            && segments[1] == "lib"
+            && segments[2] == "modules"
+            && segments[segments.len() - 1] == "config")
 }
 
 fn kernel_config_path_priority(path: &str) -> u8 {
@@ -537,8 +559,12 @@ mod tests {
 </metadata>"#,
         )
         .expect("primary metadata");
-        let selected =
-            select_kernel_packages(&packages, "kernel-core", Some(Architecture::Amd64), None);
+        let selected = select_kernel_packages(
+            &packages,
+            &["kernel-core".to_string()],
+            Some(Architecture::Amd64),
+            None,
+        );
 
         assert_eq!(selected.len(), 1);
         assert_eq!(selected[0].name, "kernel-core");
@@ -616,6 +642,18 @@ mod tests {
 
         assert_eq!(configs.len(), 1);
         assert_eq!(configs[0].0, "/lib/modules/6.19.10-300.fc44.x86_64/config");
+        assert!(configs[0].1.contains("CONFIG_BPF=y"));
+    }
+
+    #[test]
+    fn extracts_usr_lib_modules_config_from_rpm() {
+        let rpm =
+            minimal_rpm_with_config("CONFIG_BPF=y\n", "/usr/lib/modules/7.0.9-1-default/config");
+
+        let configs = extract_kernel_configs_from_rpm(&rpm).expect("extract configs");
+
+        assert_eq!(configs.len(), 1);
+        assert_eq!(configs[0].0, "/usr/lib/modules/7.0.9-1-default/config");
         assert!(configs[0].1.contains("CONFIG_BPF=y"));
     }
 

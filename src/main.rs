@@ -65,9 +65,15 @@ enum IndexCommand {
     AlmaLinux(RpmArgs),
     /// Index Kali Linux kernel packages from a mirror or a local Packages file.
     Kali(KaliArgs),
+    /// Index openAnolis kernel packages from RPM repository metadata.
+    #[command(name = "openanolis", alias = "open-anolis", alias = "anolis")]
+    OpenAnolis(RpmArgs),
     /// Index openEuler kernel packages from RPM repository metadata.
     #[command(name = "openeuler", alias = "open-euler")]
     OpenEuler(RpmArgs),
+    /// Index openSUSE kernel packages from RPM repository metadata.
+    #[command(name = "opensuse", alias = "open-suse", alias = "suse")]
+    OpenSUSE(RpmArgs),
     /// Index Proxmox VE kernel packages from a mirror or a local Packages file.
     Proxmox(ProxmoxArgs),
     /// Index Rocky Linux kernel packages from RPM repository metadata.
@@ -553,8 +559,14 @@ async fn main() -> Result<()> {
                 index_rpm_distribution(Distribution::AlmaLinux, args).await
             }
             IndexCommand::Kali(args) => index_kali(args).await,
+            IndexCommand::OpenAnolis(args) => {
+                index_rpm_distribution(Distribution::OpenAnolis, args).await
+            }
             IndexCommand::OpenEuler(args) => {
                 index_rpm_distribution(Distribution::OpenEuler, args).await
+            }
+            IndexCommand::OpenSUSE(args) => {
+                index_rpm_distribution(Distribution::OpenSUSE, args).await
             }
             IndexCommand::Proxmox(args) => index_proxmox(args).await,
             IndexCommand::Rocky(args) => index_rpm_distribution(Distribution::Rocky, args).await,
@@ -1068,6 +1080,7 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
                 package_base: FedoraPackageBase::Path(rpm_root.clone()),
             }],
             package_name: args.package_name.clone(),
+            package_names: vec![args.package_name.clone()],
             max_packages: args.max_packages,
         }
     } else {
@@ -1079,15 +1092,20 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
     };
 
     config.package_name = args.package_name.clone();
+    config.package_names = vec![args.package_name.clone()];
     config.max_packages = args.max_packages;
     Ok(config)
 }
 
 fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<FedoraIndexerConfig> {
-    let package_name = args
-        .package_name
-        .clone()
-        .unwrap_or_else(|| default_rpm_package_name(&distribution, args).to_string());
+    let package_names = args.package_name.clone().map_or_else(
+        || default_rpm_package_names(&distribution, args),
+        |name| vec![name],
+    );
+    let package_name = package_names
+        .first()
+        .cloned()
+        .expect("default RPM package names must not be empty");
 
     let mut config = if let Some(repomd_file) = &args.repomd_file {
         let Some(rpm_root) = &args.rpm_root else {
@@ -1108,6 +1126,7 @@ fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<Fe
                 package_base: FedoraPackageBase::Path(rpm_root.clone()),
             }],
             package_name: package_name.clone(),
+            package_names: package_names.clone(),
             max_packages: args.max_packages,
         }
     } else {
@@ -1128,11 +1147,13 @@ fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<Fe
             distribution: distribution.clone(),
             feeds,
             package_name: package_name.clone(),
+            package_names: package_names.clone(),
             max_packages: args.max_packages,
         }
     };
 
     config.package_name = package_name;
+    config.package_names = package_names;
     config.max_packages = args.max_packages;
     Ok(config)
 }
@@ -1174,7 +1195,12 @@ fn rpm_repo_root(
         Distribution::CentOS | Distribution::AlmaLinux | Distribution::Rocky => {
             format!("{mirror}/{release}/{repository}/{arch}/os")
         }
+        Distribution::OpenAnolis => format!("{mirror}/{release}/{repository}/{arch}/os"),
         Distribution::OpenEuler => format!("{mirror}/{release}/{repository}/{arch}"),
+        Distribution::OpenSUSE if release == "tumbleweed" => {
+            format!("{mirror}/tumbleweed/repo/{repository}")
+        }
+        Distribution::OpenSUSE => format!("{mirror}/distribution/leap/{release}/repo/{repository}"),
         _ => format!("{mirror}/{release}/{repository}/{arch}/os"),
     }
 }
@@ -1195,7 +1221,9 @@ fn default_rpm_mirror(distribution: &Distribution, args: &RpmArgs) -> &'static s
         }
         Distribution::AlmaLinux => "https://repo.almalinux.org/almalinux",
         Distribution::Rocky => "https://dl.rockylinux.org/pub/rocky",
+        Distribution::OpenAnolis => "https://mirrors.openanolis.cn/anolis",
         Distribution::OpenEuler => "https://repo.openeuler.org",
+        Distribution::OpenSUSE => "https://download.opensuse.org",
         _ => "https://download.fedoraproject.org/pub/fedora/linux",
     }
 }
@@ -1203,7 +1231,9 @@ fn default_rpm_mirror(distribution: &Distribution, args: &RpmArgs) -> &'static s
 fn default_rpm_release(distribution: &Distribution) -> &'static str {
     match distribution {
         Distribution::CentOS => "10-stream",
+        Distribution::OpenAnolis => "23.1",
         Distribution::OpenEuler => "openEuler-24.03-LTS",
+        Distribution::OpenSUSE => "tumbleweed",
         _ => "10",
     }
 }
@@ -1211,7 +1241,10 @@ fn default_rpm_release(distribution: &Distribution) -> &'static str {
 fn default_rpm_repository(distribution: &Distribution, release: &str) -> &'static str {
     match distribution {
         Distribution::CentOS if is_legacy_centos_release(release) => "os",
+        Distribution::OpenAnolis if release.starts_with("8") => "BaseOS",
+        Distribution::OpenAnolis => "os",
         Distribution::OpenEuler => "OS",
+        Distribution::OpenSUSE => "oss",
         _ => "BaseOS",
     }
 }
@@ -1229,8 +1262,25 @@ fn default_rpm_package_name(distribution: &Distribution, args: &RpmArgs) -> &'st
                 "kernel-core"
             }
         }
+        Distribution::OpenAnolis => "kernel",
         Distribution::OpenEuler => "kernel",
+        Distribution::OpenSUSE => "kernel-default",
         _ => "kernel-core",
+    }
+}
+
+fn default_rpm_package_names(distribution: &Distribution, args: &RpmArgs) -> Vec<String> {
+    match distribution {
+        Distribution::OpenSUSE => [
+            "kernel-default",
+            "kernel-vanilla",
+            "kernel-longterm",
+            "kernel-kvmsmall",
+        ]
+        .into_iter()
+        .map(str::to_string)
+        .collect(),
+        _ => vec![default_rpm_package_name(distribution, args).to_string()],
     }
 }
 
@@ -1301,6 +1351,14 @@ mod tests {
             rpm_repo_root(&Distribution::OpenEuler, &args, &Architecture::Amd64),
             "https://repo.openeuler.org/openEuler-24.03-LTS/OS/x86_64"
         );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenAnolis, &args, &Architecture::Amd64),
+            "https://mirrors.openanolis.cn/anolis/23.1/os/x86_64/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Amd64),
+            "https://download.opensuse.org/tumbleweed/repo/oss"
+        );
     }
 
     #[test]
@@ -1366,6 +1424,35 @@ mod tests {
                 "https://example.invalid/alpine/edge/main/x86_64/APKINDEX.tar.gz",
                 "https://example.invalid/alpine/edge/community/x86_64/APKINDEX.tar.gz",
             ]
+        );
+    }
+
+    #[test]
+    fn builds_openanolis_and_opensuse_custom_release_repo_roots() {
+        let anolis8 = RpmArgs {
+            release: Some("8".to_string()),
+            ..rpm_args()
+        };
+        let leap = RpmArgs {
+            release: Some("15.6".to_string()),
+            ..rpm_args()
+        };
+
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenAnolis, &anolis8, &Architecture::Amd64),
+            "https://mirrors.openanolis.cn/anolis/8/BaseOS/x86_64/os"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::OpenAnolis, &anolis8),
+            "kernel"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &leap, &Architecture::Amd64),
+            "https://download.opensuse.org/distribution/leap/15.6/repo/oss"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::OpenSUSE, &leap),
+            "kernel-default"
         );
     }
 

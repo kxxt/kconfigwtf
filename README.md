@@ -13,9 +13,9 @@ The foundation has two parts:
   search UI from package-level indexes under `data/`.
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
-Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openEuler, Android AOSP
-GKI, Alpine Linux, and Arch-family pacman repositories for Arch Linux,
-Parabola, CachyOS, and eweOS.
+Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler,
+openSUSE, Android AOSP GKI, Alpine Linux, and Arch-family pacman repositories
+for Arch Linux, Parabola, CachyOS, and eweOS.
 
 ## Install
 
@@ -118,14 +118,16 @@ cargo run -- index fedora \
 ```
 
 The same RPM backend also supports RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
-and openEuler:
+openAnolis, openEuler, and openSUSE:
 
 ```sh
 cargo run -- index centos --release 10-stream --max-packages 5 --data-dir data
 cargo run -- index centos --release 6 --max-packages 5 --data-dir data
 cargo run -- index almalinux --release 10 --max-packages 5 --data-dir data
 cargo run -- index rocky --release 10 --max-packages 5 --data-dir data
+cargo run -- index openanolis --release 23.1 --max-packages 5 --data-dir data
 cargo run -- index openeuler --release openEuler-24.03-LTS --max-packages 5 --data-dir data
+cargo run -- index opensuse --release tumbleweed --max-packages 5 --data-dir data
 ```
 
 CentOS Stream releases use `mirror.stream.centos.org`. Archived CentOS
@@ -149,7 +151,9 @@ location, selects matching RPMs, extracts `/boot/config-*` or
 package-level indexes. Use `--max-packages` during development to avoid
 downloading many large kernel RPMs. The default package is `kernel-core` for
 Fedora and modern Enterprise Linux distributions, `kernel` for CentOS 6/7, and
-`kernel` for openEuler.
+`kernel` for openAnolis and openEuler. openSUSE defaults to `kernel-default`.
+openSUSE also indexes additional kernel flavors by default, including
+`kernel-vanilla`, `kernel-longterm`, and `kernel-kvmsmall`.
 
 Offline indexing is also supported for tests and mirror snapshots:
 
@@ -320,7 +324,7 @@ The crate is split into focused modules:
   indexer implementation used by Debian, Ubuntu, Kali, and Proxmox.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
   extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
-  AlmaLinux, Rocky Linux, and openEuler.
+  AlmaLinux, Rocky Linux, openAnolis, openEuler, and openSUSE.
 - `site`: static site rendering using MiniJinja templates.
 
 Distribution backends implement:
@@ -400,8 +404,8 @@ every Kconfig entry:
 as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `archlinux`,
 `parabola`, `cachyos`, `eweos`, `alpine`, `fedora`, `rhel`, `centos`,
-`almalinux`, `rocky`, and `openeuler`. Architectures include `amd64`, `arm64`,
-`armhf`, `i386`,
+`almalinux`, `rocky`, `openanolis`, `openeuler`, and `opensuse`.
+Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.
 
