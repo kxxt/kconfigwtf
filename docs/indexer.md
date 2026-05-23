@@ -48,10 +48,28 @@ details. The Debian backend replaces the kernel version and architecture in
 `linux-image-*` package names with `<VERSION>` and `<ARCH>` so related kernels
 share one package-level index.
 
+## Alpine Backend
+
+The Alpine backend supports apk repositories. It supports two retrieval modes:
+
+- Mirror mode, using
+  `<mirror>/<release>/<repository>/<arch>/APKINDEX.tar.gz`. The CLI accepts
+  `--repository` more than once and defaults to `main` plus `community`, which
+  includes edge/community packages such as `linux-stable`.
+- Local mode, using `--apkindex-file` and resolving package filenames under
+  `--apk-root`.
+
+The backend parses the `APKINDEX` file inside `APKINDEX.tar.gz`, selects kernel
+packages matching `--package-prefix` while skipping development, documentation,
+tools, firmware, and similar companion packages, and extracts config files from
+`.apk` packages. The backend currently looks for kernel configs under paths
+such as `boot/config-*` and `usr/src/*/.config`.
+
 ## Arch-Family Backend
 
-The Arch-family backend supports Arch Linux, Parabola, and CachyOS through the
-same pacman repository implementation. It supports two retrieval modes:
+The Arch-family backend supports Arch Linux, Parabola, CachyOS, and eweOS
+through the same pacman repository implementation. It supports two retrieval
+modes:
 
 - Mirror mode, using a pacman sync database such as
   `<repo>/os/<arch>/<repo>.db` for Arch Linux and Parabola.
@@ -62,12 +80,13 @@ CachyOS uses the same pacman database format but defaults to the
 `<repo>/<arch>/<repo>.db` mirror layout.
 
 The backend parses package `desc` files from the sync database, selects
-`*-headers` package names matching `--package-prefix`, and extracts config
-files from `.pkg.tar.*` packages. Arch Linux stores the build config in header
-packages such as `linux-headers`; the backend strips the `-headers` suffix from
-the indexed package name so the data tree and UI show the kernel package name
-(`linux`, `linux-lts`, `linux-cachyos`, and similar names). Supported archive
-compression formats are:
+`*-headers` or `*-devel` package names matching `--package-prefix`, and
+extracts config files from `.pkg.tar.*` packages. Arch Linux stores the build
+config in header packages such as `linux-headers`; eweOS stores it in
+development packages such as `linux-devel`. The backend strips the `-headers`
+or `-devel` suffix from the indexed package name so the data tree and UI show
+the kernel package name (`linux`, `linux-lts`, `linux-cachyos`, and similar
+names). Supported archive compression formats are:
 
 - `.pkg.tar`
 - `.pkg.tar.gz`
@@ -76,7 +95,7 @@ compression formats are:
 
 The backend currently looks for kernel configs under paths such as
 `usr/lib/modules/*/build/.config`, `lib/modules/*/build/.config`, and
-`boot/config-*`.
+`usr/src/*/.config`, and `boot/config-*`.
 
 ## Android AOSP GKI Backend
 

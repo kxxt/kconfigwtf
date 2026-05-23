@@ -1,3 +1,4 @@
+pub mod alpine;
 pub mod android;
 pub mod arch;
 pub mod debian;

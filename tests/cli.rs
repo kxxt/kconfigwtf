@@ -613,6 +613,170 @@ x86_64
 }
 
 #[test]
+fn eweos_index_command_indexes_local_sync_database() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let package_path = repo_root.join("linux-devel-7.0.9-1-x86_64.pkg.tar.zst");
+    let db_path = temp.path().join("main.db");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&repo_root).expect("create repo root");
+    fs::write(
+        &package_path,
+        zstd::encode_all(
+            tar_with_file(
+                "usr/src/linux/.config",
+                b"CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n",
+            )
+            .as_slice(),
+            0,
+        )
+        .expect("write zstd"),
+    )
+    .expect("write eweOS package");
+    fs::write(
+        &db_path,
+        gzip_raw_bytes(&tar_with_file(
+            "linux-7.0.9-1/desc",
+            br#"%FILENAME%
+linux-devel-7.0.9-1-x86_64.pkg.tar.zst
+
+%NAME%
+linux-devel
+
+%VERSION%
+7.0.9-1
+
+%ARCH%
+x86_64
+"#,
+        )),
+    )
+    .expect("write sync database");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "eweos",
+            "--db-file",
+            db_path.to_str().expect("db path"),
+            "--package-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("eweos/linux/7.0.9-1/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read eweOS config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("eweos/linux/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read eweOS index"))
+            .expect("parse eweOS index");
+    assert_eq!(index.distribution, Distribution::EweOS);
+    assert_eq!(index.package_name, "linux");
+}
+
+#[test]
+fn alpine_index_command_requires_apk_root_for_local_apkindex_file() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let apkindex_path = temp.path().join("APKINDEX.tar.gz");
+    fs::write(&apkindex_path, "").expect("write APKINDEX");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "alpine",
+            "--apkindex-file",
+            apkindex_path.to_str().expect("APKINDEX path"),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("--apk-root is required"));
+}
+
+#[test]
+fn alpine_index_command_indexes_local_apkindex() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let package_path = repo_root.join("linux-lts-6.18.32-r0.apk");
+    let apkindex_path = temp.path().join("APKINDEX.tar.gz");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&repo_root).expect("create repo root");
+    fs::write(
+        &package_path,
+        gzip_raw_bytes(&tar_with_file(
+            "boot/config-6.18.32-0-lts",
+            b"CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n",
+        )),
+    )
+    .expect("write apk package");
+    fs::write(
+        &apkindex_path,
+        gzip_raw_bytes(&tar_with_file(
+            "APKINDEX",
+            br#"P:linux-lts
+V:6.18.32-r0
+A:x86_64
+
+P:linux-lts-dev
+V:6.18.32-r0
+A:x86_64
+"#,
+        )),
+    )
+    .expect("write APKINDEX");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "alpine",
+            "--apkindex-file",
+            apkindex_path.to_str().expect("APKINDEX path"),
+            "--apk-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("alpine/linux-lts/6.18.32-r0/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read Alpine config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("alpine/linux-lts/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read Alpine index"))
+            .expect("parse Alpine index");
+    assert_eq!(index.distribution, Distribution::Alpine);
+    assert_eq!(index.package_name, "linux-lts");
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
+}
+
+#[test]
 fn fedora_index_command_requires_rpm_root_for_local_repomd_file() {
     let temp = tempfile::tempdir().expect("tempdir");
     let repomd_path = temp.path().join("repomd.xml");

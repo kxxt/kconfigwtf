@@ -2,6 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand, ValueEnum};
+use kconfigwtf::alpine::{
+    AlpineIndexer, AlpineIndexerConfig, AlpineRepoFeed, ApkIndexLocation, ApkPackageBase,
+};
 use kconfigwtf::android::{
     AndroidArtifactBase, AndroidGkiIndexer, AndroidGkiIndexerConfig, AndroidReleaseBuildsLocation,
     discover_release_build_branches,
@@ -40,10 +43,15 @@ enum Command {
 enum IndexCommand {
     /// Index Android AOSP GKI kernel configs from release build metadata.
     Android(AndroidArgs),
+    /// Index Alpine Linux kernel packages from an apk repository or local APKINDEX.
+    Alpine(AlpineArgs),
     /// Index Arch Linux family kernel packages from a pacman repository or local sync database.
     Arch(ArchArgs),
     /// Index Debian kernel packages from a mirror or a local Packages file.
     Debian(DebianArgs),
+    /// Index eweOS kernel packages from a pacman repository or local sync database.
+    #[command(name = "eweos", alias = "ewe-os")]
+    EweOS(EweOsArgs),
     /// Index Fedora kernel packages from a repository or local repo metadata.
     Fedora(FedoraArgs),
     /// Index Red Hat Enterprise Linux kernel packages from RPM repository metadata.
@@ -194,6 +202,80 @@ struct ArchArgs {
     package_prefix: String,
 
     /// Limit the number of pacman packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct EweOsArgs {
+    /// eweOS mirror root used for remote indexing.
+    #[arg(long, default_value = "https://os-repo.ewe.moe/eweos")]
+    mirror: String,
+
+    /// eweOS repository to index.
+    #[arg(long, default_value = "main")]
+    repository: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local pacman sync database file. Useful for offline indexing and tests.
+    #[arg(long)]
+    db_file: Option<PathBuf>,
+
+    /// Local repository root used to resolve package filenames from --db-file.
+    #[arg(long)]
+    package_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the pacman sync database.
+    #[arg(long, default_value = "linux")]
+    package_prefix: String,
+
+    /// Limit the number of pacman packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct AlpineArgs {
+    /// Alpine mirror root used for remote indexing.
+    #[arg(long, default_value = "https://dl-cdn.alpinelinux.org/alpine")]
+    mirror: String,
+
+    /// Alpine release to index.
+    #[arg(long, default_value = "latest-stable")]
+    release: String,
+
+    /// Alpine repository to index. May be passed more than once.
+    #[arg(long = "repository", default_values_t = vec!["main".to_string(), "community".to_string()])]
+    repositories: Vec<String>,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local APKINDEX.tar.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    apkindex_file: Option<PathBuf>,
+
+    /// Local repository root used to resolve .apk files from --apkindex-file.
+    #[arg(long)]
+    apk_root: Option<PathBuf>,
+
+    /// Package name prefix to include from APKINDEX.
+    #[arg(long, default_value = "linux-")]
+    package_prefix: String,
+
+    /// Limit the number of apk packages fetched per architecture.
     #[arg(long)]
     max_packages: Option<usize>,
 
@@ -460,8 +542,10 @@ async fn main() -> Result<()> {
     match cli.command {
         Command::Index { command } => match *command {
             IndexCommand::Android(args) => index_android(args).await,
+            IndexCommand::Alpine(args) => index_alpine(args).await,
             IndexCommand::Arch(args) => index_arch(args).await,
             IndexCommand::Debian(args) => index_debian(args).await,
+            IndexCommand::EweOS(args) => index_eweos(args).await,
             IndexCommand::Fedora(args) => index_fedora(args).await,
             IndexCommand::Rhel(args) => index_rpm_distribution(Distribution::Rhel, args).await,
             IndexCommand::CentOS(args) => index_rpm_distribution(Distribution::CentOS, args).await,
@@ -495,6 +579,24 @@ async fn index_android(args: AndroidArgs) -> Result<()> {
 async fn index_arch(args: ArchArgs) -> Result<()> {
     let config = arch_config_from_args(&args)?;
     let indexer = ArchIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_eweos(args: EweOsArgs) -> Result<()> {
+    let config = eweos_config_from_args(&args)?;
+    let indexer = ArchIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_alpine(args: AlpineArgs) -> Result<()> {
+    let config = alpine_config_from_args(&args)?;
+    let indexer = AlpineIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
@@ -770,6 +872,108 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
     config.package_name_prefix = args.package_prefix.clone();
     config.max_packages = args.max_packages;
     Ok(config)
+}
+
+fn eweos_config_from_args(args: &EweOsArgs) -> Result<ArchIndexerConfig> {
+    let mut config = if let Some(db_file) = &args.db_file {
+        let Some(package_root) = &args.package_root else {
+            bail!("--package-root is required when --db-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        ArchIndexerConfig {
+            feeds: vec![ArchRepoFeed {
+                distribution: Distribution::EweOS,
+                architecture,
+                database: ArchDatabaseLocation::Path(db_file.clone()),
+                package_base: ArchPackageBase::Path(package_root.clone()),
+            }],
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+        }
+    } else {
+        ArchIndexerConfig::from_mirror(
+            Distribution::EweOS,
+            args.mirror.clone(),
+            &args.repository,
+            args.architectures.clone(),
+        )
+    };
+
+    config.package_name_prefix = args.package_prefix.clone();
+    config.max_packages = args.max_packages;
+    Ok(config)
+}
+
+fn alpine_config_from_args(args: &AlpineArgs) -> Result<AlpineIndexerConfig> {
+    let mut config = if let Some(apkindex_file) = &args.apkindex_file {
+        let Some(apk_root) = &args.apk_root else {
+            bail!("--apk-root is required when --apkindex-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        AlpineIndexerConfig {
+            feeds: vec![AlpineRepoFeed {
+                distribution: Distribution::Alpine,
+                architecture,
+                index: ApkIndexLocation::Path(apkindex_file.clone()),
+                package_base: ApkPackageBase::Path(apk_root.clone()),
+            }],
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+        }
+    } else {
+        let mirror = args.mirror.trim_end_matches('/').to_string();
+        let mut feeds = Vec::new();
+        for repository in &args.repositories {
+            for architecture in &args.architectures {
+                let repo_root = format!(
+                    "{}/{}/{}/{}",
+                    mirror,
+                    args.release,
+                    repository,
+                    apk_architecture_segment(architecture)
+                );
+                feeds.push(AlpineRepoFeed {
+                    distribution: Distribution::Alpine,
+                    architecture: architecture.clone(),
+                    index: ApkIndexLocation::Url(format!("{repo_root}/APKINDEX.tar.gz")),
+                    package_base: ApkPackageBase::Url(repo_root),
+                });
+            }
+        }
+
+        AlpineIndexerConfig {
+            feeds,
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+        }
+    };
+
+    config.package_name_prefix = args.package_prefix.clone();
+    config.max_packages = args.max_packages;
+    Ok(config)
+}
+
+fn apk_architecture_segment(architecture: &Architecture) -> &str {
+    match architecture {
+        Architecture::Amd64 => "x86_64",
+        Architecture::Arm64 => "aarch64",
+        Architecture::Armhf => "armv7",
+        Architecture::I386 => "x86",
+        Architecture::Ppc64el => "ppc64le",
+        other => other.as_str(),
+    }
 }
 
 fn debian_config_from_args(args: &DebianArgs) -> Result<DebianIndexerConfig> {
@@ -1129,6 +1333,39 @@ mod tests {
         assert_eq!(
             default_rpm_package_name(&Distribution::CentOS, &centos8),
             "kernel-core"
+        );
+    }
+
+    #[test]
+    fn builds_alpine_feeds_for_main_and_community() {
+        let args = AlpineArgs {
+            mirror: "https://example.invalid/alpine".to_string(),
+            release: "edge".to_string(),
+            repositories: vec!["main".to_string(), "community".to_string()],
+            architectures: vec![Architecture::Amd64],
+            apkindex_file: None,
+            apk_root: None,
+            package_prefix: "linux-".to_string(),
+            max_packages: None,
+            data_dir: PathBuf::from("data"),
+        };
+
+        let config = alpine_config_from_args(&args).expect("alpine config");
+        let urls = config
+            .feeds
+            .iter()
+            .map(|feed| match &feed.index {
+                ApkIndexLocation::Url(url) => url.as_str(),
+                ApkIndexLocation::Path(_) => panic!("expected URL feed"),
+            })
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            urls,
+            vec![
+                "https://example.invalid/alpine/edge/main/x86_64/APKINDEX.tar.gz",
+                "https://example.invalid/alpine/edge/community/x86_64/APKINDEX.tar.gz",
+            ]
         );
     }
 

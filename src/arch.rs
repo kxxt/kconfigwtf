@@ -299,7 +299,10 @@ pub fn select_kernel_packages(
 }
 
 pub fn normalize_arch_kernel_package_name(name: &str) -> String {
-    name.strip_suffix("-headers").unwrap_or(name).to_string()
+    name.strip_suffix("-headers")
+        .or_else(|| name.strip_suffix("-devel"))
+        .unwrap_or(name)
+        .to_string()
 }
 
 pub fn extract_kernel_configs_from_package(
@@ -369,7 +372,7 @@ fn first_field<'a>(fields: &'a BTreeMap<String, Vec<String>>, key: &str) -> Opti
 }
 
 fn is_kernel_headers_package(name: &str) -> bool {
-    name != "linux-api-headers" && name.ends_with("-headers")
+    name != "linux-api-headers" && (name.ends_with("-headers") || name.ends_with("-devel"))
 }
 
 fn decode_tar_archive(bytes: &[u8], location_hint: &str) -> Result<Vec<u8>> {
@@ -420,12 +423,16 @@ fn is_kernel_config_path(path: &Path) -> bool {
         return true;
     }
 
-    normalized.len() >= 5
+    (normalized.len() >= 5
         && (normalized[0] == "usr" && normalized[1] == "lib"
             || normalized[0] == "lib" && normalized[1] == "modules")
         && normalized.iter().any(|segment| segment == "modules")
         && normalized[normalized.len() - 2] == "build"
-        && normalized[normalized.len() - 1] == ".config"
+        && normalized[normalized.len() - 1] == ".config")
+        || (normalized.len() >= 3
+            && normalized[0] == "usr"
+            && normalized[1] == "src"
+            && normalized[normalized.len() - 1] == ".config")
 }
 
 fn arch_repo_root(

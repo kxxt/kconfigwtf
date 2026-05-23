@@ -16,9 +16,11 @@ pub const INDEX_SCHEMA_VERSION: u32 = 4;
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
     Android,
+    Alpine,
     ArchLinux,
     CachyOS,
     Debian,
+    EweOS,
     Fedora,
     AlmaLinux,
     CentOS,
@@ -36,9 +38,11 @@ impl Distribution {
     pub fn as_str(&self) -> &str {
         match self {
             Self::Android => "android",
+            Self::Alpine => "alpine",
             Self::ArchLinux => "archlinux",
             Self::CachyOS => "cachyos",
             Self::Debian => "debian",
+            Self::EweOS => "eweos",
             Self::Fedora => "fedora",
             Self::AlmaLinux => "almalinux",
             Self::CentOS => "centos",
@@ -71,9 +75,11 @@ impl FromStr for Distribution {
 
         Ok(match normalized.as_str() {
             "android" => Self::Android,
+            "alpine" | "alpine-linux" => Self::Alpine,
             "arch" | "archlinux" | "arch-linux" => Self::ArchLinux,
             "cachyos" | "cachy-os" => Self::CachyOS,
             "debian" => Self::Debian,
+            "eweos" | "ewe-os" => Self::EweOS,
             "fedora" => Self::Fedora,
             "alma" | "almalinux" | "alma-linux" => Self::AlmaLinux,
             "centos" | "centos-stream" => Self::CentOS,
@@ -153,7 +159,7 @@ impl FromStr for Architecture {
         Ok(match normalized.as_str() {
             "amd64" | "x86_64" => Self::Amd64,
             "arm64" | "aarch64" => Self::Arm64,
-            "armhf" => Self::Armhf,
+            "armhf" | "armv7" | "armv7h" => Self::Armhf,
             "i386" | "x86" => Self::I386,
             "ppc64el" => Self::Ppc64el,
             "riscv64" => Self::Riscv64,

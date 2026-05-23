@@ -14,7 +14,8 @@ The foundation has two parts:
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openEuler, Android AOSP
-GKI, and Arch-family pacman repositories for Arch Linux, Parabola, and CachyOS.
+GKI, Alpine Linux, and Arch-family pacman repositories for Arch Linux,
+Parabola, CachyOS, and eweOS.
 
 ## Install
 
@@ -218,12 +219,13 @@ cargo run -- index arch \
 ```
 
 The Arch-family backend reads a pacman sync database such as `core.db`, selects
-kernel header packages matching `--package-prefix` (default `linux`), downloads
-each `.pkg.tar.*` package, extracts kernel config files such as
-`usr/lib/modules/*/build/.config`, and writes raw configs plus package-level
-indexes. Arch Linux stores the build config in packages such as
-`linux-headers`, so the backend strips the `-headers` suffix when writing the
-data tree and UI package name.
+kernel development packages matching `--package-prefix` (default `linux`),
+downloads each `.pkg.tar.*` package, extracts kernel config files such as
+`usr/lib/modules/*/build/.config` or `usr/src/linux/.config`, and writes raw
+configs plus package-level indexes. Arch Linux stores the build config in
+packages such as `linux-headers`, while eweOS uses packages such as
+`linux-devel`; the backend strips the `-headers` or `-devel` suffix when
+writing the data tree and UI package name.
 
 Parabola and CachyOS use the same backend with distro-specific default mirror
 and repository values:
@@ -231,6 +233,7 @@ and repository values:
 ```sh
 cargo run -- index arch --distribution parabola --arch x86_64 --data-dir data
 cargo run -- index arch --distribution cachyos --arch x86_64 --data-dir data
+cargo run -- index eweos --repository main --arch x86_64 --data-dir data
 ```
 
 Offline indexing is also supported for tests and mirror snapshots:
@@ -243,6 +246,28 @@ cargo run -- index arch \
   --arch x86_64 \
   --data-dir data
 ```
+
+## Generate An Alpine Index
+
+Index Alpine Linux kernel packages from an apk repository:
+
+```sh
+cargo run -- index alpine \
+  --release latest-stable \
+  --repository main \
+  --repository community \
+  --arch x86_64 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+The Alpine backend reads `APKINDEX.tar.gz` from each selected repository. The
+default repositories are `main` and `community`, so edge/community kernels such
+as `linux-stable` are included. It selects kernel packages matching
+`--package-prefix` (default `linux-`) while skipping development, doc, tools,
+firmware, and similar companion packages, downloads each `.apk`, extracts
+`/boot/config-*` or `usr/src/*/.config`, and writes raw configs plus
+package-level indexes.
 
 When `--db-file` is used, package filenames from the sync database are resolved
 relative to `--package-root`.
@@ -287,8 +312,10 @@ The crate is split into focused modules:
 - `indexer`: shared distribution indexer trait and package payload type.
 - `android`: Android AOSP GKI release metadata parser and Android CI
   `kernel_aarch64_dot_config` retriever.
+- `alpine`: Alpine `APKINDEX.tar.gz` parser, `.apk` extraction, and indexer
+  implementation.
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
-  indexer implementation for Arch Linux, Parabola, and CachyOS.
+  indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
   indexer implementation used by Debian, Ubuntu, Kali, and Proxmox.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
@@ -372,8 +399,9 @@ every Kconfig entry:
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `archlinux`,
-`parabola`, `cachyos`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, and
-`openeuler`. Architectures include `amd64`, `arm64`, `armhf`, `i386`,
+`parabola`, `cachyos`, `eweos`, `alpine`, `fedora`, `rhel`, `centos`,
+`almalinux`, `rocky`, and `openeuler`. Architectures include `amd64`, `arm64`,
+`armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.
 
