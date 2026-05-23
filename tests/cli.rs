@@ -8,6 +8,7 @@ use kconfigwtf::index::{
     Architecture, ConfigValue, Distribution, PackageIndex, write_packages_to_data_dir,
 };
 use kconfigwtf::indexer::KernelConfigPackage;
+use liblzma::write::XzEncoder;
 use predicates::prelude::*;
 use rpm::{BuildConfig, CompressionType, FileOptions, PackageBuilder};
 use tar::{Builder, Header};
@@ -439,6 +440,221 @@ fn proxmox_index_command_indexes_local_packages_file() {
             "pool/p/proxmox-signed.deb",
         )],
     });
+}
+
+#[test]
+fn deepin_index_command_indexes_local_packages_file() {
+    apt_index_command_indexes_local_packages_file(AptCliCase {
+        command: "deepin",
+        distribution: Distribution::Deepin,
+        package_name: "linux-image-deepin-amd64",
+        package_version: "6.1.0-18",
+        expected_config_path: "deepin/linux-image-deepin-<ARCH>/6.1.0-18/amd64/config",
+        expected_index_path: "deepin/linux-image-deepin-<ARCH>/index.json",
+        expected_index_package_name: "linux-image-deepin-<ARCH>",
+        extra_packages: &[],
+    });
+}
+
+#[test]
+fn kylin_index_command_indexes_local_packages_file() {
+    apt_index_command_indexes_local_packages_file(AptCliCase {
+        command: "kylin",
+        distribution: Distribution::Kylin,
+        package_name: "linux-image-5.10.0-generic",
+        package_version: "5.10.0-1",
+        expected_config_path: "kylin/linux-image-<VERSION>-generic/5.10.0-1/amd64/config",
+        expected_index_path: "kylin/linux-image-<VERSION>-generic/index.json",
+        expected_index_package_name: "linux-image-<VERSION>-generic",
+        extra_packages: &[],
+    });
+}
+
+#[test]
+fn aosc_index_command_indexes_local_packages_file() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let deb_root = temp.path().join("mirror");
+    let deb_path = deb_root.join("pool/main/l/linux/linux-kernel-6.14.0.deb");
+    let packages_path = temp.path().join("Packages.xz");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(deb_path.parent().expect("deb parent")).expect("create pool");
+    fs::write(
+        &deb_path,
+        minimal_deb_with_config("CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n"),
+    )
+    .expect("write deb");
+
+    let packages_content = "Package: linux-kernel-6.14.0\nVersion: 6.14.0-1\nArchitecture: amd64\nFilename: pool/main/l/linux/linux-kernel-6.14.0.deb\n\n";
+    let mut encoder = XzEncoder::new(Vec::new(), 6);
+    encoder
+        .write_all(packages_content.as_bytes())
+        .expect("write xz");
+    let compressed_packages = encoder.finish().expect("finish xz");
+    fs::write(&packages_path, compressed_packages).expect("write packages.xz");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "aosc",
+            "--packages-file",
+            packages_path.to_str().expect("packages path"),
+            "--deb-root",
+            deb_root.to_str().expect("deb root"),
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("aoscos/linux-kernel-<VERSION>/6.14.0-1/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read raw config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join("aoscos/linux-kernel-<VERSION>/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read output"))
+            .expect("parse package index");
+    assert_eq!(index.distribution, Distribution::AoscOS);
+    assert_eq!(index.package_name, "linux-kernel-<VERSION>");
+    assert_eq!(
+        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
+        ConfigValue::Missing
+    );
+}
+
+#[test]
+fn aosc_index_command_extracts_embedded_config_from_kernel_image() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let deb_root = temp.path().join("mirror");
+    let deb_path = deb_root.join("pool/main/l/linux/linux-kernel-6.18.27.deb");
+    let packages_path = temp.path().join("Packages.xz");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(deb_path.parent().expect("deb parent")).expect("create pool");
+    fs::write(
+        &deb_path,
+        minimal_deb_with_file(
+            "./boot/vmlinuz-6.18.27-aosc-main",
+            &fake_ikconfig_image("CONFIG_AOSC=y\n# CONFIG_UNUSED is not set\n"),
+        ),
+    )
+    .expect("write deb");
+
+    let packages_content = "Package: linux-kernel-6.18.27\nVersion: 6.18.27-1\nArchitecture: amd64\nFilename: pool/main/l/linux/linux-kernel-6.18.27.deb\n\n";
+    let mut encoder = XzEncoder::new(Vec::new(), 6);
+    encoder
+        .write_all(packages_content.as_bytes())
+        .expect("write xz");
+    let compressed_packages = encoder.finish().expect("finish xz");
+    fs::write(&packages_path, compressed_packages).expect("write packages.xz");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "aosc",
+            "--packages-file",
+            packages_path.to_str().expect("packages path"),
+            "--deb-root",
+            deb_root.to_str().expect("deb root"),
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("aoscos/linux-kernel-<VERSION>/6.18.27-1/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read raw config")
+            .contains("CONFIG_AOSC=y")
+    );
+}
+
+#[test]
+fn aosc_index_command_normalizes_rc_kernel_package_names() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let deb_root = temp.path().join("mirror");
+    let packages_path = temp.path().join("Packages.xz");
+    let data_dir = temp.path().join("data");
+    let rc_deb = deb_root.join("pool/main/l/linux/linux-kernel-rc-6.18.0.deb");
+    let vanillarc_deb = deb_root.join("pool/main/l/linux/linux-kernel-vanillarc-7.0.0.deb");
+
+    fs::create_dir_all(rc_deb.parent().expect("deb parent")).expect("create pool");
+    fs::write(
+        &rc_deb,
+        minimal_deb_with_file(
+            "./boot/vmlinuz-6.18.0-aosc-main",
+            &fake_ikconfig_image("CONFIG_AOSC_RC=y\n"),
+        ),
+    )
+    .expect("write rc deb");
+    fs::write(
+        &vanillarc_deb,
+        minimal_deb_with_file(
+            "./boot/vmlinuz-7.0.0-aosc-main",
+            &fake_ikconfig_image("CONFIG_AOSC_VANILLARC=y\n"),
+        ),
+    )
+    .expect("write vanillarc deb");
+
+    let packages_content = "\
+Package: linux-kernel-rc-6.18.0
+Version: 6.18.0-0.7
+Architecture: amd64
+Filename: pool/main/l/linux/linux-kernel-rc-6.18.0.deb
+
+Package: linux-kernel-vanillarc-7.0.0
+Version: 7.0.0-0.2
+Architecture: amd64
+Filename: pool/main/l/linux/linux-kernel-vanillarc-7.0.0.deb
+
+";
+    let mut encoder = XzEncoder::new(Vec::new(), 6);
+    encoder
+        .write_all(packages_content.as_bytes())
+        .expect("write xz");
+    let compressed_packages = encoder.finish().expect("finish xz");
+    fs::write(&packages_path, compressed_packages).expect("write packages.xz");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "aosc",
+            "--packages-file",
+            packages_path.to_str().expect("packages path"),
+            "--deb-root",
+            deb_root.to_str().expect("deb root"),
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    assert!(
+        data_dir
+            .join("aoscos/linux-kernel-rc-<VERSION>/6.18.0-0.7/amd64/config")
+            .exists()
+    );
+    assert!(
+        data_dir
+            .join("aoscos/linux-kernel-vanillarc-<VERSION>/7.0.0-0.2/amd64/config")
+            .exists()
+    );
 }
 
 #[test]
@@ -1134,19 +1350,19 @@ fn rpm_index_command_indexes_local_repo_metadata(case: RpmCliCase<'_>) {
 }
 
 fn minimal_deb_with_config(config: &str) -> Vec<u8> {
+    minimal_deb_with_file("./boot/config-6.1.0-1-amd64", config.as_bytes())
+}
+
+fn minimal_deb_with_file(path: &str, contents: &[u8]) -> Vec<u8> {
     let mut tarball = Vec::new();
     {
         let mut builder = Builder::new(&mut tarball);
         let mut header = Header::new_gnu();
-        header.set_size(config.len() as u64);
+        header.set_size(contents.len() as u64);
         header.set_cksum();
         builder
-            .append_data(
-                &mut header,
-                "./boot/config-6.1.0-1-amd64",
-                config.as_bytes(),
-            )
-            .expect("append config");
+            .append_data(&mut header, path, contents)
+            .expect("append file");
         builder.finish().expect("finish tar");
     }
 
@@ -1159,6 +1375,13 @@ fn minimal_deb_with_config(config: &str) -> Vec<u8> {
     append_ar_member(&mut deb, "control.tar.gz", &[]);
     append_ar_member(&mut deb, "data.tar.gz", &data_tar_gz);
     deb
+}
+
+fn fake_ikconfig_image(config: &str) -> Vec<u8> {
+    let mut image = b"prefixIKCFG_ST".to_vec();
+    image.extend_from_slice(&gzip_bytes(config));
+    image.extend_from_slice(b"suffix");
+    image
 }
 
 fn minimal_rpm_with_config(config: &str) -> Vec<u8> {

@@ -33,6 +33,9 @@ pub enum Distribution {
     Rhel,
     Rocky,
     Ubuntu,
+    Deepin,
+    Kylin,
+    AoscOS,
     Other(String),
 }
 
@@ -57,6 +60,9 @@ impl Distribution {
             Self::Rhel => "rhel",
             Self::Rocky => "rocky",
             Self::Ubuntu => "ubuntu",
+            Self::Deepin => "deepin",
+            Self::Kylin => "kylin",
+            Self::AoscOS => "aoscos",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -96,6 +102,9 @@ impl FromStr for Distribution {
             "rhel" | "redhat" | "red-hat" => Self::Rhel,
             "rocky" | "rockylinux" | "rocky-linux" => Self::Rocky,
             "ubuntu" => Self::Ubuntu,
+            "deepin" => Self::Deepin,
+            "kylin" | "kylinos" => Self::Kylin,
+            "aosc" | "aoscos" | "aosc-os" => Self::AoscOS,
             other => Self::Other(other.to_string()),
         })
     }

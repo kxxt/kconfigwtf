@@ -12,7 +12,7 @@ The foundation has two parts:
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
   search UI from package-level indexes under `data/`.
 
-The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
+The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin OS, AOSC OS,
 Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler,
 openSUSE, Android AOSP GKI, Alpine Linux, and Arch-family pacman repositories
 for Arch Linux, Parabola, CachyOS, and eweOS.
@@ -37,9 +37,10 @@ cargo run -- index debian \
 ```
 
 The Debian backend reads the `Packages.gz` file for each architecture, selects
-`linux-image-*` packages, downloads each `.deb`, extracts `/boot/config-*`, and
-writes raw configs plus package-level indexes. Use `--max-packages` during
-development to avoid fetching a large number of packages.
+`linux-image-*` packages, downloads each `.deb`, extracts `/boot/config-*` or
+falls back to embedded IKCONFIG from `/boot/vmlinuz-*`, and writes raw configs
+plus package-level indexes. Use `--max-packages` during development to avoid
+fetching a large number of packages.
 
 Offline indexing is also supported for tests and mirror snapshots:
 
@@ -54,9 +55,9 @@ cargo run -- index debian \
 When `--packages-file` is used, `Filename` fields in the Packages file are
 resolved relative to `--deb-root`.
 
-## Generate Ubuntu, Kali, And Proxmox Indexes
+## Generate Ubuntu, Kali, Proxmox, Deepin, Kylin, And AOSC OS Indexes
 
-Ubuntu, Kali, and Proxmox use the same APT package index and `.deb` extraction
+Ubuntu, Kali, Proxmox, Deepin, Kylin OS, and AOSC OS use the same APT package index and `.deb` extraction
 machinery as Debian, with distribution-specific defaults:
 
 ```sh
@@ -80,6 +81,27 @@ cargo run -- index proxmox \
   --arch amd64 \
   --max-packages 5 \
   --data-dir data
+
+cargo run -- index deepin \
+  --suite beige \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+
+cargo run -- index kylin \
+  --suite 10.1 \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+
+cargo run -- index aosc \
+  --suite stable \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
 ```
 
 Default mirrors are:
@@ -87,13 +109,18 @@ Default mirrors are:
 - Ubuntu: `http://archive.ubuntu.com/ubuntu`
 - Kali: `http://http.kali.org/kali`
 - Proxmox: `http://download.proxmox.com/debian/pve`
+- Deepin: `https://community-packages.deepin.com/beige`
+- Kylin: `https://archive.kylinos.cn/kylin/KYLIN-ALL`
+- AOSC OS: `https://repo.aosc.io/debs`
 
 The Ubuntu backend selects `linux-modules-*` packages, and the Kali backend
 selects `linux-base-*` packages, because those packages carry `/boot/config-*`
 in current repositories. Package names are normalized back to `linux-image-*`
 in the generated data and UI. The Proxmox backend selects unsigned
 `proxmox-kernel-*-pve` packages and skips signed, signed-template, and meta
-packages that do not directly provide a config.
+packages that do not directly provide a config. The AOSC OS backend selects
+`linux-kernel-*` packages and extracts embedded IKCONFIG from `/boot/vmlinuz-*`
+when a standalone `/boot/config-*` file is not present.
 
 Offline indexing works the same as Debian:
 
@@ -321,7 +348,7 @@ The crate is split into focused modules:
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
-  indexer implementation used by Debian, Ubuntu, Kali, and Proxmox.
+  indexer implementation used by Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin, and AOSC OS.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
   extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
   AlmaLinux, Rocky Linux, openAnolis, openEuler, and openSUSE.
@@ -402,7 +429,7 @@ every Kconfig entry:
 
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
-distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `archlinux`,
+distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`, `aoscos`, `archlinux`,
 `parabola`, `cachyos`, `eweos`, `alpine`, `fedora`, `rhel`, `centos`,
 `almalinux`, `rocky`, `openanolis`, `openeuler`, and `opensuse`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,

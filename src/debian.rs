@@ -8,6 +8,7 @@ use flate2::read::GzDecoder;
 use liblzma::read::XzDecoder;
 use tar::Archive;
 
+use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
@@ -318,13 +319,17 @@ pub fn normalize_apt_kernel_package_name(
         segments[architecture_index] = "<ARCH>";
     }
 
-    let version_prefix_len = kernel_version_prefix_len(&segments);
-    if version_prefix_len == 0 {
+    let Some(version_start) = segments
+        .iter()
+        .position(|segment| starts_with_digit(segment))
+    else {
         return format!("{output_prefix}{}", segments.join("-"));
-    }
+    };
+    let version_prefix_len = kernel_version_prefix_len(&segments[version_start..]);
 
-    let mut normalized = vec!["<VERSION>"];
-    normalized.extend_from_slice(&segments[version_prefix_len..]);
+    let mut normalized = segments[..version_start].to_vec();
+    normalized.push("<VERSION>");
+    normalized.extend_from_slice(&segments[version_start + version_prefix_len..]);
     format!("{output_prefix}{}", normalized.join("-"))
 }
 
@@ -339,7 +344,7 @@ fn normalized_output_prefix(package_name_prefix: &str) -> &str {
 fn kernel_version_prefix_len(segments: &[&str]) -> usize {
     if !segments
         .first()
-        .is_some_and(|segment| segment.starts_with(|character: char| character.is_ascii_digit()))
+        .is_some_and(|segment| starts_with_digit(segment))
     {
         return 0;
     }
@@ -353,6 +358,10 @@ fn kernel_version_prefix_len(segments: &[&str]) -> usize {
         len += 1;
     }
     len
+}
+
+fn starts_with_digit(segment: &str) -> bool {
+    segment.starts_with(|character: char| character.is_ascii_digit())
 }
 
 pub fn extract_kernel_configs_from_deb(deb_bytes: &[u8]) -> Result<Vec<(String, String)>> {
@@ -395,6 +404,7 @@ fn extract_kernel_configs_from_data_tar(
 
 fn read_configs_from_tar(reader: impl Read) -> Result<Vec<(String, String)>> {
     let mut configs = Vec::new();
+    let mut image_candidates = Vec::new();
     let mut archive = Archive::new(reader);
 
     for entry in archive.entries().context("reading data.tar entries")? {
@@ -404,16 +414,32 @@ fn read_configs_from_tar(reader: impl Read) -> Result<Vec<(String, String)>> {
         }
 
         let path = entry.path().context("reading data.tar entry path")?;
-        if !is_kernel_config_path(&path) {
+        let path = path.display().to_string();
+        if is_kernel_config_path(Path::new(&path)) {
+            let mut config_text = String::new();
+            entry
+                .read_to_string(&mut config_text)
+                .with_context(|| format!("reading kernel config {path}"))?;
+            configs.push((path, config_text));
             continue;
         }
 
-        let path = path.display().to_string();
-        let mut config_text = String::new();
-        entry
-            .read_to_string(&mut config_text)
-            .with_context(|| format!("reading kernel config {path}"))?;
-        configs.push((path, config_text));
+        if is_kernel_image_path(Path::new(&path)) {
+            let mut image = Vec::new();
+            entry
+                .read_to_end(&mut image)
+                .with_context(|| format!("reading kernel image {path}"))?;
+            image_candidates.push((path, image));
+        }
+    }
+
+    if configs.is_empty() {
+        for (path, image) in image_candidates {
+            let Ok(config_text) = extract_ikconfig_from_image(&image) else {
+                continue;
+            };
+            configs.push((path, config_text));
+        }
     }
 
     Ok(configs)
@@ -430,11 +456,34 @@ fn is_kernel_config_path(path: &Path) -> bool {
         && normalized[normalized.len() - 1].starts_with("config-")
 }
 
+fn is_kernel_image_path(path: &Path) -> bool {
+    let normalized = path
+        .components()
+        .map(|component| component.as_os_str().to_string_lossy())
+        .collect::<Vec<_>>();
+
+    if normalized.len() < 2 || normalized[normalized.len() - 2] != "boot" {
+        return false;
+    }
+
+    let filename = &normalized[normalized.len() - 1];
+    filename.starts_with("vmlinuz-")
+        || filename.starts_with("vmlinux-")
+        || filename.starts_with("Image-")
+        || filename.starts_with("bzImage-")
+}
+
 fn decode_package_index(bytes: &[u8], location: &PackageIndexLocation) -> Result<String> {
     let is_gzip = match location {
         PackageIndexLocation::Url(url) => url.ends_with(".gz"),
         PackageIndexLocation::Path(path) => {
             path.extension().is_some_and(|extension| extension == "gz")
+        }
+    };
+    let is_xz = match location {
+        PackageIndexLocation::Url(url) => url.ends_with(".xz"),
+        PackageIndexLocation::Path(path) => {
+            path.extension().is_some_and(|extension| extension == "xz")
         }
     };
 
@@ -443,6 +492,10 @@ fn decode_package_index(bytes: &[u8], location: &PackageIndexLocation) -> Result
         GzDecoder::new(Cursor::new(bytes))
             .read_to_string(&mut decoded)
             .context("decompressing Packages.gz")?;
+    } else if is_xz {
+        XzDecoder::new(Cursor::new(bytes))
+            .read_to_string(&mut decoded)
+            .context("decompressing Packages.xz")?;
     } else {
         decoded = String::from_utf8(bytes.to_vec()).context("decoding Packages index as UTF-8")?;
     }
@@ -550,6 +603,18 @@ Filename: meta.deb
     }
 
     #[test]
+    fn extracts_embedded_config_from_boot_kernel_image() {
+        let image = fake_ikconfig_image("CONFIG_BPF=y\n# CONFIG_UNUSED is not set\n");
+        let deb = minimal_deb_with_file("./boot/vmlinuz-6.18.27-aosc-main", &image);
+
+        let configs = extract_kernel_configs_from_deb(&deb).expect("extract configs");
+
+        assert_eq!(configs.len(), 1);
+        assert_eq!(configs[0].0, "boot/vmlinuz-6.18.27-aosc-main");
+        assert!(configs[0].1.contains("CONFIG_BPF=y"));
+    }
+
+    #[test]
     fn normalizes_debian_kernel_package_name_for_storage_and_ui() {
         assert_eq!(
             normalize_debian_kernel_package_name(
@@ -600,22 +665,38 @@ Filename: meta.deb
             ),
             "proxmox-kernel-<VERSION>-pve"
         );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "linux-kernel-rc-6.18.0",
+                "linux-kernel-",
+                &Architecture::Amd64,
+            ),
+            "linux-kernel-rc-<VERSION>"
+        );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "linux-kernel-vanillarc-7.0.0",
+                "linux-kernel-",
+                &Architecture::Amd64,
+            ),
+            "linux-kernel-vanillarc-<VERSION>"
+        );
     }
 
     fn minimal_deb_with_config(config: &str) -> Vec<u8> {
+        minimal_deb_with_file("./boot/config-6.1.0-1-amd64", config.as_bytes())
+    }
+
+    fn minimal_deb_with_file(path: &str, data: &[u8]) -> Vec<u8> {
         let mut tarball = Vec::new();
         {
             let mut builder = Builder::new(&mut tarball);
             let mut header = Header::new_gnu();
-            header.set_size(config.len() as u64);
+            header.set_size(data.len() as u64);
             header.set_cksum();
             builder
-                .append_data(
-                    &mut header,
-                    "./boot/config-6.1.0-1-amd64",
-                    config.as_bytes(),
-                )
-                .expect("append config");
+                .append_data(&mut header, path, data)
+                .expect("append data");
             builder.finish().expect("finish tar");
         }
 
@@ -628,6 +709,17 @@ Filename: meta.deb
         append_ar_member(&mut deb, "control.tar.gz", &[]);
         append_ar_member(&mut deb, "data.tar.gz", &data_tar_gz);
         deb
+    }
+
+    fn fake_ikconfig_image(config: &str) -> Vec<u8> {
+        let mut gz = GzEncoder::new(Vec::new(), Compression::default());
+        gz.write_all(config.as_bytes()).expect("write gzip");
+        let compressed = gz.finish().expect("finish gzip");
+
+        let mut image = b"prefixIKCFG_ST".to_vec();
+        image.extend_from_slice(&compressed);
+        image.extend_from_slice(b"suffix");
+        image
     }
 
     fn append_ar_member(ar: &mut Vec<u8>, name: &str, data: &[u8]) {

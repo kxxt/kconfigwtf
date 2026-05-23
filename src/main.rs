@@ -81,6 +81,14 @@ enum IndexCommand {
     Rocky(RpmArgs),
     /// Index Ubuntu kernel packages from a mirror or a local Packages file.
     Ubuntu(UbuntuArgs),
+    /// Index Deepin kernel packages from a mirror or a local Packages file.
+    Deepin(DeepinArgs),
+    /// Index Kylin OS kernel packages from a mirror or a local Packages file.
+    #[command(name = "kylin", alias = "kylinos")]
+    Kylin(KylinArgs),
+    /// Index AOSC OS kernel packages from a mirror or a local Packages file.
+    #[command(name = "aosc", alias = "aoscos", alias = "aosc-os")]
+    AoscOS(AoscArgs),
 }
 
 #[derive(Debug, Args)]
@@ -447,6 +455,123 @@ struct ProxmoxArgs {
 }
 
 #[derive(Debug, Args)]
+struct DeepinArgs {
+    /// Deepin mirror root used for remote indexing.
+    #[arg(long, default_value = "https://community-packages.deepin.com/beige")]
+    mirror: String,
+
+    /// Deepin suite to index when using a mirror.
+    #[arg(long, default_value = "beige")]
+    suite: String,
+
+    /// Deepin archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Deepin Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the Deepin Packages index.
+    #[arg(long, default_value = "linux-image-")]
+    package_prefix: String,
+
+    /// Limit the number of Deepin packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct KylinArgs {
+    /// Kylin mirror root used for remote indexing.
+    #[arg(long, default_value = "https://archive.kylinos.cn/kylin/KYLIN-ALL")]
+    mirror: String,
+
+    /// Kylin suite to index when using a mirror.
+    #[arg(long, default_value = "10.1")]
+    suite: String,
+
+    /// Kylin archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local Kylin Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the Kylin Packages index.
+    #[arg(long, default_value = "linux-image-")]
+    package_prefix: String,
+
+    /// Limit the number of Kylin packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct AoscArgs {
+    /// AOSC OS mirror root used for remote indexing.
+    #[arg(long, default_value = "https://repo.aosc.io/debs")]
+    mirror: String,
+
+    /// AOSC OS suite to index when using a mirror.
+    #[arg(long, default_value = "stable")]
+    suite: String,
+
+    /// AOSC OS archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local AOSC OS Packages, Packages.gz, or Packages.xz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the AOSC OS Packages index.
+    #[arg(long, default_value = "linux-kernel-")]
+    package_prefix: String,
+
+    /// Limit the number of AOSC OS packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct FedoraArgs {
     /// Fedora mirror root used for remote indexing.
     #[arg(
@@ -571,6 +696,9 @@ async fn main() -> Result<()> {
             IndexCommand::Proxmox(args) => index_proxmox(args).await,
             IndexCommand::Rocky(args) => index_rpm_distribution(Distribution::Rocky, args).await,
             IndexCommand::Ubuntu(args) => index_ubuntu(args).await,
+            IndexCommand::Deepin(args) => index_deepin(args).await,
+            IndexCommand::Kylin(args) => index_kylin(args).await,
+            IndexCommand::AoscOS(args) => index_aosc(args).await,
         },
         Command::Site(args) => generate_site(args),
     }
@@ -700,6 +828,109 @@ async fn index_proxmox(args: ProxmoxArgs) -> Result<()> {
         excluded_package_substrings: &excluded,
         max_packages: args.max_packages,
     })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_deepin(args: DeepinArgs) -> Result<()> {
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Deepin,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_kylin(args: KylinArgs) -> Result<()> {
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::Kylin,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_aosc(args: AoscArgs) -> Result<()> {
+    let config = if let Some(packages_file) = &args.packages_file {
+        let Some(deb_root) = &args.deb_root else {
+            bail!("--deb-root is required when --packages-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        DebianIndexerConfig {
+            distribution: Distribution::AoscOS,
+            feeds: vec![DebianPackageFeed {
+                architecture,
+                packages: PackageIndexLocation::Path(packages_file.clone()),
+                deb_base: DebianPackageBase::Path(deb_root.clone()),
+            }],
+            package_name_prefix: args.package_prefix.clone(),
+            required_package_substrings: vec![],
+            excluded_package_substrings: vec![],
+            max_packages: args.max_packages,
+        }
+    } else {
+        let mirror = args.mirror.trim_end_matches('/');
+        let suite = &args.suite;
+        let component = &args.component;
+
+        let feeds = args
+            .architectures
+            .iter()
+            .map(|architecture| {
+                // Note: AOSC OS uses Packages.xz instead of Packages.gz
+                let package_url =
+                    format!("{mirror}/dists/{suite}/{component}/binary-{architecture}/Packages.xz");
+                DebianPackageFeed {
+                    architecture: architecture.clone(),
+                    packages: PackageIndexLocation::Url(package_url),
+                    deb_base: DebianPackageBase::Url(mirror.to_string()),
+                }
+            })
+            .collect();
+
+        DebianIndexerConfig {
+            distribution: Distribution::AoscOS,
+            feeds,
+            package_name_prefix: args.package_prefix.clone(),
+            required_package_substrings: vec![],
+            excluded_package_substrings: vec![],
+            max_packages: args.max_packages,
+        }
+    };
+
     let indexer = DebianIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
