@@ -128,7 +128,8 @@ impl AndroidGkiIndexer {
         target: &str,
     ) -> Result<(String, String)> {
         let artifacts = self.load_ci_artifact_list(build_id, target).await?;
-        let candidates = select_config_artifact_candidates(&artifacts, &self.config.config_artifact);
+        let candidates =
+            select_config_artifact_candidates(&artifacts, &self.config.config_artifact);
         if candidates.is_empty() {
             bail!(
                 "no config artifacts listed in BUILD_INFO (available: {})",
@@ -180,9 +181,14 @@ impl AndroidGkiIndexer {
         Ok((format!("{url}#ikconfig"), config_text))
     }
 
-    async fn load_config_from_local(&self, root: &Path, build_id: &str) -> Result<(String, String)> {
+    async fn load_config_from_local(
+        &self,
+        root: &Path,
+        build_id: &str,
+    ) -> Result<(String, String)> {
         let artifact_dir = root.join(build_id).join(&self.config.target);
-        let candidates = local_config_artifact_candidates(&artifact_dir, &self.config.config_artifact);
+        let candidates =
+            local_config_artifact_candidates(&artifact_dir, &self.config.config_artifact);
         if candidates.is_empty() {
             bail!(
                 "Android artifacts for build {build_id} under {} did not provide a kernel config",
@@ -401,10 +407,7 @@ pub fn android_ci_raw_artifact_url(build_id: &str, target: &str, artifact: &str)
     format!("https://ci.android.com/builds/submitted/{build_id}/{target}/latest/raw/{artifact}")
 }
 
-pub fn select_config_artifact_candidates(
-    artifacts: &[String],
-    dot_config: &str,
-) -> Vec<String> {
+pub fn select_config_artifact_candidates(artifacts: &[String], dot_config: &str) -> Vec<String> {
     let mut candidates = Vec::new();
     if artifacts.iter().any(|artifact| artifact == dot_config) {
         candidates.push(dot_config.to_string());
@@ -523,9 +526,7 @@ fn locate_extract_ikconfig_script() -> Result<PathBuf> {
         return Ok(path);
     }
 
-    bail!(
-        "extract-ikconfig was not found; set EXTRACT_IKCONFIG or install the kernel script"
-    );
+    bail!("extract-ikconfig was not found; set EXTRACT_IKCONFIG or install the kernel script");
 }
 
 fn which_extract_ikconfig() -> Result<PathBuf> {
@@ -713,8 +714,7 @@ mod tests {
             r#"{"target":{"dir_list":["vmlinux","Image","System.map"]}}"#,
         )
         .expect("parse BUILD_INFO");
-        let candidates =
-            select_config_artifact_candidates(&artifacts, DEFAULT_CONFIG_ARTIFACT);
+        let candidates = select_config_artifact_candidates(&artifacts, DEFAULT_CONFIG_ARTIFACT);
 
         assert_eq!(candidates, vec!["vmlinux".to_string(), "Image".to_string()]);
     }
@@ -725,8 +725,7 @@ mod tests {
             r#"{"target":{"dir_list":["vmlinux","boot.img","kernel_aarch64_dot_config"]}}"#,
         )
         .expect("parse BUILD_INFO");
-        let candidates =
-            select_config_artifact_candidates(&artifacts, DEFAULT_CONFIG_ARTIFACT);
+        let candidates = select_config_artifact_candidates(&artifacts, DEFAULT_CONFIG_ARTIFACT);
 
         assert_eq!(
             candidates,

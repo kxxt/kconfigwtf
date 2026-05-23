@@ -46,10 +46,25 @@ enum IndexCommand {
     Debian(DebianArgs),
     /// Index Fedora kernel packages from a repository or local repo metadata.
     Fedora(FedoraArgs),
+    /// Index Red Hat Enterprise Linux kernel packages from RPM repository metadata.
+    #[command(name = "rhel")]
+    Rhel(RpmArgs),
+    /// Index CentOS Stream kernel packages from RPM repository metadata.
+    #[command(name = "centos")]
+    CentOS(RpmArgs),
+    /// Index AlmaLinux kernel packages from RPM repository metadata.
+    #[command(name = "almalinux", alias = "alma", alias = "alma-linux")]
+    AlmaLinux(RpmArgs),
     /// Index Kali Linux kernel packages from a mirror or a local Packages file.
     Kali(KaliArgs),
+    /// Index openEuler kernel packages from RPM repository metadata.
+    #[command(name = "openeuler", alias = "open-euler")]
+    OpenEuler(RpmArgs),
     /// Index Proxmox VE kernel packages from a mirror or a local Packages file.
     Proxmox(ProxmoxArgs),
+    /// Index Rocky Linux kernel packages from RPM repository metadata.
+    #[command(name = "rocky", alias = "rockylinux", alias = "rocky-linux")]
+    Rocky(RpmArgs),
     /// Index Ubuntu kernel packages from a mirror or a local Packages file.
     Ubuntu(UbuntuArgs),
 }
@@ -382,6 +397,48 @@ struct FedoraArgs {
 }
 
 #[derive(Debug, Args)]
+struct RpmArgs {
+    /// RPM repository mirror root used for remote indexing.
+    ///
+    /// If omitted, a distribution-specific public mirror is used. RHEL uses the
+    /// Red Hat CDN path and requires local entitlement or an accessible mirror.
+    #[arg(long)]
+    mirror: Option<String>,
+
+    /// Distribution release to index. Defaults depend on the distribution.
+    #[arg(long)]
+    release: Option<String>,
+
+    /// Repository to index. Defaults to BaseOS for EL distros and OS for openEuler.
+    #[arg(long)]
+    repository: Option<String>,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local repodata/repomd.xml file. Useful for offline indexing and tests.
+    #[arg(long)]
+    repomd_file: Option<PathBuf>,
+
+    /// Local repository root used to resolve repodata and RPM hrefs from --repomd-file.
+    #[arg(long)]
+    rpm_root: Option<PathBuf>,
+
+    /// RPM package name to index. Defaults to kernel-core, or kernel for openEuler.
+    #[arg(long)]
+    package_name: Option<String>,
+
+    /// Limit the number of RPM packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct SiteArgs {
     /// Input data directory containing package indexes and raw configs.
     #[arg(long, default_value = "data")]
@@ -406,8 +463,17 @@ async fn main() -> Result<()> {
             IndexCommand::Arch(args) => index_arch(args).await,
             IndexCommand::Debian(args) => index_debian(args).await,
             IndexCommand::Fedora(args) => index_fedora(args).await,
+            IndexCommand::Rhel(args) => index_rpm_distribution(Distribution::Rhel, args).await,
+            IndexCommand::CentOS(args) => index_rpm_distribution(Distribution::CentOS, args).await,
+            IndexCommand::AlmaLinux(args) => {
+                index_rpm_distribution(Distribution::AlmaLinux, args).await
+            }
             IndexCommand::Kali(args) => index_kali(args).await,
+            IndexCommand::OpenEuler(args) => {
+                index_rpm_distribution(Distribution::OpenEuler, args).await
+            }
             IndexCommand::Proxmox(args) => index_proxmox(args).await,
+            IndexCommand::Rocky(args) => index_rpm_distribution(Distribution::Rocky, args).await,
             IndexCommand::Ubuntu(args) => index_ubuntu(args).await,
         },
         Command::Site(args) => generate_site(args),
@@ -446,6 +512,15 @@ async fn index_debian(args: DebianArgs) -> Result<()> {
 
 async fn index_fedora(args: FedoraArgs) -> Result<()> {
     let config = fedora_config_from_args(&args)?;
+    let indexer = FedoraIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_rpm_distribution(distribution: Distribution, args: RpmArgs) -> Result<()> {
+    let config = rpm_config_from_args(distribution, &args)?;
     let indexer = FedoraIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
@@ -782,6 +857,7 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
             .unwrap_or(Architecture::Amd64);
 
         FedoraIndexerConfig {
+            distribution: Distribution::Fedora,
             feeds: vec![FedoraRepoFeed {
                 architecture,
                 repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
@@ -803,6 +879,277 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
     Ok(config)
 }
 
+fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<FedoraIndexerConfig> {
+    let package_name = args
+        .package_name
+        .clone()
+        .unwrap_or_else(|| default_rpm_package_name(&distribution, args).to_string());
+
+    let mut config = if let Some(repomd_file) = &args.repomd_file {
+        let Some(rpm_root) = &args.rpm_root else {
+            bail!("--rpm-root is required when --repomd-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        FedoraIndexerConfig {
+            distribution: distribution.clone(),
+            feeds: vec![FedoraRepoFeed {
+                architecture,
+                repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
+                package_base: FedoraPackageBase::Path(rpm_root.clone()),
+            }],
+            package_name: package_name.clone(),
+            max_packages: args.max_packages,
+        }
+    } else {
+        let feeds = args
+            .architectures
+            .iter()
+            .map(|architecture| {
+                let repo_root = rpm_repo_root(&distribution, args, architecture);
+                FedoraRepoFeed {
+                    architecture: architecture.clone(),
+                    repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
+                    package_base: FedoraPackageBase::Url(repo_root),
+                }
+            })
+            .collect();
+
+        FedoraIndexerConfig {
+            distribution: distribution.clone(),
+            feeds,
+            package_name: package_name.clone(),
+            max_packages: args.max_packages,
+        }
+    };
+
+    config.package_name = package_name;
+    config.max_packages = args.max_packages;
+    Ok(config)
+}
+
+fn rpm_repo_root(
+    distribution: &Distribution,
+    args: &RpmArgs,
+    architecture: &Architecture,
+) -> String {
+    let mirror = args
+        .mirror
+        .clone()
+        .unwrap_or_else(|| default_rpm_mirror(distribution, args).to_string());
+    let mut release = args
+        .release
+        .clone()
+        .unwrap_or_else(|| default_rpm_release(distribution).to_string());
+    if matches!(distribution, Distribution::CentOS) {
+        release = canonical_centos_release(&release).to_string();
+    }
+    let repository = args
+        .repository
+        .clone()
+        .unwrap_or_else(|| default_rpm_repository(distribution, &release).to_string());
+    let mirror = mirror.trim_end_matches('/');
+    let arch = rpm_architecture_segment(architecture);
+
+    match distribution {
+        Distribution::Rhel => {
+            let major = release.split('.').next().unwrap_or(&release);
+            format!(
+                "{mirror}/rhel{major}/{release}/{arch}/{}/os",
+                repository.to_ascii_lowercase()
+            )
+        }
+        Distribution::CentOS if is_legacy_centos_release(&release) => {
+            format!("{mirror}/{release}/{repository}/{arch}")
+        }
+        Distribution::CentOS | Distribution::AlmaLinux | Distribution::Rocky => {
+            format!("{mirror}/{release}/{repository}/{arch}/os")
+        }
+        Distribution::OpenEuler => format!("{mirror}/{release}/{repository}/{arch}"),
+        _ => format!("{mirror}/{release}/{repository}/{arch}/os"),
+    }
+}
+
+fn default_rpm_mirror(distribution: &Distribution, args: &RpmArgs) -> &'static str {
+    match distribution {
+        Distribution::Rhel => "https://cdn.redhat.com/content/dist",
+        Distribution::CentOS => {
+            let release = args
+                .release
+                .as_deref()
+                .unwrap_or(default_rpm_release(distribution));
+            if is_archived_centos_release(canonical_centos_release(release)) {
+                "https://vault.centos.org"
+            } else {
+                "https://mirror.stream.centos.org"
+            }
+        }
+        Distribution::AlmaLinux => "https://repo.almalinux.org/almalinux",
+        Distribution::Rocky => "https://dl.rockylinux.org/pub/rocky",
+        Distribution::OpenEuler => "https://repo.openeuler.org",
+        _ => "https://download.fedoraproject.org/pub/fedora/linux",
+    }
+}
+
+fn default_rpm_release(distribution: &Distribution) -> &'static str {
+    match distribution {
+        Distribution::CentOS => "10-stream",
+        Distribution::OpenEuler => "openEuler-24.03-LTS",
+        _ => "10",
+    }
+}
+
+fn default_rpm_repository(distribution: &Distribution, release: &str) -> &'static str {
+    match distribution {
+        Distribution::CentOS if is_legacy_centos_release(release) => "os",
+        Distribution::OpenEuler => "OS",
+        _ => "BaseOS",
+    }
+}
+
+fn default_rpm_package_name(distribution: &Distribution, args: &RpmArgs) -> &'static str {
+    match distribution {
+        Distribution::CentOS => {
+            let release = args
+                .release
+                .as_deref()
+                .unwrap_or(default_rpm_release(distribution));
+            if is_legacy_centos_release(canonical_centos_release(release)) {
+                "kernel"
+            } else {
+                "kernel-core"
+            }
+        }
+        Distribution::OpenEuler => "kernel",
+        _ => "kernel-core",
+    }
+}
+
+fn canonical_centos_release(release: &str) -> &str {
+    match release {
+        "6" => "6.10",
+        "7" => "7.9.2009",
+        "8" => "8.5.2111",
+        other => other,
+    }
+}
+
+fn is_legacy_centos_release(release: &str) -> bool {
+    release
+        .split(['.', '-'])
+        .next()
+        .and_then(|major| major.parse::<u16>().ok())
+        .is_some_and(|major| major <= 7)
+}
+
+fn is_archived_centos_release(release: &str) -> bool {
+    release
+        .split(['.', '-'])
+        .next()
+        .and_then(|major| major.parse::<u16>().ok())
+        .is_some_and(|major| major <= 8)
+}
+
+fn rpm_architecture_segment(architecture: &Architecture) -> &str {
+    match architecture {
+        Architecture::Amd64 => "x86_64",
+        Architecture::Arm64 => "aarch64",
+        Architecture::Armhf => "armhfp",
+        Architecture::Ppc64el => "ppc64le",
+        other => other.as_str(),
+    }
+}
+
 fn generate_site(args: SiteArgs) -> Result<()> {
     SiteGenerator::new(args.title).generate(args.data_dir, args.output_dir)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn builds_default_enterprise_linux_repo_roots() {
+        let args = rpm_args();
+
+        assert_eq!(
+            rpm_repo_root(&Distribution::Rhel, &args, &Architecture::Amd64),
+            "https://cdn.redhat.com/content/dist/rhel10/10/x86_64/baseos/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::CentOS, &args, &Architecture::Amd64),
+            "https://mirror.stream.centos.org/10-stream/BaseOS/x86_64/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::AlmaLinux, &args, &Architecture::Arm64),
+            "https://repo.almalinux.org/almalinux/10/BaseOS/aarch64/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::Rocky, &args, &Architecture::Ppc64el),
+            "https://dl.rockylinux.org/pub/rocky/10/BaseOS/ppc64le/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenEuler, &args, &Architecture::Amd64),
+            "https://repo.openeuler.org/openEuler-24.03-LTS/OS/x86_64"
+        );
+    }
+
+    #[test]
+    fn builds_legacy_centos_repo_roots_and_package_names() {
+        let centos6 = rpm_args_with_release("6");
+        let centos7 = rpm_args_with_release("7");
+        let centos8 = rpm_args_with_release("8");
+        let centos9_stream = rpm_args_with_release("9-stream");
+
+        assert_eq!(
+            rpm_repo_root(&Distribution::CentOS, &centos6, &Architecture::Amd64),
+            "https://vault.centos.org/6.10/os/x86_64"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::CentOS, &centos7, &Architecture::Amd64),
+            "https://vault.centos.org/7.9.2009/os/x86_64"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::CentOS, &centos8, &Architecture::Amd64),
+            "https://vault.centos.org/8.5.2111/BaseOS/x86_64/os"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::CentOS, &centos9_stream, &Architecture::Amd64),
+            "https://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::CentOS, &centos6),
+            "kernel"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::CentOS, &centos8),
+            "kernel-core"
+        );
+    }
+
+    fn rpm_args() -> RpmArgs {
+        RpmArgs {
+            mirror: None,
+            release: None,
+            repository: None,
+            architectures: vec![Architecture::Amd64],
+            repomd_file: None,
+            rpm_root: None,
+            package_name: None,
+            max_packages: None,
+            data_dir: PathBuf::from("data"),
+        }
+    }
+
+    fn rpm_args_with_release(release: &str) -> RpmArgs {
+        RpmArgs {
+            release: Some(release.to_string()),
+            ..rpm_args()
+        }
+    }
 }

@@ -13,8 +13,8 @@ The foundation has two parts:
   search UI from package-level indexes under `data/`.
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
-Fedora, Android AOSP GKI, and Arch-family pacman repositories for Arch Linux,
-Parabola, and CachyOS.
+Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openEuler, Android AOSP
+GKI, and Arch-family pacman repositories for Arch Linux, Parabola, and CachyOS.
 
 ## Install
 
@@ -104,7 +104,7 @@ cargo run -- index ubuntu \
   --data-dir data
 ```
 
-## Generate A Fedora Index
+## Generate An RPM-Family Index
 
 Index Fedora `kernel-core` packages from a mirror:
 
@@ -116,10 +116,39 @@ cargo run -- index fedora \
   --data-dir data
 ```
 
-The Fedora backend reads `repodata/repomd.xml`, follows the primary metadata
-location, selects matching RPMs, extracts `/boot/config-*` from each package,
-and writes raw configs plus package-level indexes. Use `--max-packages` during
-development to avoid downloading many large kernel RPMs.
+The same RPM backend also supports RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
+and openEuler:
+
+```sh
+cargo run -- index centos --release 10-stream --max-packages 5 --data-dir data
+cargo run -- index centos --release 6 --max-packages 5 --data-dir data
+cargo run -- index almalinux --release 10 --max-packages 5 --data-dir data
+cargo run -- index rocky --release 10 --max-packages 5 --data-dir data
+cargo run -- index openeuler --release openEuler-24.03-LTS --max-packages 5 --data-dir data
+```
+
+CentOS Stream releases use `mirror.stream.centos.org`. Archived CentOS
+releases use `vault.centos.org`; shorthand releases `6`, `7`, and `8` resolve
+to the final archived point releases `6.10`, `7.9.2009`, and `8.5.2111`.
+
+RHEL uses the Red Hat CDN path by default and requires an entitled environment
+or an accessible mirror:
+
+```sh
+cargo run -- index rhel \
+  --mirror https://cdn.redhat.com/content/dist \
+  --release 10 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+The RPM backend reads `repodata/repomd.xml`, follows the primary metadata
+location, selects matching RPMs, extracts `/boot/config-*` or
+`/lib/modules/*/config` from each package, and writes raw configs plus
+package-level indexes. Use `--max-packages` during development to avoid
+downloading many large kernel RPMs. The default package is `kernel-core` for
+Fedora and modern Enterprise Linux distributions, `kernel` for CentOS 6/7, and
+`kernel` for openEuler.
 
 Offline indexing is also supported for tests and mirror snapshots:
 
@@ -262,8 +291,9 @@ The crate is split into focused modules:
   indexer implementation for Arch Linux, Parabola, and CachyOS.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
   indexer implementation used by Debian, Ubuntu, Kali, and Proxmox.
-- `fedora`: Fedora `repomd.xml` / primary metadata parser, RPM extraction, and
-  indexer implementation.
+- `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
+  extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
+  AlmaLinux, Rocky Linux, and openEuler.
 - `site`: static site rendering using MiniJinja templates.
 
 Distribution backends implement:
@@ -342,9 +372,10 @@ every Kconfig entry:
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `archlinux`,
-`parabola`, `cachyos`, and `fedora`. Architectures include `amd64`, `arm64`,
-`armhf`, `i386`, `ppc64el`, `riscv64`, and `s390x`. Unknown future values are
-preserved through an `Other(String)` enum variant.
+`parabola`, `cachyos`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, and
+`openeuler`. Architectures include `amd64`, `arm64`, `armhf`, `i386`,
+`ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
+an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
 indexes, copies the data tree into the site output, writes `indexes.json`, and

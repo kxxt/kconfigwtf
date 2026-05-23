@@ -704,6 +704,166 @@ fn fedora_index_command_indexes_local_repo_metadata() {
     );
 }
 
+#[test]
+fn rhel_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "rhel",
+        release: None,
+        distribution: Distribution::Rhel,
+        package_name: "kernel-core",
+        expected_config_path: "rhel/kernel-core/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "rhel/kernel-core/index.json",
+    });
+}
+
+#[test]
+fn centos_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "centos",
+        release: None,
+        distribution: Distribution::CentOS,
+        package_name: "kernel-core",
+        expected_config_path: "centos/kernel-core/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "centos/kernel-core/index.json",
+    });
+}
+
+#[test]
+fn centos_6_index_command_defaults_to_kernel_package() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "centos",
+        release: Some("6"),
+        distribution: Distribution::CentOS,
+        package_name: "kernel",
+        expected_config_path: "centos/kernel/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "centos/kernel/index.json",
+    });
+}
+
+#[test]
+fn almalinux_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "almalinux",
+        release: None,
+        distribution: Distribution::AlmaLinux,
+        package_name: "kernel-core",
+        expected_config_path: "almalinux/kernel-core/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "almalinux/kernel-core/index.json",
+    });
+}
+
+#[test]
+fn rocky_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "rocky",
+        release: None,
+        distribution: Distribution::Rocky,
+        package_name: "kernel-core",
+        expected_config_path: "rocky/kernel-core/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "rocky/kernel-core/index.json",
+    });
+}
+
+#[test]
+fn openeuler_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "openeuler",
+        release: None,
+        distribution: Distribution::OpenEuler,
+        package_name: "kernel",
+        expected_config_path: "openeuler/kernel/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "openeuler/kernel/index.json",
+    });
+}
+
+struct RpmCliCase<'a> {
+    command: &'a str,
+    release: Option<&'a str>,
+    distribution: Distribution,
+    package_name: &'a str,
+    expected_config_path: &'a str,
+    expected_index_path: &'a str,
+}
+
+fn rpm_index_command_indexes_local_repo_metadata(case: RpmCliCase<'_>) {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let repodata = repo_root.join("repodata");
+    let packages_dir = repo_root.join("Packages/k");
+    let rpm_path = packages_dir.join("kernel-test.rpm");
+    let primary_path = repodata.join("primary.xml.gz");
+    let repomd_path = repodata.join("repomd.xml");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&packages_dir).expect("create packages dir");
+    fs::create_dir_all(&repodata).expect("create repodata dir");
+    fs::write(&rpm_path, minimal_rpm_with_config("CONFIG_BPF=y\n")).expect("write rpm");
+    fs::write(
+        &primary_path,
+        gzip_bytes(&format!(
+            r#"<metadata>
+  <package type="rpm">
+    <name>{}</name>
+    <arch>x86_64</arch>
+    <version epoch="0" ver="6.12.0" rel="1.fc99"/>
+    <location href="Packages/k/kernel-test.rpm"/>
+  </package>
+</metadata>"#,
+            case.package_name
+        )),
+    )
+    .expect("write primary");
+    fs::write(
+        &repomd_path,
+        r#"<repomd>
+  <data type="primary"><location href="repodata/primary.xml.gz"/></data>
+</repomd>"#,
+    )
+    .expect("write repomd");
+
+    let mut args = vec![
+        "index".to_string(),
+        case.command.to_string(),
+        "--repomd-file".to_string(),
+        repomd_path.to_str().expect("repomd path").to_string(),
+        "--rpm-root".to_string(),
+        repo_root.to_str().expect("repo root").to_string(),
+        "--arch".to_string(),
+        "x86_64".to_string(),
+        "--data-dir".to_string(),
+        data_dir.to_str().expect("data dir").to_string(),
+    ];
+    if let Some(release) = case.release {
+        args.push("--release".to_string());
+        args.push(release.to_string());
+    }
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args(args)
+        .assert()
+        .success();
+
+    let config_path = data_dir.join(case.expected_config_path);
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read rpm config")
+            .contains("CONFIG_BPF=y")
+    );
+
+    let index_path = data_dir.join(case.expected_index_path);
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read rpm index"))
+            .expect("parse rpm index");
+    assert_eq!(index.distribution, case.distribution);
+    assert_eq!(index.package_name, case.package_name);
+    assert_eq!(
+        index.kernels["0:6.12.0-1.fc99/amd64"].architecture,
+        Architecture::Amd64
+    );
+}
+
 fn minimal_deb_with_config(config: &str) -> Vec<u8> {
     let mut tarball = Vec::new();
     {

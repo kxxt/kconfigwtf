@@ -33,6 +33,7 @@ pub struct FedoraRepoFeed {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FedoraIndexerConfig {
+    pub distribution: Distribution,
     pub feeds: Vec<FedoraRepoFeed>,
     pub package_name: String,
     pub max_packages: Option<usize>,
@@ -59,6 +60,7 @@ impl FedoraIndexerConfig {
             .collect();
 
         Self {
+            distribution: Distribution::Fedora,
             feeds,
             package_name: DEFAULT_PACKAGE_NAME.to_string(),
             max_packages: None,
@@ -166,7 +168,7 @@ impl KernelConfigIndexer for FedoraIndexer {
 
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
-                        distribution: Distribution::Fedora,
+                        distribution: self.config.distribution.clone(),
                         package_name: candidate.name.clone(),
                         package_version: candidate.version.clone(),
                         architecture: candidate.architecture.clone(),

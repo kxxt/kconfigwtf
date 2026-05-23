@@ -155,17 +155,35 @@ displayed as `linux-image-*` package names. For example,
 `linux-base-6.19.14+kali-amd64` becomes `linux-image-<VERSION>-<ARCH>`.
 `proxmox-kernel-6.11.0-1-pve` becomes `proxmox-kernel-<VERSION>-pve`.
 
-## Fedora Backend
+## RPM-Family Backend
 
-The Fedora backend supports two retrieval modes:
+The RPM-family backend is implemented in the Fedora module and supports Fedora,
+RHEL, CentOS Stream, AlmaLinux, Rocky Linux, and openEuler. It supports two
+retrieval modes:
 
 - Mirror mode, using `repodata/repomd.xml` and the referenced primary metadata.
 - Local mode, using `--repomd-file` and resolving primary metadata and RPM
   `href` values under `--rpm-root`.
 
 The backend selects matching RPM package names, currently defaulting to
-`kernel-core`, and extracts `/boot/config-*` or `lib/modules/*/config` from RPM
-payloads.
+`kernel-core` for Fedora and modern Enterprise Linux distributions, `kernel`
+for CentOS 6/7, and `kernel` for openEuler. It extracts `/boot/config-*` or
+`lib/modules/*/config` from RPM payloads.
+
+Default mirror layouts are:
+
+- Fedora: `<mirror>/releases/<release>/Everything/<arch>/os`, or
+  `<mirror>/development/rawhide/Everything/<arch>/os` for rawhide.
+- RHEL: `<mirror>/rhel<major>/<release>/<arch>/<repo>/os`, where the default
+  mirror is the Red Hat CDN and requires entitlement or an accessible mirror.
+- CentOS 6/7: `<mirror>/<release>/<repo>/<arch>`, using `vault.centos.org` by
+  default. Shorthand releases `6` and `7` resolve to `6.10` and `7.9.2009`.
+- CentOS 8: `<mirror>/<release>/<repo>/<arch>/os`, using `vault.centos.org` by
+  default. Shorthand release `8` resolves to `8.5.2111`.
+- CentOS Stream: `<mirror>/<release>/<repo>/<arch>/os`, using
+  `mirror.stream.centos.org` by default.
+- AlmaLinux and Rocky Linux: `<mirror>/<release>/<repo>/<arch>/os`.
+- openEuler: `<mirror>/<release>/<repo>/<arch>`.
 
 ## Adding Another Distribution
 
