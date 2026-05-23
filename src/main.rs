@@ -19,6 +19,10 @@ use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
 use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
+use kconfigwtf::store::{
+    StorePackageIndexer, StorePackageIndexerConfig, StorePackageManager,
+    default_system_for_architecture, discover_nix_kernel_packages,
+};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
 #[derive(Debug, Parser)]
@@ -89,6 +93,11 @@ enum IndexCommand {
     /// Index AOSC OS kernel packages from a mirror or a local Packages file.
     #[command(name = "aosc", alias = "aoscos", alias = "aosc-os")]
     AoscOS(AoscArgs),
+    /// Index NixOS kernel packages through nix.
+    #[command(name = "nixos", alias = "nix-os")]
+    NixOS(NixOsArgs),
+    /// Index Guix kernel packages through guix.
+    Guix(GuixArgs),
 }
 
 #[derive(Debug, Args)]
@@ -572,6 +581,64 @@ struct AoscArgs {
 }
 
 #[derive(Debug, Args)]
+struct NixOsArgs {
+    /// Nix flake reference containing the package attributes.
+    #[arg(long, default_value = "nixpkgs")]
+    flake: String,
+
+    /// Nix package attribute to index. May be passed more than once. Defaults to discovered kernels.
+    #[arg(long = "package")]
+    packages: Vec<String>,
+
+    /// nix executable to run.
+    #[arg(long, default_value = "nix")]
+    nix_command: String,
+
+    /// Nix system to build/evaluate. Defaults from --arch.
+    #[arg(long)]
+    system: Option<String>,
+
+    /// CPU architecture to store for indexed configs.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architecture: Architecture,
+
+    /// Limit the number of Nix packages fetched.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct GuixArgs {
+    /// Guix package name to index. May be passed more than once.
+    #[arg(long = "package", default_values_t = vec!["linux-libre".to_string()])]
+    packages: Vec<String>,
+
+    /// guix executable to run.
+    #[arg(long, default_value = "guix")]
+    guix_command: String,
+
+    /// Guix system to build. Defaults from --arch.
+    #[arg(long)]
+    system: Option<String>,
+
+    /// CPU architecture to store for indexed configs.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architecture: Architecture,
+
+    /// Limit the number of Guix packages fetched.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct FedoraArgs {
     /// Fedora mirror root used for remote indexing.
     #[arg(
@@ -699,6 +766,8 @@ async fn main() -> Result<()> {
             IndexCommand::Deepin(args) => index_deepin(args).await,
             IndexCommand::Kylin(args) => index_kylin(args).await,
             IndexCommand::AoscOS(args) => index_aosc(args).await,
+            IndexCommand::NixOS(args) => index_nixos(args).await,
+            IndexCommand::Guix(args) => index_guix(args).await,
         },
         Command::Site(args) => generate_site(args),
     }
@@ -932,6 +1001,57 @@ async fn index_aosc(args: AoscArgs) -> Result<()> {
     };
 
     let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_nixos(args: NixOsArgs) -> Result<()> {
+    let system = args
+        .system
+        .unwrap_or_else(|| default_system_for_architecture(&args.architecture));
+    let discovered_packages = args.packages.is_empty();
+    let packages = if discovered_packages {
+        discover_nix_kernel_packages(&args.nix_command, &args.flake, &system)?
+    } else {
+        args.packages
+    };
+
+    let config = StorePackageIndexerConfig {
+        distribution: Distribution::NixOS,
+        manager: StorePackageManager::Nix {
+            command: args.nix_command,
+            flake_ref: args.flake,
+        },
+        packages,
+        system,
+        architecture: args.architecture,
+        max_packages: args.max_packages,
+        skip_failed_packages: discovered_packages,
+    };
+    let indexer = StorePackageIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_guix(args: GuixArgs) -> Result<()> {
+    let config = StorePackageIndexerConfig {
+        distribution: Distribution::Guix,
+        manager: StorePackageManager::Guix {
+            command: args.guix_command,
+        },
+        packages: args.packages,
+        system: args
+            .system
+            .unwrap_or_else(|| default_system_for_architecture(&args.architecture)),
+        architecture: args.architecture,
+        max_packages: args.max_packages,
+        skip_failed_packages: false,
+    };
+    let indexer = StorePackageIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;

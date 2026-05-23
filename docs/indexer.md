@@ -132,9 +132,9 @@ metadata as the package name, and uses the release tag as the package version.
 ## Debian Backend
 
 The Debian backend is an APT repository backend used by Debian, Ubuntu, Kali,
-and Proxmox. It supports two retrieval modes:
+Proxmox, Deepin, Kylin OS, and AOSC OS. It supports two retrieval modes:
 
-- Mirror mode, using `dists/<suite>/<component>/binary-<arch>/Packages.gz`.
+- Mirror mode, using `dists/<suite>/<component>/binary-<arch>/Packages.gz` or `Packages.xz`.
 - Local mode, using `--packages-file` and resolving package `Filename` values
   under `--deb-root`.
 
@@ -146,6 +146,10 @@ formats:
 - `data.tar.xz`
 - `data.tar.zst`
 - `data.tar.zstd`
+
+It first looks for standalone `boot/config-*` files. If none are present, it
+tries embedded IKCONFIG from kernel images such as `boot/vmlinuz-*`, which is
+needed for AOSC OS `linux-kernel-*` packages.
 
 Future Debian improvements can add source package metadata, package version
 ordering, snapshot pinning, and stricter kernel image package filtering.
@@ -210,6 +214,24 @@ Default mirror layouts are:
 - openEuler: `<mirror>/<release>/<repo>/<arch>`.
 - openSUSE Tumbleweed: `<mirror>/tumbleweed/repo/<repo>`.
 - openSUSE Leap: `<mirror>/distribution/leap/<release>/repo/<repo>`.
+
+## Store Package Backends
+
+The NixOS and Guix backends use local package-manager commands rather than
+repository metadata:
+
+- NixOS discovers derivation-valued attributes under `linuxKernel.kernels`,
+  adds common top-level aliases such as `linux`, `linux_latest`, `linux_zen`,
+  `linux_xanmod`, and `linuxPackages_latest.kernel`, then runs
+  `nix build --no-link --print-out-paths` for each selected package attribute
+  and tries `nix eval --raw <installable>.version` for the package version.
+- Guix runs `guix build` for each requested package and derives the package
+  version from the resulting store path.
+
+Both backends scan the resolved store output for config files such as
+`lib/modules/*/build/.config`, `lib/modules/*/config`, and `config-*`. If no
+plain config file is present, they try embedded IKCONFIG from kernel images
+such as `bzImage`, `Image`, and `vmlinuz-*`.
 
 ## Adding Another Distribution
 

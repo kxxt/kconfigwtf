@@ -7,6 +7,7 @@ pub mod ikconfig;
 pub mod index;
 pub mod indexer;
 pub mod site;
+pub mod store;
 
 pub use index::{
     Architecture, ConfigValue, Distribution, PackageConfigOccurrence, PackageIndex, PackageKernel,

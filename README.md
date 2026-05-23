@@ -12,10 +12,11 @@ The foundation has two parts:
 - A static site generator that renders a self-contained HTML/CSS/JavaScript
   search UI from package-level indexes under `data/`.
 
-The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin OS, AOSC OS,
-Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler,
-openSUSE, Android AOSP GKI, Alpine Linux, and Arch-family pacman repositories
-for Arch Linux, Parabola, CachyOS, and eweOS.
+The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
+Deepin, Kylin OS, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
+openAnolis, openEuler, openSUSE, Android AOSP GKI, Alpine Linux, NixOS, Guix,
+and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
+eweOS.
 
 ## Install
 
@@ -303,6 +304,34 @@ package-level indexes.
 When `--db-file` is used, package filenames from the sync database are resolved
 relative to `--package-root`.
 
+## Generate NixOS And Guix Indexes
+
+NixOS and Guix are indexed through their native package manager CLIs. The
+backend resolves each requested package to a store output, scans the output for
+kernel configs, and falls back to embedded IKCONFIG in kernel images such as
+Nix's `bzImage`.
+
+```sh
+cargo run -- index nixos \
+  --arch x86_64 \
+  --max-packages 1 \
+  --data-dir data
+
+cargo run -- index guix \
+  --package linux-libre \
+  --arch x86_64 \
+  --max-packages 1 \
+  --data-dir data
+```
+
+NixOS discovers derivation-valued attributes under
+`nixpkgs#linuxKernel.kernels` by default and also includes
+`linuxPackages_latest.kernel`, `linux_zen`, `linux`, `linux_latest`, and
+`linux_xanmod`. Use `--flake` to select another flake, or pass `--package` one
+or more times to index an explicit subset. Guix defaults to `linux-libre`.
+Both commands accept `--system` when the package manager system string should
+differ from the selected output architecture.
+
 ## Generate The Static Site
 
 ```sh
@@ -352,6 +381,7 @@ The crate is split into focused modules:
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
   extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
   AlmaLinux, Rocky Linux, openAnolis, openEuler, and openSUSE.
+- `store`: NixOS and Guix package-manager backed indexing from store outputs.
 - `site`: static site rendering using MiniJinja templates.
 
 Distribution backends implement:
@@ -429,9 +459,10 @@ every Kconfig entry:
 
 `distribution` and `architecture` are represented as Rust enums and serialized
 as stable lowercase strings in JSON. Known values include `debian` for
-distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`, `aoscos`, `archlinux`,
-`parabola`, `cachyos`, `eweos`, `alpine`, `fedora`, `rhel`, `centos`,
-`almalinux`, `rocky`, `openanolis`, `openeuler`, and `opensuse`.
+distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`,
+`aoscos`, `archlinux`, `parabola`, `cachyos`, `eweos`, `alpine`, `nixos`,
+`guix`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, `openanolis`,
+`openeuler`, and `opensuse`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.

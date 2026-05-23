@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::Write;
+use std::os::unix::fs::PermissionsExt;
 
 use assert_cmd::Command;
 use flate2::Compression;
@@ -654,6 +655,189 @@ Filename: pool/main/l/linux/linux-kernel-vanillarc-7.0.0.deb
         data_dir
             .join("aoscos/linux-kernel-vanillarc-<VERSION>/7.0.0-0.2/amd64/config")
             .exists()
+    );
+}
+
+#[test]
+fn nixos_index_command_indexes_nix_store_kernel() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let bin_dir = temp.path().join("bin");
+    let store_path = temp.path().join("nix/store/hash-linux-6.18.32");
+    let data_dir = temp.path().join("data");
+    let nix_script = bin_dir.join("nix");
+
+    fs::create_dir_all(&store_path).expect("create store path");
+    fs::write(
+        store_path.join("bzImage"),
+        fake_ikconfig_image("CONFIG_NIXOS=y\n# CONFIG_UNUSED is not set\n"),
+    )
+    .expect("write image");
+    write_executable(
+        &nix_script,
+        &format!(
+            r#"#!/bin/sh
+case "$1" in
+  build)
+    printf '%s\n' '{}'
+    ;;
+  eval)
+    printf '%s\n' '6.18.32'
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+"#,
+            store_path.display()
+        ),
+    );
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .env("PATH", path_with_prepended_dir(&bin_dir))
+        .args([
+            "index",
+            "nixos",
+            "--package",
+            "linuxPackages.kernel",
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("nixos/linuxPackages.kernel/6.18.32/amd64/config");
+    assert!(config_path.exists());
+    assert!(
+        fs::read_to_string(&config_path)
+            .expect("read raw config")
+            .contains("CONFIG_NIXOS=y")
+    );
+}
+
+#[test]
+fn nixos_index_command_discovers_kernel_packages_by_default() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let bin_dir = temp.path().join("bin");
+    let store_path = temp.path().join("nix/store/hash-linux-6.18.32");
+    let data_dir = temp.path().join("data");
+    let nix_script = bin_dir.join("nix");
+
+    fs::create_dir_all(&store_path).expect("create store path");
+    fs::write(
+        store_path.join("bzImage"),
+        fake_ikconfig_image("CONFIG_NIXOS_DISCOVERED=y\n"),
+    )
+    .expect("write image");
+    write_executable(
+        &nix_script,
+        &format!(
+            r#"#!/bin/sh
+case "$1:$2" in
+  eval:--json)
+    printf '%s\n' '["linux_5_10","linux_rpi1"]'
+    ;;
+  eval:--raw)
+    printf '%s\n' '6.18.32'
+    ;;
+  build:*)
+    case "$*" in
+      *linux_rpi1*)
+        printf '%s\n' 'unsupported platform' >&2
+        exit 1
+        ;;
+    esac
+    printf '%s\n' '{}'
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+"#,
+            store_path.display()
+        ),
+    );
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .env("PATH", path_with_prepended_dir(&bin_dir))
+        .args([
+            "index",
+            "nixos",
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    assert!(
+        data_dir
+            .join("nixos/linuxKernel.kernels.linux_5_10/6.18.32/amd64/config")
+            .exists()
+    );
+    assert!(
+        data_dir
+            .join("nixos/linux_xanmod/6.18.32/amd64/config")
+            .exists()
+    );
+    assert!(
+        !data_dir
+            .join("nixos/linuxKernel.kernels.linux_rpi1")
+            .exists()
+    );
+}
+
+#[test]
+fn guix_index_command_indexes_guix_store_kernel() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let bin_dir = temp.path().join("bin");
+    let store_path = temp.path().join("gnu/store/hash-linux-libre-6.12.0");
+    let config_path = store_path.join("lib/modules/6.12.0/build/.config");
+    let data_dir = temp.path().join("data");
+    let guix_script = bin_dir.join("guix");
+
+    fs::create_dir_all(config_path.parent().expect("config parent")).expect("create store path");
+    fs::write(&config_path, "CONFIG_GUIX=y\n# CONFIG_UNUSED is not set\n").expect("write config");
+    write_executable(
+        &guix_script,
+        &format!(
+            r#"#!/bin/sh
+if [ "$1" = "build" ]; then
+  printf '%s\n' '{}'
+  exit 0
+fi
+exit 1
+"#,
+            store_path.display()
+        ),
+    );
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .env("PATH", path_with_prepended_dir(&bin_dir))
+        .args([
+            "index",
+            "guix",
+            "--package",
+            "linux-libre",
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let output_config = data_dir.join("guix/linux-libre/6.12.0/amd64/config");
+    assert!(output_config.exists());
+    assert!(
+        fs::read_to_string(&output_config)
+            .expect("read raw config")
+            .contains("CONFIG_GUIX=y")
     );
 }
 
@@ -1382,6 +1566,19 @@ fn fake_ikconfig_image(config: &str) -> Vec<u8> {
     image.extend_from_slice(&gzip_bytes(config));
     image.extend_from_slice(b"suffix");
     image
+}
+
+fn write_executable(path: &std::path::Path, contents: &str) {
+    fs::create_dir_all(path.parent().expect("script parent")).expect("create script parent");
+    fs::write(path, contents).expect("write script");
+    let mut permissions = fs::metadata(path).expect("script metadata").permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(path, permissions).expect("chmod script");
+}
+
+fn path_with_prepended_dir(dir: &std::path::Path) -> String {
+    let current = std::env::var("PATH").unwrap_or_default();
+    format!("{}:{current}", dir.display())
 }
 
 fn minimal_rpm_with_config(config: &str) -> Vec<u8> {
