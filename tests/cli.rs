@@ -1013,6 +1013,71 @@ x86_64
 }
 
 #[test]
+fn arch_index_command_treats_archlinux_riscv64_as_archlinux() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("repo");
+    let package_path = repo_root.join("linux-7.0.9.arch1-1-riscv64.pkg.tar.zst");
+    let db_path = temp.path().join("core.db");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&repo_root).expect("create repo root");
+    fs::write(
+        &package_path,
+        minimal_arch_package_with_config("CONFIG_RISCV=y\n# CONFIG_UNUSED is not set\n"),
+    )
+    .expect("write arch package");
+    fs::write(
+        &db_path,
+        gzip_raw_bytes(&tar_with_file(
+            "linux-7.0.9.arch1-1/desc",
+            br#"%FILENAME%
+linux-7.0.9.arch1-1-riscv64.pkg.tar.zst
+
+%NAME%
+linux
+
+%VERSION%
+7.0.9.arch1-1
+
+%ARCH%
+riscv64
+"#,
+        )),
+    )
+    .expect("write sync database");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "arch",
+            "--db-file",
+            db_path.to_str().expect("db path"),
+            "--package-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "riscv64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let config_path = data_dir.join("archlinux/linux/7.0.9.arch1-1/riscv64/config");
+    assert!(config_path.exists());
+
+    let index_path = data_dir.join("archlinux/linux/index.json");
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(&index_path).expect("read output"))
+            .expect("parse package index");
+    assert_eq!(index.distribution, Distribution::ArchLinux);
+    assert_eq!(
+        index.kernels["7.0.9.arch1-1/riscv64"].architecture,
+        Architecture::Riscv64
+    );
+}
+
+#[test]
 fn eweos_index_command_indexes_local_sync_database() {
     let temp = tempfile::tempdir().expect("tempdir");
     let repo_root = temp.path().join("repo");

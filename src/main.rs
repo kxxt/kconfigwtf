@@ -11,6 +11,7 @@ use kconfigwtf::android::{
 };
 use kconfigwtf::arch::{
     ArchDatabaseLocation, ArchIndexer, ArchIndexerConfig, ArchPackageBase, ArchRepoFeed,
+    ArchRepositoryLayout,
 };
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
@@ -192,6 +193,17 @@ impl ArchDistributionArg {
             Self::CachyOS => "cachyos-v3",
         }
     }
+
+    fn default_architectures(self) -> Vec<Architecture> {
+        vec![Architecture::Amd64]
+    }
+
+    fn repository_layout(self) -> ArchRepositoryLayout {
+        match self {
+            Self::CachyOS => ArchRepositoryLayout::RepoArch,
+            _ => ArchRepositoryLayout::RepoOsArch,
+        }
+    }
 }
 
 #[derive(Debug, Args)]
@@ -209,7 +221,9 @@ struct ArchArgs {
     repository: Option<String>,
 
     /// CPU architecture to index. May be passed more than once.
-    #[arg(long = "arch", default_value = "x86_64")]
+    ///
+    /// Defaults to x86_64.
+    #[arg(long = "arch")]
     architectures: Vec<Architecture>,
 
     /// Local pacman sync database file. Useful for offline indexing and tests.
@@ -1204,11 +1218,14 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
             bail!("--package-root is required when --db-file is used");
         };
 
-        let architecture = args
-            .architectures
-            .first()
-            .cloned()
-            .unwrap_or(Architecture::Amd64);
+        let architecture = args.architectures.first().cloned().unwrap_or_else(|| {
+            args.distribution
+                .default_architectures()
+                .into_iter()
+                .next()
+                .expect("arch default")
+        });
+        let include_kernel_packages = is_archlinux_riscv(&args.distribution, &architecture);
 
         ArchIndexerConfig {
             feeds: vec![ArchRepoFeed {
@@ -1219,22 +1236,68 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
             }],
             package_name_prefix: args.package_prefix.clone(),
             max_packages: args.max_packages,
+            include_kernel_packages,
         }
     } else {
-        let mirror = args
-            .mirror
-            .clone()
-            .unwrap_or_else(|| args.distribution.default_mirror().to_string());
         let repository = args
             .repository
             .clone()
             .unwrap_or_else(|| args.distribution.default_repository().to_string());
-        ArchIndexerConfig::from_mirror(distribution, mirror, repository, args.architectures.clone())
+        let architectures = if args.architectures.is_empty() {
+            args.distribution.default_architectures()
+        } else {
+            args.architectures.clone()
+        };
+        let feeds = architectures
+            .iter()
+            .flat_map(|architecture| {
+                let is_archlinux_riscv = is_archlinux_riscv(&args.distribution, architecture);
+                let mirror = args.mirror.clone().unwrap_or_else(|| {
+                    if is_archlinux_riscv {
+                        "https://archriscv.felixc.at/repo".to_string()
+                    } else {
+                        args.distribution.default_mirror().to_string()
+                    }
+                });
+                let layout = if is_archlinux_riscv && args.mirror.is_none() {
+                    ArchRepositoryLayout::RepoOnly
+                } else {
+                    args.distribution.repository_layout()
+                };
+
+                ArchIndexerConfig::from_mirror_with_layout(
+                    distribution.clone(),
+                    mirror,
+                    repository.clone(),
+                    [architecture.clone()],
+                    layout,
+                )
+                .feeds
+            })
+            .collect::<Vec<_>>();
+
+        ArchIndexerConfig {
+            feeds,
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+            include_kernel_packages: architectures
+                .iter()
+                .any(|architecture| is_archlinux_riscv(&args.distribution, architecture)),
+        }
     };
 
     config.package_name_prefix = args.package_prefix.clone();
     config.max_packages = args.max_packages;
+    config.include_kernel_packages = config.include_kernel_packages
+        || config
+            .feeds
+            .iter()
+            .any(|feed| is_archlinux_riscv(&args.distribution, &feed.architecture));
     Ok(config)
+}
+
+fn is_archlinux_riscv(distribution: &ArchDistributionArg, architecture: &Architecture) -> bool {
+    matches!(distribution, ArchDistributionArg::ArchLinux) && architecture == &Architecture::Riscv64
 }
 
 fn eweos_config_from_args(args: &EweOsArgs) -> Result<ArchIndexerConfig> {
@@ -1258,6 +1321,7 @@ fn eweos_config_from_args(args: &EweOsArgs) -> Result<ArchIndexerConfig> {
             }],
             package_name_prefix: args.package_prefix.clone(),
             max_packages: args.max_packages,
+            include_kernel_packages: false,
         }
     } else {
         ArchIndexerConfig::from_mirror(
@@ -1270,6 +1334,7 @@ fn eweos_config_from_args(args: &EweOsArgs) -> Result<ArchIndexerConfig> {
 
     config.package_name_prefix = args.package_prefix.clone();
     config.max_packages = args.max_packages;
+    config.include_kernel_packages = false;
     Ok(config)
 }
 
@@ -1775,6 +1840,41 @@ mod tests {
                 "https://example.invalid/alpine/edge/main/x86_64/APKINDEX.tar.gz",
                 "https://example.invalid/alpine/edge/community/x86_64/APKINDEX.tar.gz",
             ]
+        );
+    }
+
+    #[test]
+    fn builds_archlinux_riscv64_feeds_from_arch_riscv_repository() {
+        let args = ArchArgs {
+            distribution: ArchDistributionArg::ArchLinux,
+            mirror: None,
+            repository: None,
+            architectures: vec![Architecture::Riscv64],
+            db_file: None,
+            package_root: None,
+            package_prefix: "linux".to_string(),
+            max_packages: None,
+            data_dir: PathBuf::from("data"),
+        };
+
+        let config = arch_config_from_args(&args).expect("arch linux riscv64 config");
+        assert_eq!(config.feeds.len(), 1);
+        assert_eq!(config.feeds[0].distribution, Distribution::ArchLinux);
+        assert_eq!(config.feeds[0].architecture, Architecture::Riscv64);
+        assert!(config.include_kernel_packages);
+        assert_eq!(
+            match &config.feeds[0].database {
+                ArchDatabaseLocation::Url(url) => url.as_str(),
+                ArchDatabaseLocation::Path(_) => panic!("expected URL database"),
+            },
+            "https://archriscv.felixc.at/repo/core/core.db"
+        );
+        assert_eq!(
+            match &config.feeds[0].package_base {
+                ArchPackageBase::Url(url) => url.as_str(),
+                ArchPackageBase::Path(_) => panic!("expected URL package base"),
+            },
+            "https://archriscv.felixc.at/repo/core"
         );
     }
 

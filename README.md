@@ -16,7 +16,7 @@ The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Deepin, Kylin OS, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
 openAnolis, openEuler, openSUSE, Android AOSP GKI, Alpine Linux, NixOS, Guix,
 and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
-eweOS.
+eweOS, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
 
 ## Install
 
@@ -260,11 +260,14 @@ packages such as `linux-headers`, while eweOS uses packages such as
 writing the data tree and UI package name.
 
 Parabola and CachyOS use the same backend with distro-specific default mirror
-and repository values:
+and repository values. Arch Linux RISC-V is treated as Arch Linux on the
+`riscv64` architecture, so `--arch riscv64` selects the Arch RISC-V repository
+defaults and stores data under `archlinux`:
 
 ```sh
 cargo run -- index arch --distribution parabola --arch x86_64 --data-dir data
 cargo run -- index arch --distribution cachyos --arch x86_64 --data-dir data
+cargo run -- index arch --arch riscv64 --data-dir data
 cargo run -- index eweos --repository main --arch x86_64 --data-dir data
 ```
 

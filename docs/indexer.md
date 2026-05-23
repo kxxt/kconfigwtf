@@ -67,9 +67,9 @@ such as `boot/config-*` and `usr/src/*/.config`.
 
 ## Arch-Family Backend
 
-The Arch-family backend supports Arch Linux, Parabola, CachyOS, and eweOS
-through the same pacman repository implementation. It supports two retrieval
-modes:
+The Arch-family backend supports Arch Linux, Arch Linux RISC-V, Parabola,
+CachyOS, and eweOS through the same pacman repository implementation. It
+supports two retrieval modes:
 
 - Mirror mode, using a pacman sync database such as
   `<repo>/os/<arch>/<repo>.db` for Arch Linux and Parabola.
@@ -77,7 +77,9 @@ modes:
   `--package-root`.
 
 CachyOS uses the same pacman database format but defaults to the
-`<repo>/<arch>/<repo>.db` mirror layout.
+`<repo>/<arch>/<repo>.db` mirror layout. Arch Linux on `riscv64` uses the flat
+Arch RISC-V `<repo>/<repo>.db` mirror layout and is represented as the
+`archlinux` distribution in generated data.
 
 The backend parses package `desc` files from the sync database, selects
 `*-headers` or `*-devel` package names matching `--package-prefix`, and

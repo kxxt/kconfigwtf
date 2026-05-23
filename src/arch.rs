@@ -29,6 +29,7 @@ pub enum ArchPackageBase {
 pub enum ArchRepositoryLayout {
     RepoOsArch,
     RepoArch,
+    RepoOnly,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -44,6 +45,7 @@ pub struct ArchIndexerConfig {
     pub feeds: Vec<ArchRepoFeed>,
     pub package_name_prefix: String,
     pub max_packages: Option<usize>,
+    pub include_kernel_packages: bool,
 }
 
 impl ArchIndexerConfig {
@@ -53,9 +55,24 @@ impl ArchIndexerConfig {
         repository: impl AsRef<str>,
         architectures: impl IntoIterator<Item = Architecture>,
     ) -> Self {
+        Self::from_mirror_with_layout(
+            distribution.clone(),
+            mirror,
+            repository,
+            architectures,
+            default_layout(&distribution),
+        )
+    }
+
+    pub fn from_mirror_with_layout(
+        distribution: Distribution,
+        mirror: impl Into<String>,
+        repository: impl AsRef<str>,
+        architectures: impl IntoIterator<Item = Architecture>,
+        layout: ArchRepositoryLayout,
+    ) -> Self {
         let mirror = mirror.into().trim_end_matches('/').to_string();
         let repository = repository.as_ref();
-        let layout = default_layout(&distribution);
         let feeds = architectures
             .into_iter()
             .map(|architecture| {
@@ -73,6 +90,7 @@ impl ArchIndexerConfig {
             feeds,
             package_name_prefix: DEFAULT_PACKAGE_PREFIX.to_string(),
             max_packages: None,
+            include_kernel_packages: false,
         }
     }
 }
@@ -162,6 +180,7 @@ impl KernelConfigIndexer for ArchIndexer {
                 &parse_sync_database(&database_bytes, &database_source)
                     .with_context(|| format!("parsing pacman sync database {database_source}"))?,
                 &self.config.package_name_prefix,
+                self.config.include_kernel_packages,
                 Some(feed.architecture.clone()),
                 self.config.max_packages,
             );
@@ -268,13 +287,18 @@ pub fn parse_desc_file(desc: &str) -> Result<Option<ArchPackageCandidate>> {
 pub fn select_kernel_packages(
     packages: &[ArchPackageCandidate],
     package_name_prefix: &str,
+    include_kernel_packages: bool,
     architecture: Option<Architecture>,
     max_packages: Option<usize>,
 ) -> Vec<ArchPackageCandidate> {
     let mut selected = packages
         .iter()
         .filter(|package| package.name.starts_with(package_name_prefix))
-        .filter(|package| is_kernel_headers_package(&package.name))
+        .filter(|package| {
+            is_kernel_headers_package(&package.name)
+                || (include_kernel_packages
+                    && is_kernel_package(&package.name, package_name_prefix))
+        })
         .filter(|package| {
             architecture
                 .as_ref()
@@ -375,6 +399,21 @@ fn is_kernel_headers_package(name: &str) -> bool {
     name != "linux-api-headers" && (name.ends_with("-headers") || name.ends_with("-devel"))
 }
 
+fn is_kernel_package(name: &str, package_name_prefix: &str) -> bool {
+    if is_kernel_headers_package(name) {
+        return false;
+    }
+
+    if name == "linux-api-headers" || name.contains("firmware") {
+        return false;
+    }
+
+    name == package_name_prefix
+        || name
+            .strip_prefix(package_name_prefix)
+            .is_some_and(|suffix| suffix.starts_with('-'))
+}
+
 fn decode_tar_archive(bytes: &[u8], location_hint: &str) -> Result<Vec<u8>> {
     let mut decoded = Vec::new();
     if is_gzip(bytes, location_hint) {
@@ -448,6 +487,9 @@ fn arch_repo_root(
         }
         ArchRepositoryLayout::RepoArch => {
             format!("{mirror}/{repository}/{architecture}")
+        }
+        ArchRepositoryLayout::RepoOnly => {
+            format!("{mirror}/{repository}")
         }
     }
 }
@@ -549,11 +591,28 @@ x86_64
             candidate("bash", "5.2-1", Architecture::Amd64),
         ];
 
-        let selected = select_kernel_packages(&packages, "linux", Some(Architecture::Amd64), None);
+        let selected =
+            select_kernel_packages(&packages, "linux", false, Some(Architecture::Amd64), None);
 
         assert_eq!(selected.len(), 2);
         assert_eq!(selected[0].name, "linux-cachyos-headers");
         assert_eq!(selected[1].name, "linux-headers");
+    }
+
+    #[test]
+    fn optionally_selects_plain_kernel_packages() {
+        let packages = vec![
+            candidate("linux", "7.0.9.arch1-1", Architecture::Riscv64),
+            candidate("linux-api-headers", "6.19-1", Architecture::Riscv64),
+            candidate("linux-firmware", "20260501-1", Architecture::Riscv64),
+            candidate("bash", "5.2-1", Architecture::Riscv64),
+        ];
+
+        let selected =
+            select_kernel_packages(&packages, "linux", true, Some(Architecture::Riscv64), None);
+
+        assert_eq!(selected.len(), 1);
+        assert_eq!(selected[0].name, "linux");
     }
 
     #[test]
