@@ -25,7 +25,7 @@ body {
 }
 
 .shell {
-  width: min(1120px, calc(100vw - 32px));
+  width: min(1300px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 40px 0;
 }
@@ -276,7 +276,7 @@ a {
 
 @media (max-width: 760px) {
   .shell {
-    width: min(100vw - 20px, 1120px);
+    width: min(100vw - 20px, 1300px);
     padding: 24px 0;
   }
 
