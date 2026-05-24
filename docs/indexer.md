@@ -232,6 +232,23 @@ Default mirror layouts are:
   a GUID-based repository URL, defaulting to release `al2023`, repository
   `core`, mirror `https://cdn.amazonlinux.com`, and package `kernel`.
 
+## Slackware Backend
+
+The Slackware backend supports two retrieval modes:
+
+- Mirror mode, using `PACKAGES.TXT` from a Slackware release mirror such as
+  `<mirror>/<release>/PACKAGES.TXT`. The CLI accepts `--mirror`, `--release`,
+  and `--arch` to select the target Slackware release and architecture.
+- Local mode, using `--packages-file` and resolving package filenames under
+  `--package-root`.
+
+The backend parses `PACKAGES.TXT` stanza metadata, selects packages matching
+`--package-prefix` (default `kernel-`) while excluding firmware packages,
+downloads each `.txz` or `.tgz` package, and extracts `/boot/config-*` or
+`/usr/src/linux*/.config` from the package archive. The distribution is stored
+as `slackware`, and packages such as `kernel-generic`, `kernel-huge`,
+`kernel-modules`, and `kernel-source` each get their own package-level index.
+
 ## Store Package Backends
 
 The NixOS and Guix backends use local package-manager commands rather than

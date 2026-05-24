@@ -20,6 +20,10 @@ use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
 use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
+use kconfigwtf::slackware::{
+    SlackwareIndexLocation, SlackwareIndexer, SlackwareIndexerConfig, SlackwarePackageBase,
+    SlackwareRepoFeed,
+};
 use kconfigwtf::store::{
     StorePackageIndexer, StorePackageIndexerConfig, StorePackageManager,
     default_system_for_architecture, discover_nix_kernel_packages,
@@ -106,6 +110,8 @@ enum IndexCommand {
     /// Index Azure Linux kernel packages from RPM repository metadata.
     #[command(name = "azurelinux", alias = "azure", alias = "azure-linux")]
     AzureLinux(RpmArgs),
+    /// Index Slackware kernel packages from a mirror or a local PACKAGES.TXT file.
+    Slackware(SlackwareArgs),
     /// Index NixOS kernel packages through nix.
     #[command(name = "nixos", alias = "nix-os")]
     NixOS(NixOsArgs),
@@ -704,6 +710,44 @@ struct GuixArgs {
 }
 
 #[derive(Debug, Args)]
+struct SlackwareArgs {
+    /// Slackware mirror root used for remote indexing.
+    #[arg(
+        long,
+        default_value = "https://mirrors.slackware.com/slackware"
+    )]
+    mirror: String,
+
+    /// Slackware release to index (e.g. slackware64-15.0, slackware64-current).
+    #[arg(long, default_value = "slackware64-15.0")]
+    release: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "x86_64")]
+    architectures: Vec<Architecture>,
+
+    /// Local PACKAGES.TXT file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve package paths from --packages-file.
+    #[arg(long)]
+    package_root: Option<PathBuf>,
+
+    /// Package name prefix to include from PACKAGES.TXT.
+    #[arg(long, default_value = "kernel-")]
+    package_prefix: String,
+
+    /// Limit the number of packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct FedoraArgs {
     /// Fedora mirror root used for remote indexing.
     #[arg(
@@ -843,6 +887,7 @@ async fn main() -> Result<()> {
             IndexCommand::AzureLinux(args) => {
                 index_rpm_distribution(Distribution::AzureLinux, args).await
             }
+            IndexCommand::Slackware(args) => index_slackware(args).await,
         },
         Command::Site(args) => generate_site(args),
     }
@@ -1152,6 +1197,65 @@ async fn index_guix(args: GuixArgs) -> Result<()> {
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
     Ok(())
+}
+
+async fn index_slackware(args: SlackwareArgs) -> Result<()> {
+    let config = slackware_config_from_args(&args)?;
+    let indexer = SlackwareIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+fn slackware_config_from_args(args: &SlackwareArgs) -> Result<SlackwareIndexerConfig> {
+    if let Some(packages_file) = &args.packages_file {
+        let Some(package_root) = &args.package_root else {
+            bail!("--package-root is required when --packages-file is used");
+        };
+
+        let architecture = args
+            .architectures
+            .first()
+            .cloned()
+            .unwrap_or(Architecture::Amd64);
+
+        return Ok(SlackwareIndexerConfig {
+            feeds: vec![SlackwareRepoFeed {
+                distribution: Distribution::Slackware,
+                architecture,
+                packages_txt: SlackwareIndexLocation::Path(packages_file.clone()),
+                package_base: SlackwarePackageBase::Path(package_root.clone()),
+            }],
+            package_name_prefix: args.package_prefix.clone(),
+            max_packages: args.max_packages,
+        });
+    }
+
+    let mirror = args.mirror.trim_end_matches('/').to_string();
+    let release = &args.release;
+
+    let feeds = args
+        .architectures
+        .iter()
+        .map(|architecture| {
+            let release_root = format!("{mirror}/{release}");
+            SlackwareRepoFeed {
+                distribution: Distribution::Slackware,
+                architecture: architecture.clone(),
+                packages_txt: SlackwareIndexLocation::Url(format!(
+                    "{release_root}/PACKAGES.TXT"
+                )),
+                package_base: SlackwarePackageBase::Url(release_root),
+            }
+        })
+        .collect();
+
+    Ok(SlackwareIndexerConfig {
+        feeds,
+        package_name_prefix: args.package_prefix.clone(),
+        max_packages: args.max_packages,
+    })
 }
 
 async fn android_configs_from_args(args: &AndroidArgs) -> Result<Vec<AndroidGkiIndexerConfig>> {

@@ -42,6 +42,7 @@ pub enum Distribution {
     OracleLinux,
     AmazonLinux,
     AzureLinux,
+    Slackware,
     Other(String),
 }
 
@@ -75,6 +76,7 @@ impl Distribution {
             Self::OracleLinux => "oraclelinux",
             Self::AmazonLinux => "amazonlinux",
             Self::AzureLinux => "azurelinux",
+            Self::Slackware => "slackware",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -123,6 +125,7 @@ impl FromStr for Distribution {
             "oracle" | "oraclelinux" | "oracle-linux" | "ol" => Self::OracleLinux,
             "amazon" | "amazonlinux" | "amazon-linux" | "al" => Self::AmazonLinux,
             "azure" | "azurelinux" | "azure-linux" => Self::AzureLinux,
+            "slackware" => Self::Slackware,
             other => Self::Other(other.to_string()),
         })
     }

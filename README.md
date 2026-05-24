@@ -15,7 +15,7 @@ The foundation has two parts:
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Deepin, Kylin OS, OpenKylin, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
 openAnolis, openEuler, openSUSE, Oracle Linux, Amazon Linux, Azure Linux,
-Android AOSP GKI, Alpine Linux, NixOS, Guix,
+Slackware, Android AOSP GKI, Alpine Linux, NixOS, Guix,
 and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
 eweos, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
 
@@ -348,6 +348,41 @@ or more times to index an explicit subset. Guix defaults to `linux-libre`.
 Both commands accept `--system` when the package manager system string should
 differ from the selected output architecture.
 
+## Generate A Slackware Index
+
+Index Slackware kernel packages from a mirror:
+
+```sh
+cargo run -- index slackware \
+  --release slackware64-15.0 \
+  --arch x86_64 \
+  --max-packages 5 \
+  --data-dir data
+```
+
+The Slackware backend reads `PACKAGES.TXT` from the release root, selects
+`kernel-*` packages matching `--package-prefix` (default `kernel-`, excluding
+firmware packages), downloads each `.txz` or `.tgz` package, extracts
+`/boot/config-*` or `/usr/src/linux*/.config`, and writes raw configs plus
+package-level indexes for each kernel package such as `kernel-generic`,
+`kernel-huge`, `kernel-modules`, and `kernel-source`.
+
+The default mirror is `https://mirrors.slackware.com/slackware`. Set `--release`
+to target another Slackware release such as `slackware64-current`.
+
+Offline indexing is also supported for tests and mirror snapshots:
+
+```sh
+cargo run -- index slackware \
+  --packages-file ./mirror/PACKAGES.TXT \
+  --package-root ./mirror \
+  --arch x86_64 \
+  --data-dir data
+```
+
+When `--packages-file` is used, `PACKAGE LOCATION` values in PACKAGES.TXT are
+resolved relative to `--package-root`.
+
 ## Generate The Static Site
 
 ```sh
@@ -392,6 +427,8 @@ The crate is split into focused modules:
   implementation.
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
+- `slackware`: Slackware `PACKAGES.TXT` parser, `.txz`/`.tgz` extraction, and
+  indexer implementation.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
   indexer implementation used by Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin, OpenKylin, and AOSC OS.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
@@ -479,8 +516,8 @@ as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`,
 `aoscos`, `archlinux`, `parabola`, `cachyos`, `eweos`, `alpine`, `nixos`,
 `guix`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, `openanolis`,
-`openeuler`, `openkylin`, `opensuse`, `oraclelinux`, `amazonlinux`, and
-`azurelinux`.
+`openeuler`, `openkylin`, `opensuse`, `oraclelinux`, `amazonlinux`,
+`azurelinux`, and `slackware`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.
