@@ -97,6 +97,15 @@ enum IndexCommand {
     /// Index AOSC OS kernel packages from a mirror or a local Packages file.
     #[command(name = "aosc", alias = "aoscos", alias = "aosc-os")]
     AoscOS(AoscArgs),
+    /// Index Oracle Linux kernel packages from RPM repository metadata.
+    #[command(name = "oraclelinux", alias = "oracle", alias = "oracle-linux")]
+    OracleLinux(RpmArgs),
+    /// Index Amazon Linux kernel packages from RPM repository metadata.
+    #[command(name = "amazonlinux", alias = "amazon", alias = "amazon-linux")]
+    AmazonLinux(RpmArgs),
+    /// Index Azure Linux kernel packages from RPM repository metadata.
+    #[command(name = "azurelinux", alias = "azure", alias = "azure-linux")]
+    AzureLinux(RpmArgs),
     /// Index NixOS kernel packages through nix.
     #[command(name = "nixos", alias = "nix-os")]
     NixOS(NixOsArgs),
@@ -825,6 +834,15 @@ async fn main() -> Result<()> {
             IndexCommand::AoscOS(args) => index_aosc(args).await,
             IndexCommand::NixOS(args) => index_nixos(args).await,
             IndexCommand::Guix(args) => index_guix(args).await,
+            IndexCommand::OracleLinux(args) => {
+                index_rpm_distribution(Distribution::OracleLinux, args).await
+            }
+            IndexCommand::AmazonLinux(args) => {
+                index_rpm_distribution(Distribution::AmazonLinux, args).await
+            }
+            IndexCommand::AzureLinux(args) => {
+                index_rpm_distribution(Distribution::AzureLinux, args).await
+            }
         },
         Command::Site(args) => generate_site(args),
     }
@@ -888,7 +906,7 @@ async fn index_fedora(args: FedoraArgs) -> Result<()> {
 }
 
 async fn index_rpm_distribution(distribution: Distribution, args: RpmArgs) -> Result<()> {
-    let config = rpm_config_from_args(distribution, &args)?;
+    let config = rpm_config_from_args(distribution, &args).await?;
     let indexer = FedoraIndexer::new(config);
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)
@@ -1577,7 +1595,7 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
     Ok(config)
 }
 
-fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<FedoraIndexerConfig> {
+async fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<FedoraIndexerConfig> {
     let package_names = args.package_name.clone().map_or_else(
         || default_rpm_package_names(&distribution, args),
         |name| vec![name],
@@ -1610,18 +1628,20 @@ fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<Fe
             max_packages: args.max_packages,
         }
     } else {
-        let feeds = args
-            .architectures
-            .iter()
-            .map(|architecture| {
-                let repo_root = rpm_repo_root(&distribution, args, architecture);
-                FedoraRepoFeed {
-                    architecture: architecture.clone(),
-                    repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
-                    package_base: FedoraPackageBase::Url(repo_root),
-                }
-            })
-            .collect();
+        let mut feeds = Vec::new();
+        for architecture in &args.architectures {
+            let repo_root = rpm_repo_root(&distribution, args, architecture);
+            let repo_root = if matches!(distribution, Distribution::AmazonLinux) {
+                resolve_rpm_mirror_list(&repo_root).await?
+            } else {
+                repo_root
+            };
+            feeds.push(FedoraRepoFeed {
+                architecture: architecture.clone(),
+                repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
+                package_base: FedoraPackageBase::Url(repo_root),
+            });
+        }
 
         FedoraIndexerConfig {
             distribution: distribution.clone(),
@@ -1636,6 +1656,18 @@ fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<Fe
     config.package_names = package_names;
     config.max_packages = args.max_packages;
     Ok(config)
+}
+
+async fn resolve_rpm_mirror_list(mirror_list_url: &str) -> Result<String> {
+    let response = reqwest::get(mirror_list_url)
+        .await
+        .with_context(|| format!("fetching RPM mirror list from {mirror_list_url}"))?;
+    let body = response.text().await?;
+    let repo_url = body
+        .lines()
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("empty mirror list from {mirror_list_url}"))?;
+    Ok(repo_url.trim().trim_end_matches('/').to_string())
 }
 
 fn rpm_repo_root(
@@ -1681,6 +1713,15 @@ fn rpm_repo_root(
             format!("{mirror}/tumbleweed/repo/{repository}")
         }
         Distribution::OpenSUSE => format!("{mirror}/distribution/leap/{release}/repo/{repository}"),
+        Distribution::OracleLinux => {
+            format!("{mirror}/OL{release}/{repository}/latest/{arch}")
+        }
+        Distribution::AmazonLinux => {
+            format!("{mirror}/{release}/{repository}/mirrors/latest/{arch}/mirror.list")
+        }
+        Distribution::AzureLinux => {
+            format!("{mirror}/{release}/{repository}/base/{arch}")
+        }
         _ => format!("{mirror}/{release}/{repository}/{arch}/os"),
     }
 }
@@ -1704,6 +1745,9 @@ fn default_rpm_mirror(distribution: &Distribution, args: &RpmArgs) -> &'static s
         Distribution::OpenAnolis => "https://mirrors.openanolis.cn/anolis",
         Distribution::OpenEuler => "https://repo.openeuler.org",
         Distribution::OpenSUSE => "https://download.opensuse.org",
+        Distribution::OracleLinux => "https://yum.oracle.com/repo/OracleLinux",
+        Distribution::AmazonLinux => "https://cdn.amazonlinux.com",
+        Distribution::AzureLinux => "https://packages.microsoft.com/azurelinux",
         _ => "https://download.fedoraproject.org/pub/fedora/linux",
     }
 }
@@ -1714,6 +1758,9 @@ fn default_rpm_release(distribution: &Distribution) -> &'static str {
         Distribution::OpenAnolis => "23.1",
         Distribution::OpenEuler => "openEuler-24.03-LTS",
         Distribution::OpenSUSE => "tumbleweed",
+        Distribution::OracleLinux => "9",
+        Distribution::AmazonLinux => "al2023",
+        Distribution::AzureLinux => "3.0",
         _ => "10",
     }
 }
@@ -1725,6 +1772,9 @@ fn default_rpm_repository(distribution: &Distribution, release: &str) -> &'stati
         Distribution::OpenAnolis => "os",
         Distribution::OpenEuler => "OS",
         Distribution::OpenSUSE => "oss",
+        Distribution::OracleLinux => "baseos",
+        Distribution::AmazonLinux => "core",
+        Distribution::AzureLinux => "prod",
         _ => "BaseOS",
     }
 }
@@ -1745,6 +1795,9 @@ fn default_rpm_package_name(distribution: &Distribution, args: &RpmArgs) -> &'st
         Distribution::OpenAnolis => "kernel",
         Distribution::OpenEuler => "kernel",
         Distribution::OpenSUSE => "kernel-default",
+        Distribution::OracleLinux => "kernel-core",
+        Distribution::AmazonLinux => "kernel",
+        Distribution::AzureLinux => "kernel",
         _ => "kernel-core",
     }
 }
@@ -1838,6 +1891,22 @@ mod tests {
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Amd64),
             "https://download.opensuse.org/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OracleLinux, &args, &Architecture::Amd64),
+            "https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/x86_64"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OracleLinux, &args, &Architecture::Arm64),
+            "https://yum.oracle.com/repo/OracleLinux/OL9/baseos/latest/aarch64"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::AmazonLinux, &args, &Architecture::Amd64),
+            "https://cdn.amazonlinux.com/al2023/core/mirrors/latest/x86_64/mirror.list"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::AzureLinux, &args, &Architecture::Amd64),
+            "https://packages.microsoft.com/azurelinux/3.0/prod/base/x86_64"
         );
     }
 

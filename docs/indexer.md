@@ -185,8 +185,8 @@ defaulting to `linux-image-*` with `<VERSION>-generic` normalization.
 ## RPM-Family Backend
 
 The RPM-family backend is implemented in the Fedora module and supports Fedora,
-RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler, and
-openSUSE. It supports two retrieval modes:
+RHEL, CentOS Stream, AlmaLinux, Rocky Linux, openAnolis, openEuler, openSUSE,
+Oracle Linux, Amazon Linux, and Azure Linux. It supports two retrieval modes:
 
 - Mirror mode, using `repodata/repomd.xml` and the referenced primary metadata.
 - Local mode, using `--repomd-file` and resolving primary metadata and RPM
@@ -218,6 +218,19 @@ Default mirror layouts are:
 - openEuler: `<mirror>/<release>/<repo>/<arch>`.
 - openSUSE Tumbleweed: `<mirror>/tumbleweed/repo/<repo>`.
 - openSUSE Leap: `<mirror>/distribution/leap/<release>/repo/<repo>`.
+- Oracle Linux: `<mirror>/OL<release>/<repository>/latest/<arch>`, defaulting to
+  release `9`, repository `baseos`, mirror `https://yum.oracle.com/repo/OracleLinux`,
+  and package `kernel-core`.
+- Amazon Linux: `<mirror>/<release>/<repository>/latest/<arch>`, defaulting to
+  release `al2023`, repository `core`, mirror `https://cdn.amazonlinux.com`, and
+  package `kernel-core`.
+- Azure Linux: `<mirror>/<release>/<repository>/base/<arch>`, defaulting to
+  release `3.0`, repository `prod`, mirror
+  `https://packages.microsoft.com/azurelinux`, and package `kernel`.
+- Amazon Linux: resolves the mirror list at
+  `<mirror>/<release>/<repository>/mirrors/latest/<arch>/mirror.list` to obtain
+  a GUID-based repository URL, defaulting to release `al2023`, repository
+  `core`, mirror `https://cdn.amazonlinux.com`, and package `kernel`.
 
 ## Store Package Backends
 

@@ -1404,6 +1404,42 @@ fn opensuse_index_command_indexes_local_repo_metadata() {
 }
 
 #[test]
+fn oraclelinux_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "oraclelinux",
+        release: None,
+        distribution: Distribution::OracleLinux,
+        package_name: "kernel-core",
+        expected_config_path: "oraclelinux/kernel-core/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "oraclelinux/kernel-core/index.json",
+    });
+}
+
+#[test]
+fn amazonlinux_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "amazonlinux",
+        release: None,
+        distribution: Distribution::AmazonLinux,
+        package_name: "kernel",
+        expected_config_path: "amazonlinux/kernel/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "amazonlinux/kernel/index.json",
+    });
+}
+
+#[test]
+fn azurelinux_index_command_indexes_local_repo_metadata() {
+    rpm_index_command_indexes_local_repo_metadata(RpmCliCase {
+        command: "azurelinux",
+        release: None,
+        distribution: Distribution::AzureLinux,
+        package_name: "kernel",
+        expected_config_path: "azurelinux/kernel/0:6.12.0-1.fc99/amd64/config",
+        expected_index_path: "azurelinux/kernel/index.json",
+    });
+}
+
+#[test]
 fn opensuse_index_command_indexes_kernel_vanilla_by_default() {
     let temp = tempfile::tempdir().expect("tempdir");
     let repo_root = temp.path().join("repo");

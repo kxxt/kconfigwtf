@@ -14,9 +14,10 @@ The foundation has two parts:
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Deepin, Kylin OS, OpenKylin, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
-openAnolis, openEuler, openSUSE, Android AOSP GKI, Alpine Linux, NixOS, Guix,
+openAnolis, openEuler, openSUSE, Oracle Linux, Amazon Linux, Azure Linux,
+Android AOSP GKI, Alpine Linux, NixOS, Guix,
 and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
-eweOS, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
+eweos, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
 
 ## Install
 
@@ -154,7 +155,7 @@ cargo run -- index fedora \
 ```
 
 The same RPM backend also supports RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
-openAnolis, openEuler, and openSUSE:
+openAnolis, openEuler, openSUSE, Oracle Linux, Amazon Linux, and Azure Linux:
 
 ```sh
 cargo run -- index centos --release 10-stream --max-packages 5 --data-dir data
@@ -164,6 +165,9 @@ cargo run -- index rocky --release 10 --max-packages 5 --data-dir data
 cargo run -- index openanolis --release 23.1 --max-packages 5 --data-dir data
 cargo run -- index openeuler --release openEuler-24.03-LTS --max-packages 5 --data-dir data
 cargo run -- index opensuse --release tumbleweed --max-packages 5 --data-dir data
+cargo run -- index oraclelinux --release 9 --max-packages 5 --data-dir data
+cargo run -- index amazonlinux --release al2023 --max-packages 5 --data-dir data
+cargo run -- index azurelinux --release 3.0 --max-packages 5 --data-dir data
 ```
 
 CentOS Stream releases use `mirror.stream.centos.org`. Archived CentOS
@@ -186,8 +190,9 @@ location, selects matching RPMs, extracts `/boot/config-*` or
 `/lib/modules/*/config` from each package, and writes raw configs plus
 package-level indexes. Use `--max-packages` during development to avoid
 downloading many large kernel RPMs. The default package is `kernel-core` for
-Fedora and modern Enterprise Linux distributions, `kernel` for CentOS 6/7, and
-`kernel` for openAnolis and openEuler. openSUSE defaults to `kernel-default`.
+Fedora and modern Enterprise Linux distributions, `kernel` for CentOS 6/7,
+Amazon Linux, and `kernel` for openAnolis and openEuler. openSUSE defaults to
+`kernel-default`.
 openSUSE also indexes additional kernel flavors by default, including
 `kernel-vanilla`, `kernel-longterm`, and `kernel-kvmsmall`.
 
@@ -391,7 +396,8 @@ The crate is split into focused modules:
   indexer implementation used by Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin, OpenKylin, and AOSC OS.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
   extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
-  AlmaLinux, Rocky Linux, openAnolis, openEuler, and openSUSE.
+  AlmaLinux, Rocky Linux, openAnolis, openEuler, openSUSE, Oracle Linux,
+  Amazon Linux, and Azure Linux.
 - `store`: NixOS and Guix package-manager backed indexing from store outputs.
 - `site`: static site rendering using MiniJinja templates.
 
@@ -473,7 +479,8 @@ as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`,
 `aoscos`, `archlinux`, `parabola`, `cachyos`, `eweos`, `alpine`, `nixos`,
 `guix`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, `openanolis`,
-`openeuler`, `openkylin`, and `opensuse`.
+`openeuler`, `openkylin`, `opensuse`, `oraclelinux`, `amazonlinux`, and
+`azurelinux`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.

@@ -39,6 +39,9 @@ pub enum Distribution {
     Deepin,
     Kylin,
     AoscOS,
+    OracleLinux,
+    AmazonLinux,
+    AzureLinux,
     Other(String),
 }
 
@@ -69,6 +72,9 @@ impl Distribution {
             Self::Deepin => "deepin",
             Self::Kylin => "kylin",
             Self::AoscOS => "aoscos",
+            Self::OracleLinux => "oraclelinux",
+            Self::AmazonLinux => "amazonlinux",
+            Self::AzureLinux => "azurelinux",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -114,6 +120,9 @@ impl FromStr for Distribution {
             "deepin" => Self::Deepin,
             "kylin" | "kylinos" => Self::Kylin,
             "aosc" | "aoscos" | "aosc-os" => Self::AoscOS,
+            "oracle" | "oraclelinux" | "oracle-linux" | "ol" => Self::OracleLinux,
+            "amazon" | "amazonlinux" | "amazon-linux" | "al" => Self::AmazonLinux,
+            "azure" | "azurelinux" | "azure-linux" => Self::AzureLinux,
             other => Self::Other(other.to_string()),
         })
     }
