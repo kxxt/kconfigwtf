@@ -91,6 +91,9 @@ enum IndexCommand {
     /// Index Kylin OS kernel packages from a mirror or a local Packages file.
     #[command(name = "kylin", alias = "kylinos")]
     Kylin(KylinArgs),
+    /// Index OpenKylin kernel packages from a mirror or a local Packages file.
+    #[command(name = "openkylin", alias = "open-kylin")]
+    OpenKylin(OpenKylinArgs),
     /// Index AOSC OS kernel packages from a mirror or a local Packages file.
     #[command(name = "aosc", alias = "aoscos", alias = "aosc-os")]
     AoscOS(AoscArgs),
@@ -556,6 +559,45 @@ struct KylinArgs {
 }
 
 #[derive(Debug, Args)]
+struct OpenKylinArgs {
+    /// OpenKylin mirror root used for remote indexing.
+    #[arg(long, default_value = "https://archive.openkylin.top/openkylin")]
+    mirror: String,
+
+    /// OpenKylin suite to index when using a mirror.
+    #[arg(long, default_value = "nile")]
+    suite: String,
+
+    /// OpenKylin archive component to index when using a mirror.
+    #[arg(long, default_value = "main")]
+    component: String,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Local OpenKylin Packages or Packages.gz file. Useful for offline indexing and tests.
+    #[arg(long)]
+    packages_file: Option<PathBuf>,
+
+    /// Local root used to resolve Filename fields from --packages-file.
+    #[arg(long)]
+    deb_root: Option<PathBuf>,
+
+    /// Package name prefix to include from the OpenKylin Packages index.
+    #[arg(long, default_value = "linux-modules-")]
+    package_prefix: String,
+
+    /// Limit the number of OpenKylin packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct AoscArgs {
     /// AOSC OS mirror root used for remote indexing.
     #[arg(long, default_value = "https://repo.aosc.io/debs")]
@@ -779,6 +821,7 @@ async fn main() -> Result<()> {
             IndexCommand::Ubuntu(args) => index_ubuntu(args).await,
             IndexCommand::Deepin(args) => index_deepin(args).await,
             IndexCommand::Kylin(args) => index_kylin(args).await,
+            IndexCommand::OpenKylin(args) => index_openkylin(args).await,
             IndexCommand::AoscOS(args) => index_aosc(args).await,
             IndexCommand::NixOS(args) => index_nixos(args).await,
             IndexCommand::Guix(args) => index_guix(args).await,
@@ -942,6 +985,27 @@ async fn index_deepin(args: DeepinArgs) -> Result<()> {
 async fn index_kylin(args: KylinArgs) -> Result<()> {
     let config = apt_config_from_args(AptConfigArgs {
         distribution: Distribution::Kylin,
+        mirror: &args.mirror,
+        suite: &args.suite,
+        component: &args.component,
+        architectures: &args.architectures,
+        packages_file: args.packages_file.as_ref(),
+        deb_root: args.deb_root.as_ref(),
+        package_prefix: &args.package_prefix,
+        required_package_substrings: &[],
+        excluded_package_substrings: &[],
+        max_packages: args.max_packages,
+    })?;
+    let indexer = DebianIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_openkylin(args: OpenKylinArgs) -> Result<()> {
+    let config = apt_config_from_args(AptConfigArgs {
+        distribution: Distribution::OpenKylin,
         mirror: &args.mirror,
         suite: &args.suite,
         component: &args.component,

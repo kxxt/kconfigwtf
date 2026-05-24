@@ -134,7 +134,7 @@ metadata as the package name, and uses the release tag as the package version.
 ## Debian Backend
 
 The Debian backend is an APT repository backend used by Debian, Ubuntu, Kali,
-Proxmox, Deepin, Kylin OS, and AOSC OS. It supports two retrieval modes:
+Proxmox, Deepin, Kylin OS, OpenKylin, and AOSC OS. It supports two retrieval modes:
 
 - Mirror mode, using `dists/<suite>/<component>/binary-<arch>/Packages.gz` or `Packages.xz`.
 - Local mode, using `--packages-file` and resolving package `Filename` values
@@ -179,6 +179,8 @@ displayed as `linux-image-*` package names. For example,
 `linux-modules-6.14.0-29-generic` becomes `linux-image-<VERSION>-generic`, and
 `linux-base-6.19.14+kali-amd64` becomes `linux-image-<VERSION>-<ARCH>`.
 `proxmox-kernel-6.11.0-1-pve` becomes `proxmox-kernel-<VERSION>-pve`.
+OpenKylin package names follow the same Debian-style pattern as Kylin OS,
+defaulting to `linux-image-*` with `<VERSION>-generic` normalization.
 
 ## RPM-Family Backend
 

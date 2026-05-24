@@ -13,7 +13,7 @@ The foundation has two parts:
   search UI from package-level indexes under `data/`.
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
-Deepin, Kylin OS, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
+Deepin, Kylin OS, OpenKylin, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
 openAnolis, openEuler, openSUSE, Android AOSP GKI, Alpine Linux, NixOS, Guix,
 and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
 eweOS, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
@@ -56,9 +56,9 @@ cargo run -- index debian \
 When `--packages-file` is used, `Filename` fields in the Packages file are
 resolved relative to `--deb-root`.
 
-## Generate Ubuntu, Kali, Proxmox, Deepin, Kylin, And AOSC OS Indexes
+## Generate Ubuntu, Kali, Proxmox, Deepin, Kylin, OpenKylin, And AOSC OS Indexes
 
-Ubuntu, Kali, Proxmox, Deepin, Kylin OS, and AOSC OS use the same APT package index and `.deb` extraction
+Ubuntu, Kali, Proxmox, Deepin, Kylin OS, OpenKylin, and AOSC OS use the same APT package index and `.deb` extraction
 machinery as Debian, with distribution-specific defaults:
 
 ```sh
@@ -97,6 +97,13 @@ cargo run -- index kylin \
   --max-packages 5 \
   --data-dir data
 
+cargo run -- index openkylin \
+  --suite nile.bedrock \
+  --component main \
+  --arch amd64 \
+  --max-packages 5 \
+  --data-dir data
+
 cargo run -- index aosc \
   --suite stable \
   --component main \
@@ -112,6 +119,7 @@ Default mirrors are:
 - Proxmox: `http://download.proxmox.com/debian/pve`
 - Deepin: `https://community-packages.deepin.com/beige`
 - Kylin: `https://archive.kylinos.cn/kylin/KYLIN-ALL`
+- OpenKylin: `https://archive.openkylin.top/openkylin`
 - AOSC OS: `https://repo.aosc.io/debs`
 
 The Ubuntu backend selects `linux-modules-*` packages, and the Kali backend
@@ -380,7 +388,7 @@ The crate is split into focused modules:
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
-  indexer implementation used by Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin, and AOSC OS.
+  indexer implementation used by Debian, Ubuntu, Kali, Proxmox, Deepin, Kylin, OpenKylin, and AOSC OS.
 - `fedora`: Fedora and RPM-family `repomd.xml` / primary metadata parser, RPM
   extraction, and indexer implementation for Fedora, RHEL, CentOS Stream,
   AlmaLinux, Rocky Linux, openAnolis, openEuler, and openSUSE.
@@ -465,7 +473,7 @@ as stable lowercase strings in JSON. Known values include `debian` for
 distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`,
 `aoscos`, `archlinux`, `parabola`, `cachyos`, `eweos`, `alpine`, `nixos`,
 `guix`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, `openanolis`,
-`openeuler`, and `opensuse`.
+`openeuler`, `openkylin`, and `opensuse`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.
