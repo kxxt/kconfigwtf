@@ -36,19 +36,11 @@ jobs:
       - name: Run clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: Run tests
-        run: cargo test --workspace --all-targets --locked
-
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -56,11 +48,13 @@ jobs:
       - uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate coverage
         run: cargo llvm-cov --workspace --all-features --all-targets --locked --lcov --output-path coverage.lcov
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          name: coverage-lcov
-          path: coverage.lcov
+          use_oidc: true
+          files: coverage.lcov
+          fail_ci_if_error: true
+          verbose: true
 
   site-build:
     name: Site Build
@@ -78,8 +72,14 @@ jobs:
           test -f .ci/public/styles.css
           test -f .ci/public/indexes.json
           test -d .ci/public/data
+      - name: Pack site artifact
+        run: |
+          mkdir -p .ci/artifact
+          tar --directory .ci/public -cvf .ci/artifact/site-build.tar .
+          gzip --force .ci/artifact/site-build.tar
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
           name: site-build
-          path: .ci/public
+          path: .ci/artifact/site-build.tar.gz
+          if-no-files-found: error

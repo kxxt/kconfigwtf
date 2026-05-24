@@ -526,11 +526,17 @@ GitHub Actions runs five checks on pushes and pull requests:
 The site-build job uses the checked-in `data/` directory, so CI and deployment
 build the same static site content.
 
+Coverage is uploaded to Codecov from GitHub Actions with tokenless OIDC auth
+instead of being stored as a workflow artifact.
+
 GitHub Pages deployment is configured in
 [.github/workflows/github-pages.yml](./.github/workflows/github-pages.yml).
 The deploy workflow publishes the generated `public` artifact from the checked-in
 `data/` tree on pushes to `main` or `master`, and it can also be triggered
-manually.
+manually. Because the generated site includes filenames that are not valid on
+all filesystems, the workflow first packs the site into a `tar.gz` file and
+uploads that archive as the `github-pages` artifact consumed by
+`actions/deploy-pages`.
 
 Repository setup required:
 

@@ -27,10 +27,17 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build static site
         run: cargo run --locked -- site --data-dir data --output-dir .ci/public --title kconfigwtf
+      - name: Pack GitHub Pages artifact
+        run: |
+          mkdir -p .ci/artifact
+          tar --directory .ci/public -cvf .ci/artifact/site.tar .
+          gzip --force .ci/artifact/site.tar
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
-          path: .ci/public
+          name: github-pages
+          path: .ci/artifact/site.tar.gz
+          if-no-files-found: error
 
   deploy:
     name: Deploy to GitHub Pages
