@@ -23,8 +23,9 @@ more.
 
 ## Use It
 
-If this repository has GitHub Pages enabled, the easiest way to use kconfigwtf
-is the published static site for this repo.
+The official site is:
+
+- https://kconfigwtf.kxxt.dev/
 
 You can also build and browse the site locally from the checked-in `data/`
 directory:

@@ -58,6 +58,16 @@ h2 {
   color: var(--muted);
 }
 
+.site-links {
+  margin-top: 10px;
+  font-size: 0.9375rem;
+}
+
+.site-links a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .search label {
   display: block;
   margin-bottom: 8px;
