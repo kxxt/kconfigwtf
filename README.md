@@ -348,6 +348,38 @@ or more times to index an explicit subset. Guix defaults to `linux-libre`.
 Both commands accept `--system` when the package manager system string should
 differ from the selected output architecture.
 
+## Generate A ChromeOS Index
+
+ChromeOS recovery images do not behave like normal distro kernel packages, so
+this backend indexes a recovery image directly. It downloads or opens a
+ChromeOS recovery `.bin` or `.bin.zip`, finds a `ROOT-*` partition from GPT,
+and first tries to extract IKCONFIG from `/boot/vmlinuz`. Real ChromeOS Flex
+recovery media may ship `CONFIG_IKCONFIG` as the `configs` module instead of an
+embedded kernel blob, so the backend also falls back to
+`/lib/modules/*/kernel/kernel/configs.ko` or `configs.ko.gz`.
+
+```sh
+cargo run -- index chromeos \
+  --arch amd64 \
+  --data-dir data
+```
+
+By default the command uses the public ChromeOS Flex recovery image at
+`https://dl.google.com/chromeos-flex/images/latest.bin.zip`. The package name is
+the platform version from `/etc/lsb-release`, and the package version is the
+kernel version string from the selected kernel artifact or module path. On the
+current Flex image this yields output under
+`chromeos/16002.51.0/6.6.46-04024-g9e7e147b4900/...`.
+
+Offline snapshots are also supported:
+
+```sh
+cargo run -- index chromeos \
+  --image-file ./chromeos_16002.51.0_reven_recovery_stable-channel_mp-v6.bin \
+  --arch amd64 \
+  --data-dir data
+```
+
 ## Generate A Slackware Index
 
 Index Slackware kernel packages from a mirror:
@@ -427,6 +459,8 @@ The crate is split into focused modules:
   implementation.
 - `arch`: Arch-family pacman sync database parser, `.pkg.tar.*` extraction, and
   indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
+- `chromeos`: ChromeOS recovery-image indexing from GPT root partitions plus
+  IKCONFIG extraction from `boot/vmlinuz` or the `configs` kernel module.
 - `slackware`: Slackware `PACKAGES.TXT` parser, `.txz`/`.tgz` extraction, and
   indexer implementation.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and

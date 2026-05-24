@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use chrono::{DateTime, Utc};
 use serde::de;
 use serde::ser::SerializeMap;
@@ -19,6 +19,7 @@ pub enum Distribution {
     Alpine,
     ArchLinux,
     CachyOS,
+    ChromeOS,
     Debian,
     EweOS,
     Fedora,
@@ -53,6 +54,7 @@ impl Distribution {
             Self::Alpine => "alpine",
             Self::ArchLinux => "archlinux",
             Self::CachyOS => "cachyos",
+            Self::ChromeOS => "chromeos",
             Self::Debian => "debian",
             Self::EweOS => "eweos",
             Self::Fedora => "fedora",
@@ -102,6 +104,7 @@ impl FromStr for Distribution {
             "alpine" | "alpine-linux" => Self::Alpine,
             "arch" | "archlinux" | "arch-linux" => Self::ArchLinux,
             "cachyos" | "cachy-os" => Self::CachyOS,
+            "chromeos" | "chrome-os" | "chromiumos" | "chromium-os" => Self::ChromeOS,
             "debian" => Self::Debian,
             "eweos" | "ewe-os" => Self::EweOS,
             "fedora" => Self::Fedora,
@@ -624,9 +627,11 @@ NOT_A_CONFIG=y
         let json = serde_json::to_string(&kernel).expect("serialize kernel");
 
         assert!(json.contains(r#""architecture":"amd64""#));
-        assert!(serde_json::to_string(&ConfigValue::Missing)
-            .expect("serialize value")
-            .contains(r#""-""#));
+        assert!(
+            serde_json::to_string(&ConfigValue::Missing)
+                .expect("serialize value")
+                .contains(r#""-""#)
+        );
     }
 
     #[test]
@@ -644,14 +649,16 @@ NOT_A_CONFIG=y
         let indexes = write_packages_to_data_dir([package], temp.path()).expect("write data");
 
         assert_eq!(indexes.len(), 1);
-        assert!(temp
-            .path()
-            .join("debian/linux-image-amd64/6.1.0-1/amd64/config")
-            .exists());
-        assert!(temp
-            .path()
-            .join("debian/linux-image-amd64/index.json")
-            .exists());
+        assert!(
+            temp.path()
+                .join("debian/linux-image-amd64/6.1.0-1/amd64/config")
+                .exists()
+        );
+        assert!(
+            temp.path()
+                .join("debian/linux-image-amd64/index.json")
+                .exists()
+        );
     }
 
     #[test]

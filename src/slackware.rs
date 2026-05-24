@@ -51,7 +51,10 @@ impl SlackwareIndexer {
         }
     }
 
-    async fn load_packages_txt(&self, location: &SlackwareIndexLocation) -> Result<(String, String)> {
+    async fn load_packages_txt(
+        &self,
+        location: &SlackwareIndexLocation,
+    ) -> Result<(String, String)> {
         match location {
             SlackwareIndexLocation::Url(url) => {
                 let response = self
@@ -231,7 +234,9 @@ fn parse_package_filename(package_name: &str) -> Option<(String, String, Archite
     let name_version = &stem[..arch_pos];
 
     let version_start = name_version.rfind(|c: char| !c.is_ascii_digit() && c != '.')?;
-    let name = name_version[..version_start].trim_end_matches('-').to_string();
+    let name = name_version[..version_start]
+        .trim_end_matches('-')
+        .to_string();
     let version = name_version[version_start + 1..].to_string();
 
     if version.is_empty() || !version.starts_with(|c: char| c.is_ascii_digit()) {
@@ -457,12 +462,7 @@ bash: The GNU Bourne-Again Shell
             slackware_candidate("kernel-firmware", "20230101", Architecture::Amd64),
         ];
 
-        let selected = select_kernel_packages(
-            &candidates,
-            "kernel-",
-            &Architecture::Amd64,
-            None,
-        );
+        let selected = select_kernel_packages(&candidates, "kernel-", &Architecture::Amd64, None);
 
         // kernel-firmware is excluded by is_slackware_kernel_package;
         // kernel-headers is included (it may or may not contain a .config)

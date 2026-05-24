@@ -1,6 +1,7 @@
 pub mod alpine;
 pub mod android;
 pub mod arch;
+pub mod chromeos;
 pub mod debian;
 pub mod fedora;
 pub mod ikconfig;

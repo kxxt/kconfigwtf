@@ -13,6 +13,7 @@ use kconfigwtf::arch::{
     ArchDatabaseLocation, ArchIndexer, ArchIndexerConfig, ArchPackageBase, ArchRepoFeed,
     ArchRepositoryLayout,
 };
+use kconfigwtf::chromeos::{ChromeOsImageLocation, ChromeOsIndexer, ChromeOsIndexerConfig};
 use kconfigwtf::debian::{
     DebianIndexer, DebianIndexerConfig, DebianPackageBase, DebianPackageFeed, PackageIndexLocation,
 };
@@ -58,6 +59,9 @@ enum IndexCommand {
     Arch(ArchArgs),
     /// Index Debian kernel packages from a mirror or a local Packages file.
     Debian(DebianArgs),
+    /// Index a ChromeOS recovery image by extracting IKCONFIG from boot/vmlinuz in a ROOT-* partition.
+    #[command(name = "chromeos", alias = "chrome-os")]
+    ChromeOS(ChromeOsArgs),
     /// Index eweOS kernel packages from a pacman repository or local sync database.
     #[command(name = "eweos", alias = "ewe-os")]
     EweOS(EweOsArgs),
@@ -652,6 +656,28 @@ struct AoscArgs {
 }
 
 #[derive(Debug, Args)]
+struct ChromeOsArgs {
+    /// ChromeOS recovery image URL. Defaults to the public latest ChromeOS Flex recovery image.
+    #[arg(
+        long,
+        default_value = "https://dl.google.com/chromeos-flex/images/latest.bin.zip"
+    )]
+    image_url: String,
+
+    /// Local ChromeOS recovery image (.bin or .zip). Overrides --image-url.
+    #[arg(long)]
+    image_file: Option<PathBuf>,
+
+    /// CPU architecture to store for indexed configs.
+    #[arg(long = "arch", default_value = "amd64")]
+    architecture: Architecture,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct NixOsArgs {
     /// Nix flake reference containing the package attributes.
     #[arg(long, default_value = "nixpkgs")]
@@ -712,10 +738,7 @@ struct GuixArgs {
 #[derive(Debug, Args)]
 struct SlackwareArgs {
     /// Slackware mirror root used for remote indexing.
-    #[arg(
-        long,
-        default_value = "https://mirrors.slackware.com/slackware"
-    )]
+    #[arg(long, default_value = "https://mirrors.slackware.com/slackware")]
     mirror: String,
 
     /// Slackware release to index (e.g. slackware64-15.0, slackware64-current).
@@ -852,6 +875,7 @@ async fn main() -> Result<()> {
             IndexCommand::Alpine(args) => index_alpine(args).await,
             IndexCommand::Arch(args) => index_arch(args).await,
             IndexCommand::Debian(args) => index_debian(args).await,
+            IndexCommand::ChromeOS(args) => index_chromeos(args).await,
             IndexCommand::EweOS(args) => index_eweos(args).await,
             IndexCommand::Fedora(args) => index_fedora(args).await,
             IndexCommand::Rhel(args) => index_rpm_distribution(Distribution::Rhel, args).await,
@@ -1148,6 +1172,20 @@ async fn index_aosc(args: AoscArgs) -> Result<()> {
     Ok(())
 }
 
+async fn index_chromeos(args: ChromeOsArgs) -> Result<()> {
+    let indexer = ChromeOsIndexer::new(ChromeOsIndexerConfig {
+        image: match args.image_file {
+            Some(path) => ChromeOsImageLocation::Path(path),
+            None => ChromeOsImageLocation::Url(args.image_url),
+        },
+        architecture: args.architecture,
+    });
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
 async fn index_nixos(args: NixOsArgs) -> Result<()> {
     let system = args
         .system
@@ -1243,9 +1281,7 @@ fn slackware_config_from_args(args: &SlackwareArgs) -> Result<SlackwareIndexerCo
             SlackwareRepoFeed {
                 distribution: Distribution::Slackware,
                 architecture: architecture.clone(),
-                packages_txt: SlackwareIndexLocation::Url(format!(
-                    "{release_root}/PACKAGES.TXT"
-                )),
+                packages_txt: SlackwareIndexLocation::Url(format!("{release_root}/PACKAGES.TXT")),
                 package_base: SlackwarePackageBase::Url(release_root),
             }
         })
@@ -1699,7 +1735,10 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
     Ok(config)
 }
 
-async fn rpm_config_from_args(distribution: Distribution, args: &RpmArgs) -> Result<FedoraIndexerConfig> {
+async fn rpm_config_from_args(
+    distribution: Distribution,
+    args: &RpmArgs,
+) -> Result<FedoraIndexerConfig> {
     let package_names = args.package_name.clone().map_or_else(
         || default_rpm_package_names(&distribution, args),
         |name| vec![name],

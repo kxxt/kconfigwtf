@@ -131,6 +131,31 @@ instead.
 The backend stores `Distribution::Android`, uses the branch name from release
 metadata as the package name, and uses the release tag as the package version.
 
+## ChromeOS Backend
+
+The ChromeOS backend indexes recovery images rather than distro kernel
+packages. It supports two retrieval modes:
+
+- URL mode, using a recovery image URL such as
+  `https://dl.google.com/chromeos-flex/images/latest.bin.zip`.
+- Local mode, using `--image-file` with a `.bin` or `.zip` recovery image.
+
+The backend unpacks the image when needed, reads its GPT partition table, and
+tries `ROOT-*` partitions in order. For each root partition it reads
+`/etc/lsb-release` for the platform version, derives the kernel version from
+the selected kernel artifact path, and tries config sources in order:
+
+- `/boot/vmlinuz`
+- `/lib/modules/*/kernel/kernel/configs.ko`
+- `/lib/modules/*/kernel/kernel/configs.ko.gz`
+
+The first source mirrors the user's expected recovery-root workflow. The module
+fallback is needed for real ChromeOS Flex recovery media, where
+`CONFIG_IKCONFIG` is exposed through `configs.ko.gz` instead of an embedded
+IKCONFIG blob in `vmlinuz`. The backend stores `Distribution::ChromeOS`, uses
+the platform version as `package_name`, and uses the kernel version string as
+`package_version`.
+
 ## Debian Backend
 
 The Debian backend is an APT repository backend used by Debian, Ubuntu, Kali,
