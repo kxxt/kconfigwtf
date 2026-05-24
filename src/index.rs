@@ -45,6 +45,7 @@ pub enum Distribution {
     AmazonLinux,
     AzureLinux,
     Slackware,
+    Void,
     Other(String),
 }
 
@@ -81,6 +82,7 @@ impl Distribution {
             Self::AmazonLinux => "amazonlinux",
             Self::AzureLinux => "azurelinux",
             Self::Slackware => "slackware",
+            Self::Void => "void",
             Self::Other(value) => value.as_str(),
         }
     }
@@ -132,6 +134,7 @@ impl FromStr for Distribution {
             "amazon" | "amazonlinux" | "amazon-linux" | "al" => Self::AmazonLinux,
             "azure" | "azurelinux" | "azure-linux" => Self::AzureLinux,
             "slackware" => Self::Slackware,
+            "void" | "voidlinux" | "void-linux" => Self::Void,
             other => Self::Other(other.to_string()),
         })
     }

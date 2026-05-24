@@ -391,6 +391,35 @@ cargo run -- index openwrt \
   --data-dir data
 ```
 
+## Generate A Void Linux Index
+
+Index Void Linux kernel configs from the `void-packages` source tree. By default the indexer discovers package recipes from `void-linux/void-packages` on GitHub and reads `srcpkgs/<pkg>/files/*-dotconfig`.
+
+```sh
+cargo run -- index void \
+  --arch amd64 \
+  --data-dir data
+```
+
+You can also target specific package recipes such as `linux6.6` or `linux6.12`:
+
+```sh
+cargo run -- index void \
+  --package linux6.6 \
+  --package linux6.12 \
+  --arch amd64 \
+  --data-dir data
+```
+
+Offline example using a local `void-packages` checkout:
+
+```sh
+cargo run -- index void \
+  --package-root ./void-packages \
+  --arch amd64 \
+  --data-dir data
+```
+
 The OpenWrt backend reads `config.buildinfo` plus `profiles.json` for each
 selected target or discovered target/subtarget pair. The package name is the
 target path normalized to a single segment such as `x86-64`, and the package

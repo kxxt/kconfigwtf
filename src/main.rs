@@ -33,6 +33,10 @@ use kconfigwtf::store::{
     StorePackageIndexer, StorePackageIndexerConfig, StorePackageManager,
     default_system_for_architecture, discover_nix_kernel_packages,
 };
+use kconfigwtf::void::{
+    DEFAULT_VOID_GITHUB_RAW_SRCPKGS_URL, VoidIndexer, VoidIndexerConfig, VoidPackageBase,
+    VoidRepoFeed,
+};
 use kconfigwtf::{KernelConfigIndexer, site::SiteGenerator};
 
 #[derive(Debug, Parser)]
@@ -123,6 +127,8 @@ enum IndexCommand {
     AzureLinux(RpmArgs),
     /// Index Slackware kernel packages from a mirror or a local PACKAGES.TXT file.
     Slackware(SlackwareArgs),
+    /// Index Void Linux kernel packages from a mirror or local package list.
+    Void(VoidArgs),
     /// Index NixOS kernel packages through nix.
     #[command(name = "nixos", alias = "nix-os")]
     NixOS(NixOsArgs),
@@ -805,6 +811,41 @@ struct SlackwareArgs {
 }
 
 #[derive(Debug, Args)]
+struct VoidArgs {
+    /// Base URL for a raw `srcpkgs` tree when not using the default GitHub source.
+    #[arg(long)]
+    package_base: Option<String>,
+
+    /// Local `void-packages` checkout root or `srcpkgs` directory.
+    #[arg(long)]
+    package_root: Option<PathBuf>,
+
+    /// File containing package recipe names (one per line). Useful for offline indexing and tests.
+    #[arg(long)]
+    package_file: Option<PathBuf>,
+
+    /// Explicit package recipe to index, for example `linux6.6`.
+    #[arg(long = "package")]
+    packages: Vec<String>,
+
+    /// CPU architecture to index. May be passed more than once.
+    #[arg(long = "arch", default_value = "amd64")]
+    architectures: Vec<Architecture>,
+
+    /// Package recipe prefix to include from the package list.
+    #[arg(long, default_value = "linux")]
+    package_prefix: String,
+
+    /// Limit the number of packages fetched per architecture.
+    #[arg(long)]
+    max_packages: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
 struct FedoraArgs {
     /// Fedora mirror root used for remote indexing.
     #[arg(
@@ -946,6 +987,7 @@ async fn main() -> Result<()> {
             IndexCommand::AzureLinux(args) => {
                 index_rpm_distribution(Distribution::AzureLinux, args).await
             }
+            IndexCommand::Void(args) => index_void(args).await,
             IndexCommand::Slackware(args) => index_slackware(args).await,
         },
         Command::Site(args) => generate_site(args),
@@ -1303,6 +1345,78 @@ async fn index_slackware(args: SlackwareArgs) -> Result<()> {
     write_packages_to_data_dir(packages, &args.data_dir)
         .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
     Ok(())
+}
+
+async fn index_void(args: VoidArgs) -> Result<()> {
+    let config = void_config_from_args(&args).await?;
+    let indexer = VoidIndexer::new(config);
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+async fn void_config_from_args(args: &VoidArgs) -> Result<VoidIndexerConfig> {
+    let mut package_names = if let Some(packages_file) = &args.package_file {
+        let content = tokio::fs::read_to_string(packages_file)
+            .await
+            .with_context(|| format!("reading package list {}", packages_file.display()))?;
+        content
+            .lines()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>()
+    } else {
+        args.packages.clone()
+    };
+
+    if package_names.is_empty() {
+        if let Some(root) = &args.package_root {
+            package_names = VoidIndexer::discover_packages_from_path(root).await?;
+        } else {
+            package_names = VoidIndexer::discover_packages_from_github().await?;
+        }
+    }
+
+    if package_names.is_empty() {
+        bail!(
+            "no Void package recipes found; provide --package, --package-file, or a discoverable --package-root"
+        );
+    }
+
+    let mut feeds = Vec::new();
+    for architecture in &args.architectures {
+        let package_base = if let Some(root) = &args.package_root {
+            VoidPackageBase::Path(root.clone())
+        } else {
+            VoidPackageBase::Url(
+                args.package_base
+                    .clone()
+                    .unwrap_or_else(|| DEFAULT_VOID_GITHUB_RAW_SRCPKGS_URL.to_string()),
+            )
+        };
+
+        let mut filtered = package_names
+            .iter()
+            .filter(|name| name.starts_with(&args.package_prefix))
+            .cloned()
+            .collect::<Vec<_>>();
+        filtered.sort();
+        filtered.dedup();
+
+        feeds.push(VoidRepoFeed {
+            distribution: Distribution::Void,
+            architecture: architecture.clone(),
+            package_base: package_base.clone(),
+            package_names: filtered,
+        });
+    }
+
+    Ok(VoidIndexerConfig {
+        feeds,
+        package_name_prefix: args.package_prefix.clone(),
+        max_packages: args.max_packages,
+    })
 }
 
 fn slackware_config_from_args(args: &SlackwareArgs) -> Result<SlackwareIndexerConfig> {

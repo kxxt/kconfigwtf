@@ -923,6 +923,7 @@ dependencies = [
  "minijinja",
  "predicates",
  "quick-xml",
+ "regex",
  "reqwest",
  "rpm",
  "serde",

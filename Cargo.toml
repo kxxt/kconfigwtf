@@ -25,6 +25,7 @@ liblzma = "0.4"
 zstd = "0.13"
 ar = "0.9"
 walkdir = "2.5"
+regex = "1"
 rpm = { version = "0.23.5", default-features = false, features = ["payload", "gzip-compression", "xz-compression", "zstd-compression", "bzip2-compression"] }
 quick-xml = "0.38"
 

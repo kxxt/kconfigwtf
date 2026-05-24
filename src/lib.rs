@@ -11,6 +11,7 @@ pub mod openwrt;
 pub mod site;
 pub mod slackware;
 pub mod store;
+pub mod void;
 
 pub use index::{
     Architecture, ConfigValue, Distribution, PackageConfigOccurrence, PackageIndex, PackageKernel,

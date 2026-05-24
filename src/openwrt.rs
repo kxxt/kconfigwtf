@@ -517,7 +517,8 @@ mod tests {
 
         let compressed = zstd::encode_all(&tar_buf[..], 0).expect("compress tar");
 
-        let result = extract_kernel_config_from_imagebuilder(&compressed, "zst").expect("extract config");
+        let result =
+            extract_kernel_config_from_imagebuilder(&compressed, "zst").expect("extract config");
         assert!(result.contains("CONFIG_TEST=y"));
         assert!(result.contains("Kernel Configuration"));
     }
