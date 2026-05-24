@@ -1,3 +1,5 @@
 /target
 /dist
 /public
+/.ci
+/coverage.lcov

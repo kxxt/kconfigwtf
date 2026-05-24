@@ -507,6 +507,36 @@ The search box autocompletes Kconfig names from a pre-generated list in
 user has already typed it. Submitting the search navigates to the pre-generated
 page, for example `http://localhost:8000/CONFIG_/BPF/`.
 
+## CI And Deployment
+
+GitHub Actions runs five checks on pushes and pull requests:
+
+- tests
+- coverage generation
+- formatting (`cargo fmt --check`)
+- clippy (`-D warnings`)
+- static site build
+
+The site-build job uses the checked-in `data/` directory, so CI and deployment
+build the same static site content.
+
+GitHub Pages deployment is configured in
+[.github/workflows/github-pages.yml](./.github/workflows/github-pages.yml).
+The deploy workflow publishes the generated `public` artifact from the checked-in
+`data/` tree on pushes to `main` or `master`, and it can also be triggered
+manually.
+
+Repository setup required:
+
+- In GitHub Pages settings, set the source to `GitHub Actions`.
+- Ensure the default branch is the one you want to publish from.
+
+The GitHub Pages build itself runs:
+
+```sh
+cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf
+```
+
 ## Architecture
 
 The crate is split into focused modules:

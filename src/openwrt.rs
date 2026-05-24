@@ -218,7 +218,7 @@ impl OpenWrtIndexer {
 
             return Ok((url, config_text));
         }
-        return Err(last_error.unwrap());
+        Err(last_error.unwrap())
     }
 }
 

@@ -274,7 +274,7 @@ fn extract_from_configs_module(
     fs: &Ext4,
     partition_name: &str,
 ) -> Result<Option<(String, String, String)>> {
-    for (module_path, kernel_version) in find_configs_module_paths(fs)? {
+    if let Some((module_path, kernel_version)) = find_configs_module_paths(fs)?.into_iter().next() {
         let module_bytes = fs
             .read(&module_path)
             .with_context(|| format!("reading {module_path} from {partition_name}"))?;
@@ -321,10 +321,10 @@ fn find_configs_module_paths(fs: &Ext4) -> Result<Vec<(String, String)>> {
                 continue;
             };
             let name = name.to_string_lossy();
-            if name == "configs.ko" || name == "configs.ko.gz" {
-                if let Some(kernel_version) = kernel_version_from_module_path(&path) {
-                    paths.push((path.to_string_lossy().to_string(), kernel_version));
-                }
+            if (name == "configs.ko" || name == "configs.ko.gz")
+                && let Some(kernel_version) = kernel_version_from_module_path(&path)
+            {
+                paths.push((path.to_string_lossy().to_string(), kernel_version));
             }
         }
     }
