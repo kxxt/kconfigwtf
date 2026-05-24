@@ -15,7 +15,7 @@ The foundation has two parts:
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Deepin, Kylin OS, OpenKylin, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
 openAnolis, openEuler, openSUSE, Oracle Linux, Amazon Linux, Azure Linux,
-Slackware, Android AOSP GKI, Alpine Linux, NixOS, Guix,
+Slackware, OpenWrt, Android AOSP GKI, Alpine Linux, NixOS, Guix,
 and Arch-family pacman repositories for Arch Linux, Parabola, CachyOS, and
 eweos, including the Arch Linux RISC-V repository as Arch Linux on `riscv64`.
 
@@ -380,6 +380,37 @@ cargo run -- index chromeos \
   --data-dir data
 ```
 
+## Generate An OpenWrt Index
+
+Index an OpenWrt target from a release target tree:
+
+```sh
+cargo run -- index openwrt \
+  --targets-url https://downloads.openwrt.org/releases/25.12.0/targets \
+  --target x86/64 \
+  --data-dir data
+```
+
+The OpenWrt backend reads `config.buildinfo` plus `profiles.json` for each
+selected target or discovered target/subtarget pair. The package name is the
+target path normalized to a single segment such as `x86-64`, and the package
+version combines the OpenWrt build version with the kernel version from
+`profiles.json`, for example `25.12.0-kernel-6.12.71` or
+`SNAPSHOT-r34569-49b5093679-kernel-6.18.31`.
+
+If `--target` is omitted, the backend discovers all available target/subtarget
+pairs under the selected targets root. The default remote root is
+`https://downloads.openwrt.org/snapshots/targets`.
+
+Offline indexing is also supported for tests and mirrored target trees:
+
+```sh
+cargo run -- index openwrt \
+  --targets-root ./mirror/targets \
+  --target x86/64 \
+  --data-dir data
+```
+
 ## Generate A Slackware Index
 
 Index Slackware kernel packages from a mirror:
@@ -461,6 +492,8 @@ The crate is split into focused modules:
   indexer implementation for Arch Linux, Parabola, CachyOS, and eweOS.
 - `chromeos`: ChromeOS recovery-image indexing from GPT root partitions plus
   IKCONFIG extraction from `boot/vmlinuz` or the `configs` kernel module.
+- `openwrt`: OpenWrt target discovery plus `config.buildinfo` /
+  `profiles.json` indexing.
 - `slackware`: Slackware `PACKAGES.TXT` parser, `.txz`/`.tgz` extraction, and
   indexer implementation.
 - `debian`: APT `Packages` parser, package selection, `.deb` extraction, and
@@ -551,7 +584,7 @@ distribution plus `android`, `ubuntu`, `kali`, `proxmox`, `deepin`, `kylin`,
 `aoscos`, `archlinux`, `parabola`, `cachyos`, `eweos`, `alpine`, `nixos`,
 `guix`, `fedora`, `rhel`, `centos`, `almalinux`, `rocky`, `openanolis`,
 `openeuler`, `openkylin`, `opensuse`, `oraclelinux`, `amazonlinux`,
-`azurelinux`, and `slackware`.
+`azurelinux`, `openwrt`, and `slackware`.
 Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 `ppc64el`, `riscv64`, and `s390x`. Unknown future values are preserved through
 an `Other(String)` enum variant.

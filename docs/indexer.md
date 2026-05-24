@@ -207,6 +207,33 @@ displayed as `linux-image-*` package names. For example,
 OpenKylin package names follow the same Debian-style pattern as Kylin OS,
 defaulting to `linux-image-*` with `<VERSION>-generic` normalization.
 
+## OpenWrt Backend
+
+The OpenWrt backend indexes target-level build configs rather than package
+archives. It supports two retrieval modes:
+
+- URL mode, using a targets root such as
+  `https://downloads.openwrt.org/releases/25.12.0/targets` or
+  `https://downloads.openwrt.org/snapshots/targets`.
+- Local mode, using `--targets-root` with a mirrored targets tree.
+
+The backend discovers target/subtarget pairs from the directory listing unless
+`--target` is provided. `--target` accepts either a full `target/subtarget`
+pair such as `x86/64` or a target family such as `x86`, in which case all
+subtargets under that family are indexed.
+
+For each selected target, the backend reads:
+
+- `config.buildinfo` for the raw kernel config text.
+- `profiles.json` for target metadata such as `arch_packages`,
+  `linux_kernel.version`, `version_number`, and `version_code`.
+
+The backend stores `Distribution::OpenWrt`, normalizes the target path to a
+package name such as `x86-64`, maps `arch_packages` to a shared architecture
+when possible, and uses a package version combining the OpenWrt build version
+with the kernel version, for example `25.12.0-kernel-6.12.71` or
+`SNAPSHOT-r34569-49b5093679-kernel-6.18.31`.
+
 ## RPM-Family Backend
 
 The RPM-family backend is implemented in the Fedora module and supports Fedora,

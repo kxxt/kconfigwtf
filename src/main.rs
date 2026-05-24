@@ -21,6 +21,10 @@ use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
 use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
+use kconfigwtf::openwrt::{
+    DEFAULT_TARGETS_URL as DEFAULT_OPENWRT_TARGETS_URL, OpenWrtIndexer, OpenWrtIndexerConfig,
+    OpenWrtTargetsLocation,
+};
 use kconfigwtf::slackware::{
     SlackwareIndexLocation, SlackwareIndexer, SlackwareIndexerConfig, SlackwarePackageBase,
     SlackwareRepoFeed,
@@ -87,6 +91,9 @@ enum IndexCommand {
     /// Index openSUSE kernel packages from RPM repository metadata.
     #[command(name = "opensuse", alias = "open-suse", alias = "suse")]
     OpenSUSE(RpmArgs),
+    /// Index OpenWrt target configs from config.buildinfo and profiles.json.
+    #[command(name = "openwrt", alias = "open-wrt")]
+    OpenWrt(OpenWrtArgs),
     /// Index Proxmox VE kernel packages from a mirror or a local Packages file.
     Proxmox(ProxmoxArgs),
     /// Index Rocky Linux kernel packages from RPM repository metadata.
@@ -176,6 +183,33 @@ struct AndroidArgs {
     /// Limit the number of Android GKI builds fetched, newest first.
     #[arg(long)]
     max_builds: Option<usize>,
+
+    /// Output data directory.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+}
+
+#[derive(Debug, Args)]
+struct OpenWrtArgs {
+    /// OpenWrt targets root URL used for remote indexing.
+    ///
+    /// Defaults to the snapshots target tree.
+    #[arg(long)]
+    targets_url: Option<String>,
+
+    /// Local OpenWrt targets root. Useful for offline indexing and tests.
+    #[arg(long)]
+    targets_root: Option<PathBuf>,
+
+    /// Target or target/subtarget to index. Repeat to select a subset.
+    ///
+    /// Examples: x86, x86/64, mediatek/mt7622.
+    #[arg(long = "target")]
+    targets: Vec<String>,
+
+    /// Limit the number of discovered target/subtarget pairs indexed.
+    #[arg(long)]
+    max_targets: Option<usize>,
 
     /// Output data directory.
     #[arg(long, default_value = "data")]
@@ -893,6 +927,7 @@ async fn main() -> Result<()> {
             IndexCommand::OpenSUSE(args) => {
                 index_rpm_distribution(Distribution::OpenSUSE, args).await
             }
+            IndexCommand::OpenWrt(args) => index_openwrt(args).await,
             IndexCommand::Proxmox(args) => index_proxmox(args).await,
             IndexCommand::Rocky(args) => index_rpm_distribution(Distribution::Rocky, args).await,
             IndexCommand::Ubuntu(args) => index_ubuntu(args).await,
@@ -1179,6 +1214,30 @@ async fn index_chromeos(args: ChromeOsArgs) -> Result<()> {
             None => ChromeOsImageLocation::Url(args.image_url),
         },
         architecture: args.architecture,
+    });
+    let packages = indexer.index().await?;
+    write_packages_to_data_dir(packages, &args.data_dir)
+        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    Ok(())
+}
+
+async fn index_openwrt(args: OpenWrtArgs) -> Result<()> {
+    if args.targets_root.is_some() && args.targets_url.is_some() {
+        bail!("--targets-url and --targets-root are mutually exclusive");
+    }
+
+    let targets = match args.targets_root {
+        Some(path) => OpenWrtTargetsLocation::Path(path),
+        None => OpenWrtTargetsLocation::Url(
+            args.targets_url
+                .unwrap_or_else(|| DEFAULT_OPENWRT_TARGETS_URL.to_string()),
+        ),
+    };
+
+    let indexer = OpenWrtIndexer::new(OpenWrtIndexerConfig {
+        targets,
+        selected_targets: args.targets,
+        max_targets: args.max_targets,
     });
     let packages = indexer.index().await?;
     write_packages_to_data_dir(packages, &args.data_dir)

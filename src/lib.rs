@@ -7,6 +7,7 @@ pub mod fedora;
 pub mod ikconfig;
 pub mod index;
 pub mod indexer;
+pub mod openwrt;
 pub mod site;
 pub mod slackware;
 pub mod store;

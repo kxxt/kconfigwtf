@@ -3,10 +3,10 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 
 use assert_cmd::Command;
-use flate2::Compression;
 use flate2::write::GzEncoder;
+use flate2::Compression;
 use kconfigwtf::index::{
-    Architecture, ConfigValue, Distribution, PackageIndex, write_packages_to_data_dir,
+    write_packages_to_data_dir, Architecture, ConfigValue, Distribution, PackageIndex,
 };
 use kconfigwtf::indexer::KernelConfigPackage;
 use liblzma::write::XzEncoder;
@@ -64,11 +64,9 @@ fn site_command_generates_static_site_from_data_directory() {
         vec!["data/debian/linux-image-amd64/index.json"]
     );
     assert_eq!(manifest.configs, vec!["BPF", "EXT4_FS"]);
-    assert!(
-        site_dir
-            .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
-            .exists()
-    );
+    assert!(site_dir
+        .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
+        .exists());
     let html = fs::read_to_string(site_dir.join("index.html")).expect("read html");
     assert!(html.contains("kconfigwtf test"));
     assert!(html.contains(r#"list="config-options""#));
@@ -83,11 +81,8 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(bpf_page.contains(r#"rowspan="1""#));
     assert!(bpf_page.contains("kernel-tag"));
     assert!(bpf_page.contains("arch-button"));
-    assert!(
-        bpf_page.contains(
-            r#"data-config-url="../../data/debian/linux-image-amd64/6.1.0-1/amd64/config""#
-        )
-    );
+    assert!(bpf_page
+        .contains(r#"data-config-url="../../data/debian/linux-image-amd64/6.1.0-1/amd64/config""#));
 
     let app = fs::read_to_string(site_dir.join("app.js")).expect("read app js");
     assert!(!app.contains("collectConfigNames"));
@@ -143,11 +138,9 @@ fn debian_index_command_indexes_local_packages_file() {
 
     let config_path = data_dir.join("debian/linux-image-<VERSION>-<ARCH>/6.1.4-1/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read raw config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read raw config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("debian/linux-image-<VERSION>-<ARCH>/index.json");
     let index: PackageIndex =
@@ -218,11 +211,9 @@ fn chromeos_index_command_indexes_local_recovery_image() {
 
     assert_eq!(index.distribution, Distribution::ChromeOS);
     assert_eq!(index.package_name, "16000.1.2");
-    assert!(
-        fs::read_to_string(config_path)
-            .expect("config")
-            .contains("CONFIG_CHROMEOS=y")
-    );
+    assert!(fs::read_to_string(config_path)
+        .expect("config")
+        .contains("CONFIG_CHROMEOS=y"));
     assert_eq!(
         index
             .entries
@@ -234,6 +225,68 @@ fn chromeos_index_command_indexes_local_recovery_image() {
     assert_eq!(
         index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
         ConfigValue::Missing
+    );
+}
+
+#[test]
+fn openwrt_index_command_indexes_local_target_root() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let targets_root = temp.path().join("targets");
+    let target_dir = targets_root.join("x86/64");
+    let data_dir = temp.path().join("data");
+
+    fs::create_dir_all(&target_dir).expect("create openwrt target");
+    fs::write(
+        target_dir.join("kernel.config"),
+        "# Linux/x86 6.12.71 Kernel Configuration\nCONFIG_TEST=y\nCONFIG_FOO=y\n# CONFIG_UNUSED is not set\n",
+    )
+    .expect("write kernel config");
+    fs::write(
+        target_dir.join("profiles.json"),
+        r#"{
+  "arch_packages": "x86_64",
+  "linux_kernel": { "version": "6.12.71" },
+  "target": "x86/64",
+  "version_number": "25.12.0",
+  "version_code": "r32713-cbbcf1ec78"
+}"#,
+    )
+    .expect("write profiles");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "openwrt",
+            "--targets-root",
+            targets_root.to_str().expect("targets root"),
+            "--target",
+            "x86/64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
+
+    let package_dir = data_dir.join("openwrt/x86-64");
+    let config_path = package_dir.join("25.12.0-kernel-6.12.71/amd64/config");
+    assert!(config_path.exists());
+    assert!(fs::read_to_string(&config_path)
+        .expect("read openwrt config")
+        .contains("CONFIG_TEST=y"));
+
+    let index: PackageIndex =
+        serde_json::from_str(&fs::read_to_string(package_dir.join("index.json")).expect("index"))
+            .expect("parse index");
+    assert_eq!(index.distribution, Distribution::OpenWrt);
+    assert_eq!(index.package_name, "x86-64");
+    assert_eq!(
+        index.kernels["25.12.0-kernel-6.12.71/amd64"].architecture,
+        Architecture::Amd64
+    );
+    assert_eq!(
+        index.entries.get("CONFIG_TEST").expect("CONFIG_TEST")[0].value,
+        ConfigValue::BuiltIn
     );
 }
 
@@ -316,11 +369,9 @@ fn android_index_command_indexes_local_release_builds_metadata() {
     let output_config =
         data_dir.join("android/android16-6.12/android16-6.12-2025-06_r1/arm64/config");
     assert!(output_config.exists());
-    assert!(
-        fs::read_to_string(&output_config)
-            .expect("read android config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&output_config)
+        .expect("read android config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("android/android16-6.12/index.json");
     let index: PackageIndex =
@@ -391,16 +442,12 @@ fn android_index_command_discovers_branches_from_local_overview() {
         .assert()
         .success();
 
-    assert!(
-        data_dir
-            .join("android/android16-6.12/android16-6.12-2025-06_r1/arm64/config")
-            .exists()
-    );
-    assert!(
-        data_dir
-            .join("android/android15-6.6/android15-6.6-2025-04_r1/arm64/config")
-            .exists()
-    );
+    assert!(data_dir
+        .join("android/android16-6.12/android16-6.12-2025-06_r1/arm64/config")
+        .exists());
+    assert!(data_dir
+        .join("android/android15-6.6/android15-6.6-2025-04_r1/arm64/config")
+        .exists());
 }
 
 #[test]
@@ -410,7 +457,8 @@ fn ubuntu_index_command_indexes_local_packages_file() {
         distribution: Distribution::Ubuntu,
         package_name: "linux-modules-6.14.0-29-generic",
         package_version: "6.14.0-29.29~24.04.1",
-        expected_config_path: "ubuntu/linux-image-<VERSION>-generic/6.14.0-29.29~24.04.1/amd64/config",
+        expected_config_path:
+            "ubuntu/linux-image-<VERSION>-generic/6.14.0-29.29~24.04.1/amd64/config",
         expected_index_path: "ubuntu/linux-image-<VERSION>-generic/index.json",
         expected_index_package_name: "linux-image-<VERSION>-generic",
         extra_packages: &[],
@@ -576,11 +624,9 @@ fn aosc_index_command_indexes_local_packages_file() {
 
     let config_path = data_dir.join("aoscos/linux-kernel-<VERSION>/6.14.0-1/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read raw config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read raw config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("aoscos/linux-kernel-<VERSION>/index.json");
     let index: PackageIndex =
@@ -639,11 +685,9 @@ fn aosc_index_command_extracts_embedded_config_from_kernel_image() {
 
     let config_path = data_dir.join("aoscos/linux-kernel-<VERSION>/6.18.27-1/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read raw config")
-            .contains("CONFIG_AOSC=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read raw config")
+        .contains("CONFIG_AOSC=y"));
 }
 
 #[test]
@@ -709,16 +753,12 @@ Filename: pool/main/l/linux/linux-kernel-vanillarc-7.0.0.deb
         .assert()
         .success();
 
-    assert!(
-        data_dir
-            .join("aoscos/linux-kernel-rc-<VERSION>/6.18.0-0.7/amd64/config")
-            .exists()
-    );
-    assert!(
-        data_dir
-            .join("aoscos/linux-kernel-vanillarc-<VERSION>/7.0.0-0.2/amd64/config")
-            .exists()
-    );
+    assert!(data_dir
+        .join("aoscos/linux-kernel-rc-<VERSION>/6.18.0-0.7/amd64/config")
+        .exists());
+    assert!(data_dir
+        .join("aoscos/linux-kernel-vanillarc-<VERSION>/7.0.0-0.2/amd64/config")
+        .exists());
 }
 
 #[test]
@@ -773,11 +813,9 @@ esac
 
     let config_path = data_dir.join("nixos/linuxPackages.kernel/6.18.32/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read raw config")
-            .contains("CONFIG_NIXOS=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read raw config")
+        .contains("CONFIG_NIXOS=y"));
 }
 
 #[test]
@@ -837,21 +875,15 @@ esac
         .assert()
         .success();
 
-    assert!(
-        data_dir
-            .join("nixos/linuxKernel.kernels.linux_5_10/6.18.32/amd64/config")
-            .exists()
-    );
-    assert!(
-        data_dir
-            .join("nixos/linux_xanmod/6.18.32/amd64/config")
-            .exists()
-    );
-    assert!(
-        !data_dir
-            .join("nixos/linuxKernel.kernels.linux_rpi1")
-            .exists()
-    );
+    assert!(data_dir
+        .join("nixos/linuxKernel.kernels.linux_5_10/6.18.32/amd64/config")
+        .exists());
+    assert!(data_dir
+        .join("nixos/linux_xanmod/6.18.32/amd64/config")
+        .exists());
+    assert!(!data_dir
+        .join("nixos/linuxKernel.kernels.linux_rpi1")
+        .exists());
 }
 
 #[test]
@@ -897,11 +929,9 @@ exit 1
 
     let output_config = data_dir.join("guix/linux-libre/6.12.0/amd64/config");
     assert!(output_config.exists());
-    assert!(
-        fs::read_to_string(&output_config)
-            .expect("read raw config")
-            .contains("CONFIG_GUIX=y")
-    );
+    assert!(fs::read_to_string(&output_config)
+        .expect("read raw config")
+        .contains("CONFIG_GUIX=y"));
 }
 
 #[test]
@@ -980,11 +1010,9 @@ fn apt_index_command_indexes_local_packages_file(case: AptCliCase<'_>) {
 
     let config_path = data_dir.join(case.expected_config_path);
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read raw config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read raw config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join(case.expected_index_path);
     let index: PackageIndex =
@@ -1053,11 +1081,9 @@ x86_64
 
     let config_path = data_dir.join("archlinux/linux/6.12.1.arch1-1/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read arch config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read arch config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("archlinux/linux/index.json");
     let index: PackageIndex =
@@ -1201,11 +1227,9 @@ x86_64
 
     let config_path = data_dir.join("eweos/linux/7.0.9-1/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read eweOS config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read eweOS config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("eweos/linux/index.json");
     let index: PackageIndex =
@@ -1286,11 +1310,9 @@ A:x86_64
 
     let config_path = data_dir.join("alpine/linux-lts/6.18.32-r0/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read Alpine config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read Alpine config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("alpine/linux-lts/index.json");
     let index: PackageIndex =
@@ -1378,11 +1400,9 @@ fn fedora_index_command_indexes_local_repo_metadata() {
 
     let config_path = data_dir.join("fedora/kernel-core/0:6.12.0-1.fc99/amd64/config");
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read fedora config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read fedora config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join("fedora/kernel-core/index.json");
     let index: PackageIndex =
@@ -1597,16 +1617,12 @@ fn opensuse_index_command_indexes_kernel_vanilla_by_default() {
         .assert()
         .success();
 
-    assert!(
-        data_dir
-            .join("opensuse/kernel-default/0:7.0.9-1.1/amd64/config")
-            .exists()
-    );
-    assert!(
-        data_dir
-            .join("opensuse/kernel-vanilla/0:7.0.9-1.1/amd64/config")
-            .exists()
-    );
+    assert!(data_dir
+        .join("opensuse/kernel-default/0:7.0.9-1.1/amd64/config")
+        .exists());
+    assert!(data_dir
+        .join("opensuse/kernel-vanilla/0:7.0.9-1.1/amd64/config")
+        .exists());
 }
 
 struct RpmCliCase<'a> {
@@ -1679,11 +1695,9 @@ fn rpm_index_command_indexes_local_repo_metadata(case: RpmCliCase<'_>) {
 
     let config_path = data_dir.join(case.expected_config_path);
     assert!(config_path.exists());
-    assert!(
-        fs::read_to_string(&config_path)
-            .expect("read rpm config")
-            .contains("CONFIG_BPF=y")
-    );
+    assert!(fs::read_to_string(&config_path)
+        .expect("read rpm config")
+        .contains("CONFIG_BPF=y"));
 
     let index_path = data_dir.join(case.expected_index_path);
     let index: PackageIndex =

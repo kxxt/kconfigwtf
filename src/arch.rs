@@ -670,7 +670,7 @@ x86_64
         assert_eq!(arch_db, "https://example.invalid/core/os/x86_64/core.db");
         assert_eq!(
             cachyos_db,
-            "https://example.invalid/repo/cachyos-v3/x86_64/cachyos-v3.db"
+            "https://example.invalid/repo/x86_64/cachyos-v3/cachyos-v3.db"
         );
     }
 
