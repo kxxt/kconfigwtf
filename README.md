@@ -279,7 +279,7 @@ defaults and stores data under `archlinux`:
 
 ```sh
 cargo run -- index arch --distribution parabola --arch x86_64 --data-dir data
-cargo run -- index arch --distribution cachyos --arch x86_64 --data-dir data
+cargo run -- index arch --distribution cachyos --arch x86_64_v4 --repository cachyos-znver4 --data-dir data
 cargo run -- index arch --arch riscv64 --data-dir data
 cargo run -- index eweos --repository main --arch x86_64 --data-dir data
 ```

@@ -194,7 +194,7 @@ impl ArchDistributionArg {
         match self {
             Self::ArchLinux => "https://geo.mirror.pkgbuild.com",
             Self::Parabola => "https://repo.parabola.nu",
-            Self::CachyOS => "https://mirror.cachyos.org/repo",
+            Self::CachyOS => "https://cdn77.cachyos.org/repo/",
         }
     }
 
@@ -212,7 +212,7 @@ impl ArchDistributionArg {
 
     fn repository_layout(self) -> ArchRepositoryLayout {
         match self {
-            Self::CachyOS => ArchRepositoryLayout::RepoArch,
+            Self::CachyOS => ArchRepositoryLayout::ArchRepo,
             _ => ArchRepositoryLayout::RepoOsArch,
         }
     }

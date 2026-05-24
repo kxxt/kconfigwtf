@@ -29,6 +29,7 @@ pub enum ArchPackageBase {
 pub enum ArchRepositoryLayout {
     RepoOsArch,
     RepoArch,
+    ArchRepo,
     RepoOnly,
 }
 
@@ -488,6 +489,9 @@ fn arch_repo_root(
         ArchRepositoryLayout::RepoArch => {
             format!("{mirror}/{repository}/{architecture}")
         }
+        ArchRepositoryLayout::ArchRepo => {
+            format!("{mirror}/{architecture}/{repository}")
+        }
         ArchRepositoryLayout::RepoOnly => {
             format!("{mirror}/{repository}")
         }
@@ -496,7 +500,7 @@ fn arch_repo_root(
 
 fn default_layout(distribution: &Distribution) -> ArchRepositoryLayout {
     match distribution {
-        Distribution::CachyOS => ArchRepositoryLayout::RepoArch,
+        Distribution::CachyOS => ArchRepositoryLayout::ArchRepo,
         _ => ArchRepositoryLayout::RepoOsArch,
     }
 }
