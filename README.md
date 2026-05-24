@@ -16,6 +16,11 @@ other RPM-based distributions, Arch-family repositories, Alpine, Android GKI,
 OpenWrt, Slackware, NixOS, Guix, Void Linux, ChromeOS recovery images, and
 more.
 
+> [!CAUTION]
+> Most of the code in this repo is created by generative AI agents.
+> The indexed kernel configs and result website has been reviewed by human.
+> But still, use it at your own risk.
+
 ## Use It
 
 If this repository has GitHub Pages enabled, the easiest way to use kconfigwtf
