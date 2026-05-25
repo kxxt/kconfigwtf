@@ -1,11 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::io::{self, IsTerminal};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Utc};
+use indicatif::{MultiProgress, ProgressBar, ProgressDrawTarget, ProgressStyle};
 use minijinja::{Environment, context};
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
@@ -171,40 +173,58 @@ fn write_config_pages(
     }
 
     let worker_count = parallelism.max(1).min(configs.len());
+    let progress = SiteBuildProgress::new(configs.len(), worker_count)?;
     if worker_count == 1 {
-        for config in configs {
-            write_config_page(config, loaded_indexes, output_dir, title)?;
-        }
-        return Ok(());
+        let result = (|| -> Result<()> {
+            let worker = progress.worker(0);
+            for config in configs {
+                worker.start(config);
+                write_config_page(config, loaded_indexes, output_dir, title)?;
+                worker.finish_item(config);
+            }
+            Ok(())
+        })();
+        progress.finish(result.is_ok());
+        return result;
     }
 
-    let next = AtomicUsize::new(0);
-    thread::scope(|scope| -> Result<()> {
-        let mut handles = Vec::with_capacity(worker_count);
-        for _ in 0..worker_count {
-            handles.push(scope.spawn(|| -> Result<()> {
-                loop {
-                    let index = next.fetch_add(1, Ordering::Relaxed);
-                    if index >= configs.len() {
-                        break;
+    let result = (|| -> Result<()> {
+        let next = AtomicUsize::new(0);
+        thread::scope(|scope| -> Result<()> {
+            let mut handles = Vec::with_capacity(worker_count);
+            for worker_index in 0..worker_count {
+                let worker = progress.worker(worker_index);
+                let next = &next;
+                handles.push(scope.spawn(move || -> Result<()> {
+                    loop {
+                        let index = next.fetch_add(1, Ordering::Relaxed);
+                        if index >= configs.len() {
+                            break;
+                        }
+
+                        let config = &configs[index];
+                        worker.start(config);
+                        write_config_page(config, loaded_indexes, output_dir, title)?;
+                        worker.finish_item(config);
                     }
 
-                    write_config_page(&configs[index], loaded_indexes, output_dir, title)?;
-                }
+                    worker.idle();
+                    Ok(())
+                }));
+            }
 
-                Ok(())
-            }));
-        }
+            for handle in handles {
+                let result = handle
+                    .join()
+                    .map_err(|_| anyhow!("site build worker panicked"))?;
+                result?;
+            }
 
-        for handle in handles {
-            let result = handle
-                .join()
-                .map_err(|_| anyhow!("site build worker panicked"))?;
-            result?;
-        }
-
-        Ok(())
-    })
+            Ok(())
+        })
+    })();
+    progress.finish(result.is_ok());
+    result
 }
 
 fn write_config_page(
@@ -240,6 +260,112 @@ fn write_config_page(
             config_viewer_hidden: true,
         },
     )
+}
+
+struct SiteBuildProgress {
+    total: ProgressBar,
+    workers: Vec<ProgressBar>,
+}
+
+impl SiteBuildProgress {
+    fn new(total_configs: usize, worker_count: usize) -> Result<Self> {
+        if !io::stderr().is_terminal() {
+            return Ok(Self {
+                total: ProgressBar::hidden(),
+                workers: Vec::new(),
+            });
+        }
+
+        let multi = MultiProgress::with_draw_target(ProgressDrawTarget::stderr_with_hz(10));
+        let total = multi.add(ProgressBar::new(total_configs as u64));
+        total.set_style(total_progress_style()?);
+        total.set_message(format!("building {total_configs} config pages"));
+
+        let workers = if worker_count > 1 {
+            let mut workers = Vec::with_capacity(worker_count);
+            for index in 0..worker_count {
+                let worker = multi.add(ProgressBar::new_spinner());
+                worker.set_style(worker_progress_style()?);
+                worker.enable_steady_tick(std::time::Duration::from_millis(100));
+                worker.set_message(format!("worker {:02}: idle", index + 1));
+                workers.push(worker);
+            }
+            workers
+        } else {
+            Vec::new()
+        };
+
+        Ok(Self { total, workers })
+    }
+
+    fn worker(&self, index: usize) -> SiteBuildWorkerProgress {
+        SiteBuildWorkerProgress {
+            total: self.total.clone(),
+            worker: self.workers.get(index).cloned(),
+            worker_index: index + 1,
+        }
+    }
+
+    fn finish(&self, success: bool) {
+        if success {
+            self.total.finish_with_message(format!(
+                "built {} config pages",
+                self.total.length().unwrap_or_default()
+            ));
+        } else {
+            self.total.abandon_with_message(format!(
+                "site build stopped after {}/{} pages",
+                self.total.position(),
+                self.total.length().unwrap_or_default()
+            ));
+        }
+
+        for worker in &self.workers {
+            worker.finish_and_clear();
+        }
+    }
+}
+
+struct SiteBuildWorkerProgress {
+    total: ProgressBar,
+    worker: Option<ProgressBar>,
+    worker_index: usize,
+}
+
+impl SiteBuildWorkerProgress {
+    fn start(&self, config: &str) {
+        if let Some(worker) = &self.worker {
+            worker.set_message(format!("worker {:02}: {}", self.worker_index, config));
+            worker.tick();
+        }
+    }
+
+    fn finish_item(&self, config: &str) {
+        self.total.inc(1);
+        if let Some(worker) = &self.worker {
+            worker.set_message(format!("worker {:02}: done {}", self.worker_index, config));
+            worker.tick();
+        }
+    }
+
+    fn idle(&self) {
+        if let Some(worker) = &self.worker {
+            worker.set_message(format!("worker {:02}: idle", self.worker_index));
+        }
+    }
+}
+
+fn total_progress_style() -> Result<ProgressStyle> {
+    ProgressStyle::with_template(
+        "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}",
+    )
+    .map(|style| style.progress_chars("##-"))
+    .context("building total site progress style")
+}
+
+fn worker_progress_style() -> Result<ProgressStyle> {
+    ProgressStyle::with_template("{spinner:.yellow} {msg}")
+        .context("building worker site progress style")
 }
 
 pub fn find_package_indexes(data_dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {

@@ -47,6 +47,8 @@ fn site_command_generates_static_site_from_data_directory() {
             data_dir.to_str().expect("data dir"),
             "--output-dir",
             site_dir.to_str().expect("site dir"),
+            "--jobs",
+            "2",
             "--title",
             "kconfigwtf test",
         ])
