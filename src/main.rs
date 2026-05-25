@@ -20,11 +20,14 @@ use kconfigwtf::debian::{
 use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
-use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
+use kconfigwtf::index::{
+    Architecture, DEFAULT_MAX_INDEX_BYTES, Distribution, write_packages_to_data_dir,
+};
 use kconfigwtf::indexer::{
     normalize_alpine_release_label, normalize_apt_release_label, normalize_rpm_release_label,
     normalize_slackware_release_label, rolling_release_label,
 };
+use kconfigwtf::migration::migrate_data_dir;
 use kconfigwtf::openwrt::{
     DEFAULT_TARGETS_URL as DEFAULT_OPENWRT_TARGETS_URL, OpenWrtIndexer, OpenWrtIndexerConfig,
     OpenWrtTargetsLocation,
@@ -57,6 +60,8 @@ enum Command {
         #[command(subcommand)]
         command: Box<IndexCommand>,
     },
+    /// Migrate package indexes in a data directory to the compact schema.
+    Migrate(MigrationArgs),
     /// Generate a static website from a data directory.
     Site(SiteArgs),
 }
@@ -948,6 +953,17 @@ struct SiteArgs {
     jobs: Option<usize>,
 }
 
+#[derive(Debug, Args)]
+struct MigrationArgs {
+    /// Data directory containing distribution/package trees.
+    #[arg(long, default_value = "data")]
+    data_dir: PathBuf,
+
+    /// Maximum pretty-printed bytes per index file before sharding.
+    #[arg(long, default_value_t = DEFAULT_MAX_INDEX_BYTES)]
+    max_index_bytes: usize,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -998,8 +1014,20 @@ async fn main() -> Result<()> {
             IndexCommand::Void(args) => index_void(args).await,
             IndexCommand::Slackware(args) => index_slackware(args).await,
         },
+        Command::Migrate(args) => migrate(args),
         Command::Site(args) => generate_site(args),
     }
+}
+
+fn migrate(args: MigrationArgs) -> Result<()> {
+    let summary = migrate_data_dir(&args.data_dir, args.max_index_bytes)
+        .with_context(|| format!("migrating {}", args.data_dir.display()))?;
+    eprintln!(
+        "migrated {} package directories and wrote {} index files",
+        summary.package_dirs,
+        summary.index_files_written.len()
+    );
+    Ok(())
 }
 
 async fn index_android(args: AndroidArgs) -> Result<()> {

@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
 use async_trait::async_trait;
+use bzip2::read::BzDecoder;
 use flate2::read::GzDecoder;
 use liblzma::read::XzDecoder;
 use tar::Archive;
@@ -401,6 +402,7 @@ fn extract_kernel_configs_from_data_tar(
                 .context("initializing zstd decoder for data.tar")?;
             read_configs_from_tar(decoder)
         }
+        "data.tar.bz2" => read_configs_from_tar(BzDecoder::new(Cursor::new(data))),
         other => Err(anyhow!("unsupported Debian data archive format {other}")),
     }
 }

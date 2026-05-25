@@ -73,8 +73,15 @@ cargo run -- index ubuntu \
   --suite noble-updates \
   --component main \
   --arch amd64 \
-  --max-packages 5 \
+  --max-packages 25 \
   --data-dir data
+
+# ports
+cargo run -- index ubuntu   --suite noble-updates  \
+ --component main   \
+ --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x \
+ --max-packages 25   --data-dir data \
+ --mirror http://ports.ubuntu.com/ubuntu-ports/
 
 cargo run -- index kali \
   --suite kali-rolling \

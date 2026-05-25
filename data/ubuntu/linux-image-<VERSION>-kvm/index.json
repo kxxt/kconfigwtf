@@ -1,0 +1,10963 @@
+{
+  "schema_version": 6,
+  "generated_at": "2026-05-26T05:04:48.906863805Z",
+  "distribution": "ubuntu",
+  "package_name": "linux-image-<VERSION>-kvm",
+  "releases": [
+    "bionic"
+  ],
+  "architectures": [
+    "amd64"
+  ],
+  "kernels": [
+    {
+      "version": "4.15.0-1010.10",
+      "release": 0,
+      "architecture": 0,
+      "source": "http://archive.ubuntu.com/ubuntu/pool/main/l/linux-kvm/linux-modules-4.15.0-1010-kvm_4.15.0-1010.10_amd64.deb#./boot/config-4.15.0-1010-kvm"
+    },
+    {
+      "version": "4.15.0-1011.11",
+      "release": 0,
+      "architecture": 0,
+      "source": "http://archive.ubuntu.com/ubuntu/pool/main/l/linux-kvm/linux-modules-4.15.0-1011-kvm_4.15.0-1011.11_amd64.deb#./boot/config-4.15.0-1011-kvm"
+    },
+    {
+      "version": "4.15.0-1012.12",
+      "release": 0,
+      "architecture": 0,
+      "source": "http://archive.ubuntu.com/ubuntu/pool/main/l/linux-kvm/linux-modules-4.15.0-1012-kvm_4.15.0-1012.12_amd64.deb#./boot/config-4.15.0-1012-kvm"
+    }
+  ],
+  "entries": {
+    "CONFIG_64BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_6LOWPAN": {},
+    "CONFIG_9P_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_9P_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_9P_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ABX500_CORE": {},
+    "CONFIG_ACCESSIBILITY": {},
+    "CONFIG_ACPI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_AC": {},
+    "CONFIG_ACPI_APEI": {},
+    "CONFIG_ACPI_BATTERY": {},
+    "CONFIG_ACPI_BGRT": {},
+    "CONFIG_ACPI_BUTTON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_CONFIGFS": {},
+    "CONFIG_ACPI_CONTAINER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_CPPC_LIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_CPU_FREQ_PSS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_CUSTOM_DSDT": {},
+    "CONFIG_ACPI_CUSTOM_DSDT_FILE": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_ACPI_CUSTOM_METHOD": {},
+    "CONFIG_ACPI_DEBUG": {},
+    "CONFIG_ACPI_DEBUGGER": {},
+    "CONFIG_ACPI_DOCK": {},
+    "CONFIG_ACPI_EC_DEBUGFS": {},
+    "CONFIG_ACPI_FAN": {},
+    "CONFIG_ACPI_HED": {},
+    "CONFIG_ACPI_HOTPLUG_CPU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_HOTPLUG_IOAPIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_LEGACY_TABLES_LOOKUP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_LPIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_NFIT": {},
+    "CONFIG_ACPI_NUMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_PCI_SLOT": {},
+    "CONFIG_ACPI_PROCESSOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_PROCESSOR_AGGREGATOR": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_PROCESSOR_CSTATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_PROCESSOR_IDLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_PROCFS_POWER": {},
+    "CONFIG_ACPI_REDUCED_HARDWARE_ONLY": {},
+    "CONFIG_ACPI_REV_OVERRIDE_POSSIBLE": {},
+    "CONFIG_ACPI_SBS": {},
+    "CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ACPI_TABLE_UPGRADE": {},
+    "CONFIG_ACPI_THERMAL": {},
+    "CONFIG_ADFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ADFS_FS_RW": {},
+    "CONFIG_ADVISE_SYSCALLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AFFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AFS_DEBUG": {},
+    "CONFIG_AFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AF_KCM": {},
+    "CONFIG_AF_RXRPC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AF_RXRPC_DEBUG": {},
+    "CONFIG_AF_RXRPC_INJECT_LOSS": {},
+    "CONFIG_AF_RXRPC_IPV6": {},
+    "CONFIG_AGP": {},
+    "CONFIG_AIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ALLOW_DEV_COREDUMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ALTERA_MBOX": {},
+    "CONFIG_AMD_MEM_ENCRYPT": {},
+    "CONFIG_AMD_NB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AMD_NUMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ANDROID": {},
+    "CONFIG_ANON_INODES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_APPLICOM": {},
+    "CONFIG_ARCH_CLOCKSOURCE_DATA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_DEFCONFIG": {
+      "other": [
+        [
+          0,
+          "\"arch/x86/configs/x86_64_defconfig\""
+        ],
+        [
+          1,
+          "\"arch/x86/configs/x86_64_defconfig\""
+        ],
+        [
+          2,
+          "\"arch/x86/configs/x86_64_defconfig\""
+        ]
+      ]
+    },
+    "CONFIG_ARCH_DISCARD_MEMBLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_DMA_ADDR_T_64BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_ENABLE_SPLIT_PMD_PTLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_ACPI_TABLE_UPGRADE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_ADD_PAGES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_CACHE_LINE_SIZE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_CPU_RELAX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_DEBUG_VIRTUAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_DEVMEM_IS_ALLOWED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_ELF_RANDOMIZE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_FAST_MULTIPLIER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_FORTIFY_SOURCE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_GCOV_PROFILE_ALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_KCOV": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_MEM_ENCRYPT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_PMEM_API": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_REFCOUNT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_SET_MEMORY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_SG_CHAIN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_STRICT_KERNEL_RWX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_STRICT_MODULE_RWX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_UBSAN_SANITIZE_ALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAS_ZONE_DEVICE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_HIBERNATION_POSSIBLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_MIGHT_HAVE_PC_PARPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_MIGHT_HAVE_PC_SERIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_BITS": {
+      "other": [
+        [
+          0,
+          "28"
+        ],
+        [
+          1,
+          "28"
+        ],
+        [
+          2,
+          "28"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_BITS_MAX": {
+      "other": [
+        [
+          0,
+          "32"
+        ],
+        [
+          1,
+          "32"
+        ],
+        [
+          2,
+          "32"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_BITS_MIN": {
+      "other": [
+        [
+          0,
+          "28"
+        ],
+        [
+          1,
+          "28"
+        ],
+        [
+          2,
+          "28"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_COMPAT_BITS": {
+      "other": [
+        [
+          0,
+          "8"
+        ],
+        [
+          1,
+          "8"
+        ],
+        [
+          2,
+          "8"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MAX": {
+      "other": [
+        [
+          0,
+          "16"
+        ],
+        [
+          1,
+          "16"
+        ],
+        [
+          2,
+          "16"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MIN": {
+      "other": [
+        [
+          0,
+          "8"
+        ],
+        [
+          1,
+          "8"
+        ],
+        [
+          2,
+          "8"
+        ]
+      ]
+    },
+    "CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED": {},
+    "CONFIG_ARCH_OPTIONAL_KERNEL_RWX": {},
+    "CONFIG_ARCH_OPTIONAL_KERNEL_RWX_DEFAULT": {},
+    "CONFIG_ARCH_PHYS_ADDR_T_64BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_RANDOM": {},
+    "CONFIG_ARCH_SELECT_MEMORY_MODEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SPARSEMEM_DEFAULT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SPARSEMEM_ENABLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_ATOMIC_RMW": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_INT128": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_NUMA_BALANCING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUPPORTS_UPROBES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_SUSPEND_POSSIBLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_USE_BUILTIN_BSWAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_USE_CMPXCHG_LOCKREF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_USE_QUEUED_RWLOCKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_USE_QUEUED_SPINLOCKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANTS_DYNAMIC_TASK_STRUCT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANTS_THP_SWAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANTS_UBSAN_NO_NULL": {},
+    "CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANT_COMPAT_IPC_PARSE_VERSION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANT_GENERAL_HUGETLB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANT_HUGE_PMD_SHARE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCH_WANT_OLD_COMPAT_IPC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ARCNET": {},
+    "CONFIG_ARM_GIC_MAX_NR": {
+      "other": [
+        [
+          0,
+          "1"
+        ],
+        [
+          1,
+          "1"
+        ],
+        [
+          2,
+          "1"
+        ]
+      ]
+    },
+    "CONFIG_ARM_GIC_V3_ITS": {},
+    "CONFIG_ASN1": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASSOCIATIVE_ARRAY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASYMMETRIC_KEY_TYPE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASYNC_CORE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASYNC_PQ": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ASYNC_XOR": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATALK": {},
+    "CONFIG_ATA_ACPI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA_BMDMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA_GENERIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA_NONSTANDARD": {},
+    "CONFIG_ATA_OVER_ETH": {},
+    "CONFIG_ATA_PIIX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA_SFF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATA_VERBOSE_ERROR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ATM": {},
+    "CONFIG_ATMEL_PIT": {},
+    "CONFIG_ATOMIC64_SELFTEST": {},
+    "CONFIG_AUDIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUDITSYSCALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUDIT_ARCH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUDIT_ARCH_COMPAT_GENERIC": {},
+    "CONFIG_AUDIT_TREE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUDIT_WATCH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_BDEV_LOOP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_BRANCH_MAX_1023": {},
+    "CONFIG_AUFS_BRANCH_MAX_127": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_BRANCH_MAX_32767": {},
+    "CONFIG_AUFS_BRANCH_MAX_511": {},
+    "CONFIG_AUFS_BR_FUSE": {},
+    "CONFIG_AUFS_BR_HFSPLUS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_BR_RAMFS": {},
+    "CONFIG_AUFS_DEBUG": {},
+    "CONFIG_AUFS_DIRREN": {},
+    "CONFIG_AUFS_EXPORT": {},
+    "CONFIG_AUFS_FHSM": {},
+    "CONFIG_AUFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_HNOTIFY": {},
+    "CONFIG_AUFS_RDU": {},
+    "CONFIG_AUFS_SBILIST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUFS_SHWH": {},
+    "CONFIG_AUFS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUTOFS4_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_AUXDISPLAY": {},
+    "CONFIG_BACKLIGHT_LCD_SUPPORT": {},
+    "CONFIG_BACKTRACE_SELF_TEST": {},
+    "CONFIG_BASE_FULL": {},
+    "CONFIG_BASE_SMALL": {
+      "other": [
+        [
+          0,
+          "1"
+        ],
+        [
+          1,
+          "1"
+        ],
+        [
+          2,
+          "1"
+        ]
+      ]
+    },
+    "CONFIG_BATMAN_ADV": {},
+    "CONFIG_BATTERY_BQ27XXX": {},
+    "CONFIG_BATTERY_DS2780": {},
+    "CONFIG_BATTERY_DS2781": {},
+    "CONFIG_BCACHE": {},
+    "CONFIG_BCMA": {},
+    "CONFIG_BCMA_POSSIBLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BCM_KONA_USB2_PHY": {},
+    "CONFIG_BE2ISCSI": {},
+    "CONFIG_BEFS_DEBUG": {},
+    "CONFIG_BEFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BIG_KEYS": {},
+    "CONFIG_BINARY_PRINTF": {},
+    "CONFIG_BINFMT_ELF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BINFMT_MISC": {},
+    "CONFIG_BINFMT_SCRIPT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BITREVERSE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_CGROUP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_CMDLINE_PARSER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEBUG_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_3W_XXXX_RAID": {},
+    "CONFIG_BLK_DEV_BSG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_BSGLIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_COW_COMMON": {},
+    "CONFIG_BLK_DEV_CRYPTOLOOP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_DAC960": {},
+    "CONFIG_BLK_DEV_DM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_DM_BUILTIN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_DRBD": {},
+    "CONFIG_BLK_DEV_INITRD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_INTEGRITY": {},
+    "CONFIG_BLK_DEV_LOOP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_LOOP_MIN_COUNT": {
+      "other": [
+        [
+          0,
+          "8"
+        ],
+        [
+          1,
+          "8"
+        ],
+        [
+          2,
+          "8"
+        ]
+      ]
+    },
+    "CONFIG_BLK_DEV_MD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_NBD": {},
+    "CONFIG_BLK_DEV_NULL_BLK": {},
+    "CONFIG_BLK_DEV_NVME": {},
+    "CONFIG_BLK_DEV_PCIESSD_MTIP32XX": {},
+    "CONFIG_BLK_DEV_RAM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_RAM_COUNT": {
+      "other": [
+        [
+          0,
+          "16"
+        ],
+        [
+          1,
+          "16"
+        ],
+        [
+          2,
+          "16"
+        ]
+      ]
+    },
+    "CONFIG_BLK_DEV_RAM_SIZE": {
+      "other": [
+        [
+          0,
+          "4096"
+        ],
+        [
+          1,
+          "4096"
+        ],
+        [
+          2,
+          "4096"
+        ]
+      ]
+    },
+    "CONFIG_BLK_DEV_RBD": {},
+    "CONFIG_BLK_DEV_RSXX": {},
+    "CONFIG_BLK_DEV_SD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_SKD": {},
+    "CONFIG_BLK_DEV_SR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_SR_VENDOR": {},
+    "CONFIG_BLK_DEV_SX8": {},
+    "CONFIG_BLK_DEV_THROTTLING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_DEV_THROTTLING_LOW": {},
+    "CONFIG_BLK_DEV_UMEM": {},
+    "CONFIG_BLK_DEV_ZONED": {},
+    "CONFIG_BLK_MQ_PCI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_MQ_VIRTIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_SCSI_REQUEST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLK_SED_OPAL": {},
+    "CONFIG_BLK_WBT": {},
+    "CONFIG_BLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BLOCK_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BONDING": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BOOTPARAM_HOTPLUG_CPU0": {},
+    "CONFIG_BOOT_PRINTK_DELAY": {},
+    "CONFIG_BPF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BPF_JIT": {},
+    "CONFIG_BPF_STREAM_PARSER": {},
+    "CONFIG_BPF_SYSCALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BQL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BRIDGE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BRIDGE_IGMP_SNOOPING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BRIDGE_NETFILTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BRIDGE_NF_EBTABLES": {},
+    "CONFIG_BSD_PROCESS_ACCT": {},
+    "CONFIG_BT": {},
+    "CONFIG_BTRFS_ASSERT": {},
+    "CONFIG_BTRFS_DEBUG": {},
+    "CONFIG_BTRFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BTRFS_FS_CHECK_INTEGRITY": {},
+    "CONFIG_BTRFS_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BTRFS_FS_REF_VERIFY": {},
+    "CONFIG_BTRFS_FS_RUN_SANITY_TESTS": {},
+    "CONFIG_BUG": {},
+    "CONFIG_BUG_ON_DATA_CORRUPTION": {},
+    "CONFIG_BUILDTIME_EXTABLE_SORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_BUILD_BIN2C": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_C2PORT": {},
+    "CONFIG_CAIF": {},
+    "CONFIG_CALGARY_IOMMU": {},
+    "CONFIG_CAN": {},
+    "CONFIG_CB710_CORE": {},
+    "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CC_OPTIMIZE_FOR_SIZE": {},
+    "CONFIG_CC_STACKPROTECTOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CC_STACKPROTECTOR_NONE": {},
+    "CONFIG_CC_STACKPROTECTOR_REGULAR": {},
+    "CONFIG_CC_STACKPROTECTOR_STRONG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CDROM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CDROM_PKTCDVD": {},
+    "CONFIG_CEPH_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CEPH_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CEPH_LIB": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CEPH_LIB_PRETTYDEBUG": {},
+    "CONFIG_CEPH_LIB_USE_DNS_RESOLVER": {},
+    "CONFIG_CFQ_GROUP_IOSCHED": {},
+    "CONFIG_CFS_BANDWIDTH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUPS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_BPF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_CPUACCT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_DEBUG": {},
+    "CONFIG_CGROUP_DEVICE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_FREEZER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_HUGETLB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_NET_CLASSID": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_NET_PRIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_PERF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_PIDS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_RDMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_SCHED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CGROUP_WRITEBACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CHARGER_MAX8903": {},
+    "CONFIG_CHASH": {},
+    "CONFIG_CHECKPOINT_RESTORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CHROME_PLATFORMS": {},
+    "CONFIG_CHR_DEV_OSST": {},
+    "CONFIG_CHR_DEV_SCH": {},
+    "CONFIG_CHR_DEV_SG": {},
+    "CONFIG_CHR_DEV_ST": {},
+    "CONFIG_CIFS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CIFS_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CIFS_DEBUG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CIFS_DEBUG2": {},
+    "CONFIG_CIFS_DEBUG_DUMP_KEYS": {},
+    "CONFIG_CIFS_DFS_UPCALL": {},
+    "CONFIG_CIFS_POSIX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CIFS_SMB311": {},
+    "CONFIG_CIFS_STATS": {},
+    "CONFIG_CIFS_UPCALL": {},
+    "CONFIG_CIFS_WEAK_PW_HASH": {},
+    "CONFIG_CIFS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLEANCACHE": {},
+    "CONFIG_CLKBLD_I8253": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLKDEV_LOOKUP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLKEVT_I8253": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLOCKSOURCE_VALIDATE_LAST_CYCLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLOCKSOURCE_WATCHDOG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CLZ_TAB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CMA": {},
+    "CONFIG_CMDLINE_BOOL": {},
+    "CONFIG_CODA_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMMON_CLK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMMON_CLK_NXP": {},
+    "CONFIG_COMMON_CLK_PIC32": {},
+    "CONFIG_COMMON_CLK_PXA": {},
+    "CONFIG_COMPACTION": {},
+    "CONFIG_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMPAT_32": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMPAT_BINFMT_ELF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMPAT_BRK": {},
+    "CONFIG_COMPAT_FOR_U64_ALIGNMENT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMPAT_OLD_SIGACTION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_COMPAT_VDSO": {},
+    "CONFIG_COMPILE_TEST": {},
+    "CONFIG_CONFIGFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CONNECTOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CONSOLE_LOGLEVEL_DEFAULT": {
+      "other": [
+        [
+          0,
+          "7"
+        ],
+        [
+          1,
+          "7"
+        ],
+        [
+          2,
+          "7"
+        ]
+      ]
+    },
+    "CONFIG_CORDIC": {},
+    "CONFIG_COREDUMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPA_DEBUG": {},
+    "CONFIG_CPUSETS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_FREQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE": {},
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND": {},
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE": {},
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL": {},
+    "CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE": {},
+    "CONFIG_CPU_FREQ_GOV_CONSERVATIVE": {},
+    "CONFIG_CPU_FREQ_GOV_ONDEMAND": {},
+    "CONFIG_CPU_FREQ_GOV_PERFORMANCE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_FREQ_GOV_POWERSAVE": {},
+    "CONFIG_CPU_FREQ_GOV_SCHEDUTIL": {},
+    "CONFIG_CPU_FREQ_GOV_USERSPACE": {},
+    "CONFIG_CPU_FREQ_STAT": {},
+    "CONFIG_CPU_HOTPLUG_STATE_CONTROL": {},
+    "CONFIG_CPU_IDLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_IDLE_GOV_LADDER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_IDLE_GOV_MENU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_ISOLATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_NO_EFFICIENT_FFS": {},
+    "CONFIG_CPU_RMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_SUP_AMD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_SUP_CENTAUR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CPU_SUP_INTEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRAMFS": {},
+    "CONFIG_CRASH_DUMP": {},
+    "CONFIG_CRC16": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRC32": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRC32_BIT": {},
+    "CONFIG_CRC32_SARWATE": {},
+    "CONFIG_CRC32_SELFTEST": {},
+    "CONFIG_CRC32_SLICEBY4": {},
+    "CONFIG_CRC32_SLICEBY8": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRC4": {},
+    "CONFIG_CRC7": {},
+    "CONFIG_CRC8": {},
+    "CONFIG_CRC_CCITT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRC_ITU_T": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRC_T10DIF": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CROSS_COMPILE": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_CROSS_MEMORY_ATTACH": {},
+    "CONFIG_CRYPTO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_842": {},
+    "CONFIG_CRYPTO_ACOMP2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AEAD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AEAD2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AES_NI_INTEL": {},
+    "CONFIG_CRYPTO_AES_TI": {},
+    "CONFIG_CRYPTO_AES_X86_64": {},
+    "CONFIG_CRYPTO_AKCIPHER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AKCIPHER2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_ALGAPI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_ALGAPI2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_ANSI_CPRNG": {},
+    "CONFIG_CRYPTO_ANUBIS": {},
+    "CONFIG_CRYPTO_ARC4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_AUTHENC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_BLKCIPHER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_BLKCIPHER2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_BLOWFISH": {},
+    "CONFIG_CRYPTO_BLOWFISH_X86_64": {},
+    "CONFIG_CRYPTO_CAMELLIA": {},
+    "CONFIG_CRYPTO_CAMELLIA_AESNI_AVX2_X86_64": {},
+    "CONFIG_CRYPTO_CAMELLIA_AESNI_AVX_X86_64": {},
+    "CONFIG_CRYPTO_CAMELLIA_X86_64": {},
+    "CONFIG_CRYPTO_CAST5": {},
+    "CONFIG_CRYPTO_CAST5_AVX_X86_64": {},
+    "CONFIG_CRYPTO_CAST6": {},
+    "CONFIG_CRYPTO_CAST6_AVX_X86_64": {},
+    "CONFIG_CRYPTO_CBC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CCM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CHACHA20": {},
+    "CONFIG_CRYPTO_CHACHA20POLY1305": {},
+    "CONFIG_CRYPTO_CHACHA20_X86_64": {},
+    "CONFIG_CRYPTO_CMAC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CRC32": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CRC32C": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CRC32C_INTEL": {},
+    "CONFIG_CRYPTO_CRC32_PCLMUL": {},
+    "CONFIG_CRYPTO_CRCT10DIF": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CRCT10DIF_PCLMUL": {},
+    "CONFIG_CRYPTO_CRYPTD": {},
+    "CONFIG_CRYPTO_CTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_CTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_DEFLATE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_DES": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_DES3_EDE_X86_64": {},
+    "CONFIG_CRYPTO_DH": {},
+    "CONFIG_CRYPTO_DRBG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_DRBG_CTR": {},
+    "CONFIG_CRYPTO_DRBG_HASH": {},
+    "CONFIG_CRYPTO_DRBG_HMAC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_DRBG_MENU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_ECB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_ECDH": {},
+    "CONFIG_CRYPTO_ECHAINIV": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_FCRYPT": {},
+    "CONFIG_CRYPTO_GCM": {},
+    "CONFIG_CRYPTO_GF128MUL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_GHASH": {},
+    "CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL": {},
+    "CONFIG_CRYPTO_HASH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_HASH2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_HASH_INFO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_HMAC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_HW": {},
+    "CONFIG_CRYPTO_JITTERENTROPY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_KEYWRAP": {},
+    "CONFIG_CRYPTO_KHAZAD": {},
+    "CONFIG_CRYPTO_KPP2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_LRW": {},
+    "CONFIG_CRYPTO_LZ4": {},
+    "CONFIG_CRYPTO_LZ4HC": {},
+    "CONFIG_CRYPTO_LZO": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MANAGER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MANAGER2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MANAGER_DISABLE_TESTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MCRYPTD": {},
+    "CONFIG_CRYPTO_MD4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MD5": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_MICHAEL_MIC": {},
+    "CONFIG_CRYPTO_NULL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_NULL2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_PCBC": {},
+    "CONFIG_CRYPTO_PCRYPT": {},
+    "CONFIG_CRYPTO_POLY1305": {},
+    "CONFIG_CRYPTO_POLY1305_X86_64": {},
+    "CONFIG_CRYPTO_RMD128": {},
+    "CONFIG_CRYPTO_RMD160": {},
+    "CONFIG_CRYPTO_RMD256": {},
+    "CONFIG_CRYPTO_RMD320": {},
+    "CONFIG_CRYPTO_RNG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_RNG2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_RNG_DEFAULT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_RSA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_SALSA20": {},
+    "CONFIG_CRYPTO_SALSA20_X86_64": {},
+    "CONFIG_CRYPTO_SEED": {},
+    "CONFIG_CRYPTO_SEQIV": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_SERPENT": {},
+    "CONFIG_CRYPTO_SERPENT_AVX2_X86_64": {},
+    "CONFIG_CRYPTO_SERPENT_AVX_X86_64": {},
+    "CONFIG_CRYPTO_SERPENT_SSE2_X86_64": {},
+    "CONFIG_CRYPTO_SHA1": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_SHA1_MB": {},
+    "CONFIG_CRYPTO_SHA1_SSSE3": {},
+    "CONFIG_CRYPTO_SHA256": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_SHA256_MB": {},
+    "CONFIG_CRYPTO_SHA256_SSSE3": {},
+    "CONFIG_CRYPTO_SHA3": {},
+    "CONFIG_CRYPTO_SHA512": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_SHA512_MB": {},
+    "CONFIG_CRYPTO_SHA512_SSSE3": {},
+    "CONFIG_CRYPTO_SM3": {},
+    "CONFIG_CRYPTO_TEA": {},
+    "CONFIG_CRYPTO_TEST": {},
+    "CONFIG_CRYPTO_TGR192": {},
+    "CONFIG_CRYPTO_TWOFISH": {},
+    "CONFIG_CRYPTO_TWOFISH_AVX_X86_64": {},
+    "CONFIG_CRYPTO_TWOFISH_X86_64": {},
+    "CONFIG_CRYPTO_TWOFISH_X86_64_3WAY": {},
+    "CONFIG_CRYPTO_USER": {},
+    "CONFIG_CRYPTO_USER_API_AEAD": {},
+    "CONFIG_CRYPTO_USER_API_HASH": {},
+    "CONFIG_CRYPTO_USER_API_RNG": {},
+    "CONFIG_CRYPTO_USER_API_SKCIPHER": {},
+    "CONFIG_CRYPTO_VMAC": {},
+    "CONFIG_CRYPTO_WORKQUEUE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CRYPTO_WP512": {},
+    "CONFIG_CRYPTO_XCBC": {},
+    "CONFIG_CRYPTO_XTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_CUSE": {},
+    "CONFIG_CXL_AFU_DRIVER_OPS": {},
+    "CONFIG_CXL_BASE": {},
+    "CONFIG_CXL_LIB": {},
+    "CONFIG_DAX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DCACHE_WORD_ACCESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DCB": {},
+    "CONFIG_DCDBAS": {},
+    "CONFIG_DDR": {},
+    "CONFIG_DEBUG_ATOMIC_SLEEP": {},
+    "CONFIG_DEBUG_BLK_CGROUP": {},
+    "CONFIG_DEBUG_BLOCK_EXT_DEVT": {},
+    "CONFIG_DEBUG_BOOT_PARAMS": {},
+    "CONFIG_DEBUG_CREDENTIALS": {},
+    "CONFIG_DEBUG_DEVRES": {},
+    "CONFIG_DEBUG_DRIVER": {},
+    "CONFIG_DEBUG_ENTRY": {},
+    "CONFIG_DEBUG_FORCE_WEAK_PER_CPU": {},
+    "CONFIG_DEBUG_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEBUG_HOTPLUG_CPU0": {},
+    "CONFIG_DEBUG_INFO": {},
+    "CONFIG_DEBUG_KERNEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEBUG_KMEMLEAK": {},
+    "CONFIG_DEBUG_KOBJECT": {},
+    "CONFIG_DEBUG_LIST": {},
+    "CONFIG_DEBUG_LOCKING_API_SELFTESTS": {},
+    "CONFIG_DEBUG_LOCK_ALLOC": {},
+    "CONFIG_DEBUG_MEMORY_INIT": {},
+    "CONFIG_DEBUG_MUTEXES": {},
+    "CONFIG_DEBUG_NMI_SELFTEST": {},
+    "CONFIG_DEBUG_NOTIFIERS": {},
+    "CONFIG_DEBUG_OBJECTS": {},
+    "CONFIG_DEBUG_PAGEALLOC": {},
+    "CONFIG_DEBUG_PERF_USE_VMALLOC": {},
+    "CONFIG_DEBUG_PER_CPU_MAPS": {},
+    "CONFIG_DEBUG_PI_LIST": {},
+    "CONFIG_DEBUG_RODATA_TEST": {},
+    "CONFIG_DEBUG_RT_MUTEXES": {},
+    "CONFIG_DEBUG_SECTION_MISMATCH": {},
+    "CONFIG_DEBUG_SG": {},
+    "CONFIG_DEBUG_SHIRQ": {},
+    "CONFIG_DEBUG_SPINLOCK": {},
+    "CONFIG_DEBUG_STACKOVERFLOW": {},
+    "CONFIG_DEBUG_STACK_USAGE": {},
+    "CONFIG_DEBUG_TEST_DRIVER_REMOVE": {},
+    "CONFIG_DEBUG_TIMEKEEPING": {},
+    "CONFIG_DEBUG_TLBFLUSH": {},
+    "CONFIG_DEBUG_VIRTUAL": {},
+    "CONFIG_DEBUG_VM": {},
+    "CONFIG_DEBUG_WQ_FORCE_RR_CPU": {},
+    "CONFIG_DEBUG_WW_MUTEX_SLOWPATH": {},
+    "CONFIG_DEBUG_WX": {},
+    "CONFIG_DECNET": {},
+    "CONFIG_DECOMPRESS_BZIP2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DECOMPRESS_GZIP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DECOMPRESS_LZ4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DECOMPRESS_LZMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DECOMPRESS_LZO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DECOMPRESS_XZ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEFAULT_CFQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEFAULT_DEADLINE": {},
+    "CONFIG_DEFAULT_HOSTNAME": {
+      "other": [
+        [
+          0,
+          "\"(none)\""
+        ],
+        [
+          1,
+          "\"(none)\""
+        ],
+        [
+          2,
+          "\"(none)\""
+        ]
+      ]
+    },
+    "CONFIG_DEFAULT_IOSCHED": {
+      "other": [
+        [
+          0,
+          "\"cfq\""
+        ],
+        [
+          1,
+          "\"cfq\""
+        ],
+        [
+          2,
+          "\"cfq\""
+        ]
+      ]
+    },
+    "CONFIG_DEFAULT_IO_DELAY_TYPE": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_DEFAULT_MMAP_MIN_ADDR": {
+      "other": [
+        [
+          0,
+          "65536"
+        ],
+        [
+          1,
+          "65536"
+        ],
+        [
+          2,
+          "65536"
+        ]
+      ]
+    },
+    "CONFIG_DEFAULT_NOOP": {},
+    "CONFIG_DEFAULT_SECURITY": {
+      "other": [
+        [
+          0,
+          "\"apparmor\""
+        ],
+        [
+          1,
+          "\"apparmor\""
+        ],
+        [
+          2,
+          "\"apparmor\""
+        ]
+      ]
+    },
+    "CONFIG_DEFAULT_SECURITY_APPARMOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEFAULT_TCP_CONG": {
+      "other": [
+        [
+          0,
+          "\"cubic\""
+        ],
+        [
+          1,
+          "\"cubic\""
+        ],
+        [
+          2,
+          "\"cubic\""
+        ]
+      ]
+    },
+    "CONFIG_DEFCONFIG_LIST": {
+      "other": [
+        [
+          0,
+          "\"/lib/modules/$UNAME_RELEASE/.config\""
+        ],
+        [
+          1,
+          "\"/lib/modules/$UNAME_RELEASE/.config\""
+        ],
+        [
+          2,
+          "\"/lib/modules/$UNAME_RELEASE/.config\""
+        ]
+      ]
+    },
+    "CONFIG_DELL_RBU": {},
+    "CONFIG_DETECT_HUNG_TASK": {},
+    "CONFIG_DEVKMEM": {},
+    "CONFIG_DEVMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEVPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEVTMPFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DEVTMPFS_MOUNT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DLM": {},
+    "CONFIG_DMADEVICES": {},
+    "CONFIG_DMA_API_DEBUG": {},
+    "CONFIG_DMA_NOOP_OPS": {},
+    "CONFIG_DMA_SHARED_BUFFER": {},
+    "CONFIG_DMA_VIRT_OPS": {},
+    "CONFIG_DMI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DMIID": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DMI_SCAN_MACHINE_NON_EFI_FALLBACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DMI_SYSFS": {},
+    "CONFIG_DM_CACHE": {},
+    "CONFIG_DM_CRYPT": {},
+    "CONFIG_DM_DEBUG": {},
+    "CONFIG_DM_DELAY": {},
+    "CONFIG_DM_ERA": {},
+    "CONFIG_DM_FLAKEY": {},
+    "CONFIG_DM_INTEGRITY": {},
+    "CONFIG_DM_LOG_WRITES": {},
+    "CONFIG_DM_MIRROR": {},
+    "CONFIG_DM_MQ_DEFAULT": {},
+    "CONFIG_DM_MULTIPATH": {},
+    "CONFIG_DM_RAID": {},
+    "CONFIG_DM_SNAPSHOT": {},
+    "CONFIG_DM_SWITCH": {},
+    "CONFIG_DM_THIN_PROVISIONING": {},
+    "CONFIG_DM_UEVENT": {},
+    "CONFIG_DM_VERITY": {},
+    "CONFIG_DM_ZERO": {},
+    "CONFIG_DNOTIFY": {},
+    "CONFIG_DNS_RESOLVER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DOUBLEFAULT": {},
+    "CONFIG_DPTF_POWER": {},
+    "CONFIG_DQL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DRM": {},
+    "CONFIG_DRM_LIB_RANDOM": {},
+    "CONFIG_DST_CACHE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_DUMMY": {},
+    "CONFIG_DUMMY_IRQ": {},
+    "CONFIG_DYNAMIC_DEBUG": {},
+    "CONFIG_EARLY_PRINTK": {},
+    "CONFIG_ECHO": {},
+    "CONFIG_ECRYPT_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ECRYPT_FS_MESSAGING": {},
+    "CONFIG_EDAC": {},
+    "CONFIG_EDAC_ATOMIC_SCRUB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EDAC_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EDD": {},
+    "CONFIG_EEPROM_93CX6": {},
+    "CONFIG_EFI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFIVAR_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFI_BOOTLOADER_CONTROL": {},
+    "CONFIG_EFI_CAPSULE_LOADER": {},
+    "CONFIG_EFI_DEV_PATH_PARSER": {},
+    "CONFIG_EFI_ESRT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFI_FAKE_MEMMAP": {},
+    "CONFIG_EFI_PARTITION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFI_PGT_DUMP": {},
+    "CONFIG_EFI_RUNTIME_WRAPPERS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFI_SIGNATURE_LIST_PARSER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFI_STUB": {},
+    "CONFIG_EFI_TEST": {},
+    "CONFIG_EFI_VARS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ELFCORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ELF_CORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EMBEDDED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EM_TIMER_STI": {},
+    "CONFIG_ENABLE_MUST_CHECK": {},
+    "CONFIG_ENABLE_WARN_DEPRECATED": {},
+    "CONFIG_ENCLOSURE_SERVICES": {},
+    "CONFIG_ENCRYPTED_KEYS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EPOLL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EQUALIZER": {},
+    "CONFIG_ETHERNET": {},
+    "CONFIG_EVENTFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EVM": {},
+    "CONFIG_EXOFS_DEBUG": {},
+    "CONFIG_EXOFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXPERT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXPORTFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXPORTFS_BLOCK_OPS": {},
+    "CONFIG_EXT2_FS": {},
+    "CONFIG_EXT3_FS": {},
+    "CONFIG_EXT4_DEBUG": {},
+    "CONFIG_EXT4_ENCRYPTION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXT4_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXT4_FS_ENCRYPTION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXT4_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXT4_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXT4_USE_FOR_EXT2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_EXTCON": {},
+    "CONFIG_F2FS_CHECK_FS": {},
+    "CONFIG_F2FS_FAULT_INJECTION": {},
+    "CONFIG_F2FS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_F2FS_FS_ENCRYPTION": {},
+    "CONFIG_F2FS_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_F2FS_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_F2FS_FS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_F2FS_STAT_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FAIR_GROUP_SCHED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FANOTIFY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FANOTIFY_ACCESS_PERMISSIONS": {},
+    "CONFIG_FAT_DEFAULT_CODEPAGE": {
+      "other": [
+        [
+          0,
+          "437"
+        ],
+        [
+          1,
+          "437"
+        ],
+        [
+          2,
+          "437"
+        ]
+      ]
+    },
+    "CONFIG_FAT_DEFAULT_IOCHARSET": {
+      "other": [
+        [
+          0,
+          "\"iso8859-1\""
+        ],
+        [
+          1,
+          "\"iso8859-1\""
+        ],
+        [
+          2,
+          "\"iso8859-1\""
+        ]
+      ]
+    },
+    "CONFIG_FAT_DEFAULT_UTF8": {},
+    "CONFIG_FAT_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FAULT_INJECTION": {},
+    "CONFIG_FB": {},
+    "CONFIG_FDDI": {},
+    "CONFIG_FHANDLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FIB_RULES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FILE_LOCKING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FIREWIRE": {},
+    "CONFIG_FIREWIRE_NOSY": {},
+    "CONFIG_FIRMWARE_MEMMAP": {},
+    "CONFIG_FIX_EARLYCON_MEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FMC": {},
+    "CONFIG_FORTIFY_SOURCE": {},
+    "CONFIG_FPGA": {},
+    "CONFIG_FRAME_POINTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FRAME_WARN": {
+      "other": [
+        [
+          0,
+          "2048"
+        ],
+        [
+          1,
+          "2048"
+        ],
+        [
+          2,
+          "2048"
+        ]
+      ]
+    },
+    "CONFIG_FREEZER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FRONTSWAP": {},
+    "CONFIG_FSCACHE": {},
+    "CONFIG_FSI": {},
+    "CONFIG_FSNOTIFY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FS_DAX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FS_ENCRYPTION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FS_IOMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FS_MBCACHE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FTL": {},
+    "CONFIG_FTRACE": {},
+    "CONFIG_FUJITSU_ES": {},
+    "CONFIG_FUSE_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FUSION": {},
+    "CONFIG_FUTEX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FUTEX_PI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_FW_CFG_SYSFS": {},
+    "CONFIG_FW_LOADER": {},
+    "CONFIG_GAMEPORT": {},
+    "CONFIG_GART_IOMMU": {},
+    "CONFIG_GCC_PLUGINS": {},
+    "CONFIG_GCOV_KERNEL": {},
+    "CONFIG_GENERIC_CALIBRATE_DELAY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CLOCKEVENTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CLOCKEVENTS_BROADCAST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CMOS_UPDATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CPU": {},
+    "CONFIG_GENERIC_CPU_AUTOPROBE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_CPU_DEVICES": {},
+    "CONFIG_GENERIC_CPU_VULNERABILITIES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_EARLY_IOREMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_FIND_FIRST_BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_HWEIGHT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IOMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_DEBUGFS": {},
+    "CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_MATRIX_ALLOCATOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_MIGRATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_PROBE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_RESERVATION_MODE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_IRQ_SHOW": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_NET_UTILS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_PCI_IOMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_PENDING_IRQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_PHY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_SMP_IDLE_THREAD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_STRNCPY_FROM_USER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_STRNLEN_USER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENERIC_TIME_VSYSCALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GENWQE": {},
+    "CONFIG_GFS2_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GLOB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GLOB_SELFTEST": {},
+    "CONFIG_GOLDFISH": {},
+    "CONFIG_GOOGLE_FIRMWARE": {},
+    "CONFIG_GPIOLIB": {},
+    "CONFIG_GRACE_PERIOD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GRO_CELLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_GUP_BENCHMARK": {},
+    "CONFIG_HAMRADIO": {},
+    "CONFIG_HANGCHECK_TIMER": {},
+    "CONFIG_HARDENED_USERCOPY": {},
+    "CONFIG_HARDLOCKUP_CHECK_TIMESTAMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HARDLOCKUP_DETECTOR": {},
+    "CONFIG_HAS_DMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAS_IOMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAS_IOPORT_MAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_64BIT_ALIGNED_ACCESS": {},
+    "CONFIG_HAVE_ACPI_APEI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ACPI_APEI_NMI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ALIGNED_STRUCT_PAGE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_AOUT": {},
+    "CONFIG_HAVE_ARCH_AUDITSYSCALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_BITREVERSE": {},
+    "CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_HASH": {},
+    "CONFIG_HAVE_ARCH_HUGE_VMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_JUMP_LABEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_KASAN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_KGDB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_MMAP_RND_BITS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_SECCOMP_FILTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_SOFT_DIRTY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_TRACEHOOK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_VMAP_STACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_ARCH_WITHIN_STACK_FRAMES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_BOOTMEM_INFO_NODE": {},
+    "CONFIG_HAVE_CC_STACKPROTECTOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_CLK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_CLK_PREPARE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_CMPXCHG_DOUBLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_CMPXCHG_LOCAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_CONTEXT_TRACKING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_COPY_THREAD_TLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_C_RECORDMCOUNT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DEBUG_KMEMLEAK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DEBUG_STACKOVERFLOW": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DMA_API_DEBUG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DMA_CONTIGUOUS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DYNAMIC_FTRACE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_DYNAMIC_FTRACE_WITH_REGS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_EBPF_JIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_EXIT_THREAD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_FENTRY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_FTRACE_MCOUNT_RECORD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_FUNCTION_GRAPH_TRACER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_FUNCTION_TRACER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_GCC_PLUGINS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_GENERIC_DMA_COHERENT": {},
+    "CONFIG_HAVE_GENERIC_GUP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_HARDENED_USERCOPY_ALLOCATOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_HARDLOCKUP_DETECTOR_PERF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_HW_BREAKPOINT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_IDE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_IOREMAP_PROT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_IRQ_EXIT_ON_IRQ_STACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_IRQ_TIME_ACCOUNTING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_BZIP2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_GZIP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_LZ4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_LZMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_LZO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KERNEL_XZ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KPROBES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KPROBES_ON_FTRACE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KRETPROBES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_CPU_RELAX_INTERCEPT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_EVENTFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_IRQCHIP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_IRQFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_IRQ_BYPASS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_IRQ_ROUTING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_KVM_MSI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_LIVEPATCH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MEMBLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MEMBLOCK_NODE_MAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MEMORY_PRESENT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MIXED_BREAKPOINTS_REGS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MMIOTRACE_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_MOD_ARCH_SPECIFIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_NET_DSA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_NMI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_OPROFILE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_OPTPROBES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_PCSPKR_PLATFORM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_PERF_EVENTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_PERF_EVENTS_NMI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_PERF_REGS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_PERF_USER_STACK_DUMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_RCU_TABLE_FREE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_REGS_AND_STACK_ACCESS_API": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_RELIABLE_STACKTRACE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_SETUP_PER_CPU_AREA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_STACK_VALIDATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_SYSCALL_TRACEPOINTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_UID16": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_UNSTABLE_SCHED_CLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_USER_RETURN_NOTIFIER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HAVE_VIRT_CPU_ACCOUNTING_GEN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HEADERS_CHECK": {},
+    "CONFIG_HFSPLUS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HFSPLUS_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HIBERNATION": {},
+    "CONFIG_HID": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HIDRAW": {},
+    "CONFIG_HID_A4TECH": {},
+    "CONFIG_HID_ACRUX": {},
+    "CONFIG_HID_ALPS": {},
+    "CONFIG_HID_APPLE": {},
+    "CONFIG_HID_AUREAL": {},
+    "CONFIG_HID_BATTERY_STRENGTH": {},
+    "CONFIG_HID_BELKIN": {},
+    "CONFIG_HID_CHERRY": {},
+    "CONFIG_HID_CHICONY": {},
+    "CONFIG_HID_CMEDIA": {},
+    "CONFIG_HID_CYPRESS": {},
+    "CONFIG_HID_DRAGONRISE": {},
+    "CONFIG_HID_ELECOM": {},
+    "CONFIG_HID_EMS_FF": {},
+    "CONFIG_HID_EZKEY": {},
+    "CONFIG_HID_GEMBIRD": {},
+    "CONFIG_HID_GENERIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HID_GFRM": {},
+    "CONFIG_HID_GREENASIA": {},
+    "CONFIG_HID_GYRATION": {},
+    "CONFIG_HID_ICADE": {},
+    "CONFIG_HID_ITE": {},
+    "CONFIG_HID_KENSINGTON": {},
+    "CONFIG_HID_KEYTOUCH": {},
+    "CONFIG_HID_KYE": {},
+    "CONFIG_HID_LCPOWER": {},
+    "CONFIG_HID_LENOVO": {},
+    "CONFIG_HID_LOGITECH": {},
+    "CONFIG_HID_MAGICMOUSE": {},
+    "CONFIG_HID_MAYFLASH": {},
+    "CONFIG_HID_MICROSOFT": {},
+    "CONFIG_HID_MONTEREY": {},
+    "CONFIG_HID_MULTITOUCH": {},
+    "CONFIG_HID_NTI": {},
+    "CONFIG_HID_ORTEK": {},
+    "CONFIG_HID_PANTHERLORD": {},
+    "CONFIG_HID_PETALYNX": {},
+    "CONFIG_HID_PICOLCD": {},
+    "CONFIG_HID_PLANTRONICS": {},
+    "CONFIG_HID_PRIMAX": {},
+    "CONFIG_HID_RMI": {},
+    "CONFIG_HID_SAITEK": {},
+    "CONFIG_HID_SAMSUNG": {},
+    "CONFIG_HID_SENSOR_HUB": {},
+    "CONFIG_HID_SMARTJOYPLUS": {},
+    "CONFIG_HID_SPEEDLINK": {},
+    "CONFIG_HID_STEELSERIES": {},
+    "CONFIG_HID_SUNPLUS": {},
+    "CONFIG_HID_THRUSTMASTER": {},
+    "CONFIG_HID_TIVO": {},
+    "CONFIG_HID_TOPSEED": {},
+    "CONFIG_HID_TWINHAN": {},
+    "CONFIG_HID_UDRAW_PS3": {},
+    "CONFIG_HID_WALTOP": {},
+    "CONFIG_HID_XINMO": {},
+    "CONFIG_HID_ZEROPLUS": {},
+    "CONFIG_HID_ZYDACRON": {},
+    "CONFIG_HIGH_RES_TIMERS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HIO": {},
+    "CONFIG_HIPPI": {},
+    "CONFIG_HOTPLUG_CPU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HOTPLUG_PCI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HOTPLUG_PCI_ACPI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HOTPLUG_PCI_ACPI_IBM": {},
+    "CONFIG_HOTPLUG_PCI_CPCI": {},
+    "CONFIG_HOTPLUG_PCI_PCIE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HOTPLUG_PCI_SHPC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HPET": {},
+    "CONFIG_HPET_TIMER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HPFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HP_ILO": {},
+    "CONFIG_HSI": {},
+    "CONFIG_HSR": {},
+    "CONFIG_HTC_PASIC3": {},
+    "CONFIG_HUGETLBFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HUGETLB_PAGE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HVC_DRIVER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HWMON": {},
+    "CONFIG_HWSPINLOCK": {},
+    "CONFIG_HW_RANDOM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HW_RANDOM_AMD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HW_RANDOM_INTEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HW_RANDOM_TIMERIOMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HW_RANDOM_VIA": {},
+    "CONFIG_HW_RANDOM_VIRTIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HYPERV": {},
+    "CONFIG_HYPERVISOR_GUEST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HYPERV_TSCPAGE": {},
+    "CONFIG_HZ": {
+      "other": [
+        [
+          0,
+          "250"
+        ],
+        [
+          1,
+          "250"
+        ],
+        [
+          2,
+          "250"
+        ]
+      ]
+    },
+    "CONFIG_HZ_100": {},
+    "CONFIG_HZ_1000": {},
+    "CONFIG_HZ_250": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_HZ_300": {},
+    "CONFIG_HZ_PERIODIC": {},
+    "CONFIG_I2C": {},
+    "CONFIG_I8K": {},
+    "CONFIG_IA32_AOUT": {},
+    "CONFIG_IA32_EMULATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IBM_ASM": {},
+    "CONFIG_IDE": {},
+    "CONFIG_IDLE_PAGE_TRACKING": {},
+    "CONFIG_IEEE802154": {},
+    "CONFIG_IIO": {},
+    "CONFIG_IKCONFIG": {},
+    "CONFIG_ILLEGAL_POINTER_VALUE": {
+      "other": [
+        [
+          0,
+          "0xdead000000000000"
+        ],
+        [
+          1,
+          "0xdead000000000000"
+        ],
+        [
+          2,
+          "0xdead000000000000"
+        ]
+      ]
+    },
+    "CONFIG_IMA": {},
+    "CONFIG_INET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_AH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_ESP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_ESP_OFFLOAD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_IPCOMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_TUNNEL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_XFRM_MODE_BEET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION": {},
+    "CONFIG_INET6_XFRM_MODE_TRANSPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_XFRM_MODE_TUNNEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET6_XFRM_TUNNEL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_AH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_DIAG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_DIAG_DESTROY": {},
+    "CONFIG_INET_ESP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_ESP_OFFLOAD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_IPCOMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_RAW_DIAG": {},
+    "CONFIG_INET_TCP_DIAG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_TUNNEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_UDP_DIAG": {},
+    "CONFIG_INET_XFRM_MODE_BEET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_XFRM_MODE_TRANSPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_XFRM_MODE_TUNNEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INET_XFRM_TUNNEL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INFINIBAND": {},
+    "CONFIG_INFTL": {},
+    "CONFIG_INITRAMFS_SOURCE": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_INIT_ENV_ARG_LIMIT": {
+      "other": [
+        [
+          0,
+          "32"
+        ],
+        [
+          1,
+          "32"
+        ],
+        [
+          2,
+          "32"
+        ]
+      ]
+    },
+    "CONFIG_INLINE_READ_UNLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INLINE_READ_UNLOCK_IRQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INLINE_SPIN_UNLOCK_IRQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INLINE_WRITE_UNLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INLINE_WRITE_UNLOCK_IRQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INOTIFY_USER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INPUT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INPUT_EVBUG": {},
+    "CONFIG_INPUT_EVDEV": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INPUT_FF_MEMLESS": {},
+    "CONFIG_INPUT_JOYDEV": {},
+    "CONFIG_INPUT_JOYSTICK": {},
+    "CONFIG_INPUT_KEYBOARD": {},
+    "CONFIG_INPUT_MATRIXKMAP": {},
+    "CONFIG_INPUT_MISC": {},
+    "CONFIG_INPUT_MOUSE": {},
+    "CONFIG_INPUT_MOUSEDEV": {},
+    "CONFIG_INPUT_POLLDEV": {},
+    "CONFIG_INPUT_SPARSEKMAP": {},
+    "CONFIG_INPUT_TABLET": {},
+    "CONFIG_INPUT_TOUCHSCREEN": {},
+    "CONFIG_INSTRUCTION_DECODER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INT340X_THERMAL": {},
+    "CONFIG_INTEGRITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INTEGRITY_AUDIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INTEGRITY_SIGNATURE": {},
+    "CONFIG_INTEL_IDLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_INTEL_ISH_HID": {},
+    "CONFIG_INTEL_MEI": {},
+    "CONFIG_INTEL_MEI_ME": {},
+    "CONFIG_INTEL_MEI_TXE": {},
+    "CONFIG_INTEL_MIC_BUS": {},
+    "CONFIG_INTEL_PCH_THERMAL": {},
+    "CONFIG_INTEL_POWERCLAMP": {},
+    "CONFIG_INTEL_RDT": {},
+    "CONFIG_INTEL_SOC_DTS_THERMAL": {},
+    "CONFIG_INTEL_TH": {},
+    "CONFIG_INTERVAL_TREE_TEST": {},
+    "CONFIG_IOMMU_HELPER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IOMMU_STRESS": {},
+    "CONFIG_IOMMU_SUPPORT": {},
+    "CONFIG_IOSCHED_BFQ": {},
+    "CONFIG_IOSCHED_CFQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IOSCHED_DEADLINE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IOSCHED_NOOP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IOSF_MBI": {},
+    "CONFIG_IO_DELAY_0X80": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IO_DELAY_0XED": {},
+    "CONFIG_IO_DELAY_NONE": {},
+    "CONFIG_IO_DELAY_TYPE_0X80": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_IO_DELAY_TYPE_0XED": {
+      "other": [
+        [
+          0,
+          "1"
+        ],
+        [
+          1,
+          "1"
+        ],
+        [
+          2,
+          "1"
+        ]
+      ]
+    },
+    "CONFIG_IO_DELAY_TYPE_NONE": {
+      "other": [
+        [
+          0,
+          "3"
+        ],
+        [
+          1,
+          "3"
+        ],
+        [
+          2,
+          "3"
+        ]
+      ]
+    },
+    "CONFIG_IO_DELAY_TYPE_UDELAY": {
+      "other": [
+        [
+          0,
+          "2"
+        ],
+        [
+          1,
+          "2"
+        ],
+        [
+          2,
+          "2"
+        ]
+      ]
+    },
+    "CONFIG_IO_DELAY_UDELAY": {},
+    "CONFIG_IO_STRICT_DEVMEM": {},
+    "CONFIG_IP6_NF_FILTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_IPTABLES": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MANGLE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_AH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_EUI64": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_FRAG": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_HL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_IPV6HEADER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_MH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_OPTS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_RPFILTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_MATCH_RT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_NAT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_RAW": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_SECURITY": {},
+    "CONFIG_IP6_NF_TARGET_HL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_TARGET_MASQUERADE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_TARGET_NPT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_TARGET_REJECT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP6_NF_TARGET_SYNPROXY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPACK_BUS": {},
+    "CONFIG_IPC_NS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPMI_HANDLER": {},
+    "CONFIG_IPV6": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPV6_FOU": {},
+    "CONFIG_IPV6_FOU_TUNNEL": {},
+    "CONFIG_IPV6_ILA": {},
+    "CONFIG_IPV6_MIP6": {},
+    "CONFIG_IPV6_MROUTE": {},
+    "CONFIG_IPV6_MULTIPLE_TABLES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPV6_NDISC_NODETYPE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPV6_OPTIMISTIC_DAD": {},
+    "CONFIG_IPV6_ROUTER_PREF": {},
+    "CONFIG_IPV6_SEG6_HMAC": {},
+    "CONFIG_IPV6_SEG6_LWTUNNEL": {},
+    "CONFIG_IPV6_SIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPV6_SIT_6RD": {},
+    "CONFIG_IPV6_SUBTREES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IPV6_TUNNEL": {},
+    "CONFIG_IPV6_VTI": {},
+    "CONFIG_IPX": {},
+    "CONFIG_IP_ADVANCED_ROUTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_DCCP": {},
+    "CONFIG_IP_FIB_TRIE_STATS": {},
+    "CONFIG_IP_MULTICAST": {},
+    "CONFIG_IP_MULTIPLE_TABLES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_ARPTABLES": {},
+    "CONFIG_IP_NF_FILTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_IPTABLES": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_MANGLE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_MATCH_AH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_MATCH_ECN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_MATCH_RPFILTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_MATCH_TTL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_NAT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_RAW": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_SECURITY": {},
+    "CONFIG_IP_NF_TARGET_CLUSTERIP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_ECN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_MASQUERADE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_NETMAP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_REDIRECT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_REJECT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_SYNPROXY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_NF_TARGET_TTL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_PNP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_PNP_BOOTP": {},
+    "CONFIG_IP_PNP_DHCP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_PNP_RARP": {},
+    "CONFIG_IP_ROUTE_CLASSID": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IP_ROUTE_MULTIPATH": {},
+    "CONFIG_IP_ROUTE_VERBOSE": {},
+    "CONFIG_IP_SCTP": {},
+    "CONFIG_IP_SET": {},
+    "CONFIG_IP_VS": {},
+    "CONFIG_IRQ_BYPASS_MANAGER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IRQ_DOMAIN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IRQ_DOMAIN_DEBUG": {},
+    "CONFIG_IRQ_DOMAIN_HIERARCHY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IRQ_FORCED_THREADING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_IRQ_FORCED_THREADING_DEFAULT": {},
+    "CONFIG_IRQ_POLL": {},
+    "CONFIG_IRQ_TIME_ACCOUNTING": {},
+    "CONFIG_IRQ_WORK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ISA_BUS": {},
+    "CONFIG_ISA_BUS_API": {},
+    "CONFIG_ISA_DMA_API": {},
+    "CONFIG_ISCSI_BOOT_SYSFS": {},
+    "CONFIG_ISCSI_IBFT_FIND": {},
+    "CONFIG_ISCSI_TARGET": {},
+    "CONFIG_ISCSI_TCP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ISDN": {},
+    "CONFIG_ISO9660_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JBD2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JBD2_DEBUG": {},
+    "CONFIG_JFFS2_COMPRESSION_OPTIONS": {},
+    "CONFIG_JFFS2_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_FS_DEBUG": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_JFFS2_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_FS_WBUF_VERIFY": {},
+    "CONFIG_JFFS2_FS_WRITEBUFFER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_FS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_LZO": {},
+    "CONFIG_JFFS2_RTIME": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFFS2_RUBIN": {},
+    "CONFIG_JFFS2_SUMMARY": {},
+    "CONFIG_JFFS2_ZLIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFS_DEBUG": {},
+    "CONFIG_JFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JFS_STATISTICS": {},
+    "CONFIG_JOLIET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_JUMP_LABEL": {},
+    "CONFIG_KALLSYMS": {},
+    "CONFIG_KASAN": {},
+    "CONFIG_KCOV": {},
+    "CONFIG_KERNEL_BZIP2": {},
+    "CONFIG_KERNEL_GZIP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KERNEL_LZ4": {},
+    "CONFIG_KERNEL_LZMA": {},
+    "CONFIG_KERNEL_LZO": {},
+    "CONFIG_KERNEL_XZ": {},
+    "CONFIG_KERNFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KEXEC": {},
+    "CONFIG_KEXEC_FILE": {},
+    "CONFIG_KEYS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KEYS_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KEY_DH_OPERATIONS": {},
+    "CONFIG_KGDB": {},
+    "CONFIG_KPROBES": {},
+    "CONFIG_KSM": {},
+    "CONFIG_KVM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_AMD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_ASYNC_PF": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_DEBUG_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_GENERIC_DIRTYLOG_READ_PROTECT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_GUEST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_INTEL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_MMIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_KVM_VFIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_L2TP": {},
+    "CONFIG_LAPB": {},
+    "CONFIG_LATENCYTOP": {},
+    "CONFIG_LEGACY_PTYS": {},
+    "CONFIG_LEGACY_VSYSCALL_EMULATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LEGACY_VSYSCALL_NATIVE": {},
+    "CONFIG_LEGACY_VSYSCALL_NONE": {},
+    "CONFIG_LIBCRC32C": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LIBNVDIMM": {},
+    "CONFIG_LKDTM": {},
+    "CONFIG_LLC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LLC2": {},
+    "CONFIG_LOCALVERSION": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_LOCALVERSION_AUTO": {},
+    "CONFIG_LOCKD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LOCKDEP_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LOCKD_V4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LOCK_DOWN_IN_EFI_SECURE_BOOT": {},
+    "CONFIG_LOCK_DOWN_KERNEL": {},
+    "CONFIG_LOCK_SPIN_ON_OWNER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LOCK_STAT": {},
+    "CONFIG_LOCK_TORTURE_TEST": {},
+    "CONFIG_LOG_BUF_SHIFT": {
+      "other": [
+        [
+          0,
+          "17"
+        ],
+        [
+          1,
+          "17"
+        ],
+        [
+          2,
+          "17"
+        ]
+      ]
+    },
+    "CONFIG_LOG_CPU_MAX_BUF_SHIFT": {
+      "other": [
+        [
+          0,
+          "12"
+        ],
+        [
+          1,
+          "12"
+        ],
+        [
+          2,
+          "12"
+        ]
+      ]
+    },
+    "CONFIG_LOOPBACK_TARGET": {},
+    "CONFIG_LPC_ICH": {},
+    "CONFIG_LPC_SCH": {},
+    "CONFIG_LSM_MMAP_MIN_ADDR": {
+      "other": [
+        [
+          0,
+          "65536"
+        ],
+        [
+          1,
+          "65536"
+        ],
+        [
+          2,
+          "65536"
+        ]
+      ]
+    },
+    "CONFIG_LWTUNNEL": {},
+    "CONFIG_LZ4_DECOMPRESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LZO_COMPRESS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_LZO_DECOMPRESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MACINTOSH_DRIVERS": {},
+    "CONFIG_MACSEC": {},
+    "CONFIG_MACVLAN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MACVTAP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MAGIC_SYSRQ": {},
+    "CONFIG_MAILBOX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MANDATORY_FILE_LOCKING": {},
+    "CONFIG_MATOM": {},
+    "CONFIG_MAXSMP": {},
+    "CONFIG_MAY_USE_DEVLINK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MCB": {},
+    "CONFIG_MCORE2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MDIO_BUS": {},
+    "CONFIG_MDIO_DEVICE": {},
+    "CONFIG_MD_FAULTY": {},
+    "CONFIG_MD_LINEAR": {},
+    "CONFIG_MD_MULTIPATH": {},
+    "CONFIG_MD_RAID0": {},
+    "CONFIG_MD_RAID1": {},
+    "CONFIG_MD_RAID10": {},
+    "CONFIG_MD_RAID456": {},
+    "CONFIG_MEDIA_SUPPORT": {},
+    "CONFIG_MEGARAID_LEGACY": {},
+    "CONFIG_MEGARAID_NEWGEN": {},
+    "CONFIG_MEGARAID_SAS": {},
+    "CONFIG_MEMBARRIER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MEMCG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MEMCG_SWAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MEMCG_SWAP_ENABLED": {},
+    "CONFIG_MEMORY": {},
+    "CONFIG_MEMORY_BALLOON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MEMORY_HOTPLUG": {},
+    "CONFIG_MEMSTICK": {},
+    "CONFIG_MEMTEST": {},
+    "CONFIG_MEM_SOFT_DIRTY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MESSAGE_LOGLEVEL_DEFAULT": {
+      "other": [
+        [
+          0,
+          "4"
+        ],
+        [
+          1,
+          "4"
+        ],
+        [
+          2,
+          "4"
+        ]
+      ]
+    },
+    "CONFIG_MFD_CORE": {},
+    "CONFIG_MFD_CROS_EC": {},
+    "CONFIG_MFD_INTEL_LPSS_ACPI": {},
+    "CONFIG_MFD_INTEL_LPSS_PCI": {},
+    "CONFIG_MFD_INTEL_QUARK_I2C_GPIO": {},
+    "CONFIG_MFD_JANZ_CMODIO": {},
+    "CONFIG_MFD_KEMPLD": {},
+    "CONFIG_MFD_MT6397": {},
+    "CONFIG_MFD_RDC321X": {},
+    "CONFIG_MFD_SM501": {},
+    "CONFIG_MFD_SYSCON": {},
+    "CONFIG_MFD_TI_AM335X_TSCADC": {},
+    "CONFIG_MFD_TMIO": {},
+    "CONFIG_MFD_VX855": {},
+    "CONFIG_MICROCODE": {},
+    "CONFIG_MIGRATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MINIX_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MISC_FILESYSTEMS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MISC_RTSX": {},
+    "CONFIG_MISC_RTSX_PCI": {},
+    "CONFIG_MK8": {},
+    "CONFIG_MMC": {},
+    "CONFIG_MMU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MMU_NOTIFIER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODIFY_LDT_SYSCALL": {},
+    "CONFIG_MODULES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULES_TREE_LOOKUP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULES_USE_ELF_RELA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULE_COMPRESS": {},
+    "CONFIG_MODULE_FORCE_LOAD": {},
+    "CONFIG_MODULE_FORCE_UNLOAD": {},
+    "CONFIG_MODULE_SIG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULE_SIG_ALL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULE_SIG_FORCE": {},
+    "CONFIG_MODULE_SIG_HASH": {
+      "other": [
+        [
+          0,
+          "\"sha512\""
+        ],
+        [
+          1,
+          "\"sha512\""
+        ],
+        [
+          2,
+          "\"sha512\""
+        ]
+      ]
+    },
+    "CONFIG_MODULE_SIG_KEY": {
+      "other": [
+        [
+          0,
+          "\"certs/signing_key.pem\""
+        ],
+        [
+          1,
+          "\"certs/signing_key.pem\""
+        ],
+        [
+          2,
+          "\"certs/signing_key.pem\""
+        ]
+      ]
+    },
+    "CONFIG_MODULE_SIG_SHA1": {},
+    "CONFIG_MODULE_SIG_SHA224": {},
+    "CONFIG_MODULE_SIG_SHA256": {},
+    "CONFIG_MODULE_SIG_SHA384": {},
+    "CONFIG_MODULE_SIG_SHA512": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODULE_SRCVERSION_ALL": {},
+    "CONFIG_MODULE_UNLOAD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MODVERSIONS": {},
+    "CONFIG_MPILIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MPLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MPLS_ROUTING": {},
+    "CONFIG_MPSC": {},
+    "CONFIG_MQ_IOSCHED_DEADLINE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MQ_IOSCHED_KYBER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MSDOS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MSDOS_PARTITION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_ABSENT": {},
+    "CONFIG_MTD_AR7_PARTS": {},
+    "CONFIG_MTD_BLOCK": {},
+    "CONFIG_MTD_BLOCK2MTD": {},
+    "CONFIG_MTD_BLOCK_RO": {},
+    "CONFIG_MTD_CFI": {},
+    "CONFIG_MTD_CFI_I1": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_CFI_I2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_CFI_I4": {},
+    "CONFIG_MTD_CFI_I8": {},
+    "CONFIG_MTD_CMDLINE_PARTS": {},
+    "CONFIG_MTD_COMPLEX_MAPPINGS": {},
+    "CONFIG_MTD_DOCG3": {},
+    "CONFIG_MTD_INTEL_VR_NOR": {},
+    "CONFIG_MTD_JEDECPROBE": {},
+    "CONFIG_MTD_LPDDR": {},
+    "CONFIG_MTD_MAP_BANK_WIDTH_1": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_MAP_BANK_WIDTH_16": {},
+    "CONFIG_MTD_MAP_BANK_WIDTH_2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_MAP_BANK_WIDTH_32": {},
+    "CONFIG_MTD_MAP_BANK_WIDTH_4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_MAP_BANK_WIDTH_8": {},
+    "CONFIG_MTD_MTDRAM": {},
+    "CONFIG_MTD_NAND": {},
+    "CONFIG_MTD_ONENAND": {},
+    "CONFIG_MTD_OOPS": {},
+    "CONFIG_MTD_PARTITIONED_MASTER": {},
+    "CONFIG_MTD_PHRAM": {},
+    "CONFIG_MTD_PLATRAM": {},
+    "CONFIG_MTD_PMC551": {},
+    "CONFIG_MTD_RAM": {},
+    "CONFIG_MTD_REDBOOT_PARTS": {},
+    "CONFIG_MTD_ROM": {},
+    "CONFIG_MTD_SLRAM": {},
+    "CONFIG_MTD_SPI_NOR": {},
+    "CONFIG_MTD_SWAP": {},
+    "CONFIG_MTD_TESTS": {},
+    "CONFIG_MTD_UBI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MTD_UBI_BEB_LIMIT": {
+      "other": [
+        [
+          0,
+          "20"
+        ],
+        [
+          1,
+          "20"
+        ],
+        [
+          2,
+          "20"
+        ]
+      ]
+    },
+    "CONFIG_MTD_UBI_BLOCK": {},
+    "CONFIG_MTD_UBI_FASTMAP": {},
+    "CONFIG_MTD_UBI_GLUEBI": {},
+    "CONFIG_MTD_UBI_WL_THRESHOLD": {
+      "other": [
+        [
+          0,
+          "4096"
+        ],
+        [
+          1,
+          "4096"
+        ],
+        [
+          2,
+          "4096"
+        ]
+      ]
+    },
+    "CONFIG_MTRR": {},
+    "CONFIG_MULTIUSER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MUTEX_SPIN_ON_OWNER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_MWAVE": {},
+    "CONFIG_NAMESPACES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NCPFS_EXTRAS": {},
+    "CONFIG_NCPFS_IOCTL_LOCKING": {},
+    "CONFIG_NCPFS_NFS_NS": {},
+    "CONFIG_NCPFS_NLS": {},
+    "CONFIG_NCPFS_OS2_NS": {},
+    "CONFIG_NCPFS_PACKET_SIGNING": {},
+    "CONFIG_NCPFS_SMALLDOS": {},
+    "CONFIG_NCPFS_STRONG": {},
+    "CONFIG_NCP_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NEED_DMA_MAP_STATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NEED_MULTIPLE_NODES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NEED_SG_DMA_LENGTH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETCONSOLE": {},
+    "CONFIG_NETDEVICES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_ADVANCED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_INGRESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_NETLINK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_NETLINK_ACCT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_NETLINK_GLUE_CT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_NETLINK_LOG": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_NETLINK_QUEUE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_SYNPROXY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XTABLES": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_CONNMARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_BPF": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CGROUP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CLUSTER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_COMMENT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CONNBYTES": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CONNLABEL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CONNLIMIT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CONNMARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CONNTRACK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_CPU": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_DCCP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_DEVGROUP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_DSCP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_ECN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_ESP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_HASHLIMIT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_HELPER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_HL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_IPCOMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_IPRANGE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_L2TP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_LENGTH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_LIMIT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_MAC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_MARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_MULTIPORT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_NFACCT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_OSF": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_OWNER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_PHYSDEV": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_PKTTYPE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_POLICY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_QUOTA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_RATEEST": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_REALM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_RECENT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_SCTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_STATE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_STATISTIC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_STRING": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_TCPMSS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_TIME": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_MATCH_U32": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_NAT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_AUDIT": {},
+    "CONFIG_NETFILTER_XT_TARGET_CHECKSUM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_CLASSIFY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_CONNMARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_CT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_DSCP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_HL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_HMARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_IDLETIMER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_LOG": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_MARK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_NETMAP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_NFLOG": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_NFQUEUE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_NOTRACK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_RATEEST": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_REDIRECT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_SECMARK": {},
+    "CONFIG_NETFILTER_XT_TARGET_TCPMSS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_TEE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_TPROXY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETFILTER_XT_TARGET_TRACE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETLABEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETLINK_DIAG": {},
+    "CONFIG_NETPOLL": {},
+    "CONFIG_NETWORK_FILESYSTEMS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NETWORK_PHY_TIMESTAMPING": {},
+    "CONFIG_NETWORK_SECMARK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_9P": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_9P_DEBUG": {},
+    "CONFIG_NET_9P_VIRTIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_CORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_DEVLINK": {},
+    "CONFIG_NET_DSA": {},
+    "CONFIG_NET_FC": {},
+    "CONFIG_NET_FLOW_LIMIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_FOU": {},
+    "CONFIG_NET_FOU_IP_TUNNELS": {},
+    "CONFIG_NET_IFE": {},
+    "CONFIG_NET_INGRESS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_IPGRE_DEMUX": {},
+    "CONFIG_NET_IPIP": {},
+    "CONFIG_NET_IPVTI": {},
+    "CONFIG_NET_IP_TUNNEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_KEY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_KEY_MIGRATE": {},
+    "CONFIG_NET_L3_MASTER_DEV": {},
+    "CONFIG_NET_MPLS_GSO": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_NCSI": {},
+    "CONFIG_NET_NS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_NSH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_PKTGEN": {},
+    "CONFIG_NET_POLL_CONTROLLER": {},
+    "CONFIG_NET_PTP_CLASSIFY": {},
+    "CONFIG_NET_RX_BUSY_POLL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NET_SB1000": {},
+    "CONFIG_NET_SCHED": {},
+    "CONFIG_NET_SWITCHDEV": {},
+    "CONFIG_NET_TEAM": {},
+    "CONFIG_NET_UDP_TUNNEL": {},
+    "CONFIG_NEW_LEDS": {},
+    "CONFIG_NFC": {},
+    "CONFIG_NFSD": {},
+    "CONFIG_NFS_COMMON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NFS_SWAP": {},
+    "CONFIG_NFS_V2": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NFS_V3": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NFS_V3_ACL": {},
+    "CONFIG_NFS_V4": {},
+    "CONFIG_NFTL": {},
+    "CONFIG_NF_CONNTRACK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_AMANDA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_BROADCAST": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_EVENTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_FTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_H323": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_IRC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_LABELS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_MARK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_NETBIOS_NS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_PPTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_PROCFS": {},
+    "CONFIG_NF_CONNTRACK_SANE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_SECMARK": {},
+    "CONFIG_NF_CONNTRACK_SIP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_SNMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_TFTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_TIMEOUT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_TIMESTAMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CONNTRACK_ZONES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_NETLINK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_NETLINK_HELPER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_NETLINK_TIMEOUT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_PROTO_DCCP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_PROTO_GRE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_PROTO_SCTP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_CT_PROTO_UDPLITE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_DEFRAG_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_DEFRAG_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_DUP_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_DUP_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_LOG_ARP": {},
+    "CONFIG_NF_LOG_COMMON": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_LOG_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_LOG_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_LOG_NETDEV": {},
+    "CONFIG_NF_NAT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_AMANDA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_FTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_H323": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_IRC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_MASQUERADE_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_MASQUERADE_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_NEEDED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_PPTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_PROTO_DCCP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_PROTO_GRE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_PROTO_SCTP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_PROTO_UDPLITE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_REDIRECT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_SIP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_SNMP_BASIC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_NAT_TFTP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_REJECT_IPV4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_REJECT_IPV6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NF_SOCKET_IPV4": {},
+    "CONFIG_NF_SOCKET_IPV6": {},
+    "CONFIG_NF_TABLES": {},
+    "CONFIG_NILFS2_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLMON": {},
+    "CONFIG_NLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ASCII": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_1250": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_1251": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_437": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_737": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_775": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_850": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_852": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_855": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_857": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_860": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_861": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_862": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_863": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_864": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_865": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_866": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_869": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_874": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_932": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_936": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_949": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_CODEPAGE_950": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_DEFAULT": {
+      "other": [
+        [
+          0,
+          "\"utf8\""
+        ],
+        [
+          1,
+          "\"utf8\""
+        ],
+        [
+          2,
+          "\"utf8\""
+        ]
+      ]
+    },
+    "CONFIG_NLS_ISO8859_1": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_13": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_14": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_15": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_2": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_3": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_4": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_5": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_6": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_7": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_8": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_ISO8859_9": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_KOI8_R": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_KOI8_U": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_CELTIC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_CENTEURO": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_CROATIAN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_CYRILLIC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_GAELIC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_GREEK": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_ICELAND": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_INUIT": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_ROMAN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_ROMANIAN": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_MAC_TURKISH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NLS_UTF8": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NODES_SHIFT": {
+      "other": [
+        [
+          0,
+          "6"
+        ],
+        [
+          1,
+          "6"
+        ],
+        [
+          2,
+          "6"
+        ]
+      ]
+    },
+    "CONFIG_NODES_SPAN_OTHER_NODES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NOTIFIER_ERROR_INJECTION": {},
+    "CONFIG_NOZOMI": {},
+    "CONFIG_NO_BOOTMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NO_HZ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NO_HZ_COMMON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NO_HZ_FULL": {},
+    "CONFIG_NO_HZ_IDLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NR_CPUS": {
+      "other": [
+        [
+          0,
+          "64"
+        ],
+        [
+          1,
+          "64"
+        ],
+        [
+          2,
+          "64"
+        ]
+      ]
+    },
+    "CONFIG_NTB": {},
+    "CONFIG_NTFS_DEBUG": {},
+    "CONFIG_NTFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NTFS_RW": {},
+    "CONFIG_NUMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NUMA_BALANCING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NUMA_BALANCING_DEFAULT_ENABLED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_NUMA_EMU": {},
+    "CONFIG_NVM": {},
+    "CONFIG_NVMEM": {},
+    "CONFIG_NVME_FC": {},
+    "CONFIG_NVME_TARGET": {},
+    "CONFIG_NVRAM": {},
+    "CONFIG_N_GSM": {},
+    "CONFIG_OCFS2_DEBUG_FS": {},
+    "CONFIG_OCFS2_DEBUG_MASKLOG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OCFS2_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OCFS2_FS_O2CB": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OCFS2_FS_STATS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OCXL_BASE": {},
+    "CONFIG_OF": {},
+    "CONFIG_OID_REGISTRY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OLD_SIGSUSPEND3": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OMFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OPENVSWITCH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OPROFILE_NMI_TIMER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OPTIMIZE_INLINING": {},
+    "CONFIG_ORANGEFS_FS": {},
+    "CONFIG_ORE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OUTPUT_FORMAT": {
+      "other": [
+        [
+          0,
+          "\"elf64-x86-64\""
+        ],
+        [
+          1,
+          "\"elf64-x86-64\""
+        ],
+        [
+          2,
+          "\"elf64-x86-64\""
+        ]
+      ]
+    },
+    "CONFIG_OVERLAY_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OVERLAY_FS_INDEX": {},
+    "CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_OVERLAY_FS_REDIRECT_DIR": {},
+    "CONFIG_PACKET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PACKET_DIAG": {},
+    "CONFIG_PAGE_COUNTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PAGE_EXTENSION": {},
+    "CONFIG_PAGE_OWNER": {},
+    "CONFIG_PAGE_POISONING": {},
+    "CONFIG_PAGE_TABLE_ISOLATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PANIC_ON_OOPS": {},
+    "CONFIG_PANIC_ON_OOPS_VALUE": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_PANIC_TIMEOUT": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_PARAVIRT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PARAVIRT_CLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PARAVIRT_DEBUG": {},
+    "CONFIG_PARAVIRT_SPINLOCKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PARAVIRT_TIME_ACCOUNTING": {},
+    "CONFIG_PARPORT": {},
+    "CONFIG_PARTITION_ADVANCED": {},
+    "CONFIG_PATA_ACPI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_ALI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_AMD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_ARTOP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_ATIIXP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_ATP867X": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_CMD640_PCI": {},
+    "CONFIG_PATA_CMD64X": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_CYPRESS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_EFAR": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_HPT366": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_HPT37X": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_HPT3X2N": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_HPT3X3": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_HPT3X3_DMA": {},
+    "CONFIG_PATA_IT8213": {},
+    "CONFIG_PATA_IT821X": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_JMICRON": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_LEGACY": {},
+    "CONFIG_PATA_MARVELL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_MPIIX": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_NETCELL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_NINJA32": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_NS87410": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_NS87415": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_OLDPIIX": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_OPTI": {},
+    "CONFIG_PATA_OPTIDMA": {},
+    "CONFIG_PATA_PDC2027X": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_PDC_OLD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_PLATFORM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_RADISYS": {},
+    "CONFIG_PATA_RDC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_RZ1000": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_SCH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_SERVERWORKS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_SIL680": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_SIS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_TOSHIBA": {},
+    "CONFIG_PATA_TRIFLEX": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_VIA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PATA_WINBOND": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PC104": {},
+    "CONFIG_PCC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCCARD": {},
+    "CONFIG_PCI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCIEAER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCIEAER_INJECT": {},
+    "CONFIG_PCIEASPM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCIEASPM_DEBUG": {},
+    "CONFIG_PCIEASPM_DEFAULT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCIEASPM_PERFORMANCE": {},
+    "CONFIG_PCIEASPM_POWERSAVE": {},
+    "CONFIG_PCIEASPM_POWER_SUPERSAVE": {},
+    "CONFIG_PCIEPORTBUS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCIE_DPC": {},
+    "CONFIG_PCIE_ECRC": {},
+    "CONFIG_PCIE_PTM": {},
+    "CONFIG_PCI_BUS_ADDR_T_64BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_CNB20LE_QUIRK": {},
+    "CONFIG_PCI_DEBUG": {},
+    "CONFIG_PCI_DIRECT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_DOMAINS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_ENDPOINT": {},
+    "CONFIG_PCI_ENDPOINT_TEST": {},
+    "CONFIG_PCI_IOV": {},
+    "CONFIG_PCI_LABEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_LOCKLESS_CONFIG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_MMCONFIG": {},
+    "CONFIG_PCI_MSI": {},
+    "CONFIG_PCI_PASID": {},
+    "CONFIG_PCI_PRI": {},
+    "CONFIG_PCI_QUIRKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PCI_STUB": {},
+    "CONFIG_PCI_SW_SWITCHTEC": {},
+    "CONFIG_PCSPKR_PLATFORM": {},
+    "CONFIG_PDA_POWER": {},
+    "CONFIG_PDC_ADMA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PERCPU_STATS": {},
+    "CONFIG_PERCPU_TEST": {},
+    "CONFIG_PERF_EVENTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PERF_EVENTS_AMD_POWER": {},
+    "CONFIG_PERF_EVENTS_INTEL_CSTATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PERF_EVENTS_INTEL_RAPL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PERF_EVENTS_INTEL_UNCORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PERSISTENT_KEYRINGS": {},
+    "CONFIG_PGTABLE_LEVELS": {
+      "other": [
+        [
+          0,
+          "4"
+        ],
+        [
+          1,
+          "4"
+        ],
+        [
+          2,
+          "4"
+        ]
+      ]
+    },
+    "CONFIG_PHANTOM": {},
+    "CONFIG_PHONET": {},
+    "CONFIG_PHYLIB": {},
+    "CONFIG_PHYSICAL_ALIGN": {
+      "other": [
+        [
+          0,
+          "0x200000"
+        ],
+        [
+          1,
+          "0x200000"
+        ],
+        [
+          2,
+          "0x200000"
+        ]
+      ]
+    },
+    "CONFIG_PHYSICAL_START": {
+      "other": [
+        [
+          0,
+          "0x1000000"
+        ],
+        [
+          1,
+          "0x1000000"
+        ],
+        [
+          2,
+          "0x1000000"
+        ]
+      ]
+    },
+    "CONFIG_PHYS_ADDR_T_64BIT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PHY_PXA_28NM_HSIC": {},
+    "CONFIG_PHY_PXA_28NM_USB2": {},
+    "CONFIG_PID_NS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PINCTRL": {},
+    "CONFIG_PKCS7_MESSAGE_PARSER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PKCS7_TEST_KEY": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PM": {},
+    "CONFIG_PMC_ATOM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PMIC_OPREGION": {},
+    "CONFIG_PM_DEVFREQ": {},
+    "CONFIG_PNP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PNPACPI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PNP_DEBUG_MESSAGES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_POSIX_MQUEUE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_POSIX_MQUEUE_SYSCTL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_POSIX_TIMERS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_POWERCAP": {},
+    "CONFIG_POWER_AVS": {},
+    "CONFIG_POWER_RESET": {},
+    "CONFIG_POWER_SUPPLY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_POWER_SUPPLY_DEBUG": {},
+    "CONFIG_PPP": {},
+    "CONFIG_PPS": {},
+    "CONFIG_PREEMPT": {},
+    "CONFIG_PREEMPT_NONE": {},
+    "CONFIG_PREEMPT_NOTIFIERS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PREEMPT_VOLUNTARY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PREVENT_FIRMWARE_BUILD": {},
+    "CONFIG_PRINTK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PRINTK_NMI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PRINTK_SAFE_LOG_BUF_SHIFT": {
+      "other": [
+        [
+          0,
+          "13"
+        ],
+        [
+          1,
+          "13"
+        ],
+        [
+          2,
+          "13"
+        ]
+      ]
+    },
+    "CONFIG_PRINTK_TIME": {},
+    "CONFIG_PRINT_QUOTA_WARNING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROCESSOR_SELECT": {},
+    "CONFIG_PROC_CHILDREN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROC_EVENTS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROC_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROC_KCORE": {},
+    "CONFIG_PROC_PAGE_MONITOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROC_PID_CPUSET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROC_SYSCTL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_PROFILING": {},
+    "CONFIG_PROVE_LOCKING": {},
+    "CONFIG_PROVE_RCU": {},
+    "CONFIG_PROVIDE_OHCI1394_DMA_INIT": {},
+    "CONFIG_PSAMPLE": {},
+    "CONFIG_PSTORE": {},
+    "CONFIG_PTP_1588_CLOCK": {},
+    "CONFIG_PUNIT_ATOM_DEBUG": {},
+    "CONFIG_PWM": {},
+    "CONFIG_QFMT_V1": {},
+    "CONFIG_QFMT_V2": {},
+    "CONFIG_QNX4FS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QNX6FS_DEBUG": {},
+    "CONFIG_QNX6FS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUEUED_LOCK_STAT": {},
+    "CONFIG_QUEUED_RWLOCKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUEUED_SPINLOCKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUOTA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUOTACTL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUOTACTL_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_QUOTA_DEBUG": {},
+    "CONFIG_QUOTA_NETLINK_INTERFACE": {},
+    "CONFIG_QUOTA_TREE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_R3964": {},
+    "CONFIG_RAID6_PQ": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RAID_ATTRS": {},
+    "CONFIG_RANDOM32_SELFTEST": {},
+    "CONFIG_RANDOMIZE_BASE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RANDOMIZE_MEMORY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING": {
+      "other": [
+        [
+          0,
+          "0x0"
+        ],
+        [
+          1,
+          "0x0"
+        ],
+        [
+          2,
+          "0x0"
+        ]
+      ]
+    },
+    "CONFIG_RAPIDIO": {},
+    "CONFIG_RAS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RATIONAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RAW_DRIVER": {},
+    "CONFIG_RBTREE_TEST": {},
+    "CONFIG_RCU_CPU_STALL_TIMEOUT": {
+      "other": [
+        [
+          0,
+          "21"
+        ],
+        [
+          1,
+          "21"
+        ],
+        [
+          2,
+          "21"
+        ]
+      ]
+    },
+    "CONFIG_RCU_EQS_DEBUG": {},
+    "CONFIG_RCU_EXPERT": {},
+    "CONFIG_RCU_NEED_SEGCBLIST": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RCU_PERF_TEST": {},
+    "CONFIG_RCU_STALL_COMMON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RCU_TORTURE_TEST": {},
+    "CONFIG_RCU_TRACE": {},
+    "CONFIG_RC_CORE": {},
+    "CONFIG_RDS": {},
+    "CONFIG_RD_BZIP2": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RD_GZIP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RD_LZ4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RD_LZMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RD_LZO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RD_XZ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_READABLE_ASM": {},
+    "CONFIG_REFCOUNT_FULL": {},
+    "CONFIG_REGULATOR": {},
+    "CONFIG_REISERFS_CHECK": {},
+    "CONFIG_REISERFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_REISERFS_FS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_REISERFS_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_REISERFS_FS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_REISERFS_PROC_INFO": {},
+    "CONFIG_RELAY": {},
+    "CONFIG_RELOCATABLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_REMOTEPROC": {},
+    "CONFIG_RESET_CONTROLLER": {},
+    "CONFIG_RETPOLINE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RFD_FTL": {},
+    "CONFIG_RFKILL": {},
+    "CONFIG_RFS_ACCEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RMI4_CORE": {},
+    "CONFIG_ROMFS_BACKED_BY_BLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ROMFS_BACKED_BY_BOTH": {},
+    "CONFIG_ROMFS_BACKED_BY_MTD": {},
+    "CONFIG_ROMFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ROMFS_ON_BLOCK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RPCSEC_GSS_KRB5": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RPMSG_QCOM_GLINK_RPM": {},
+    "CONFIG_RPMSG_VIRTIO": {},
+    "CONFIG_RPS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RTC_CLASS": {},
+    "CONFIG_RTC_LIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RTC_MC146818_LIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RT_GROUP_SCHED": {},
+    "CONFIG_RT_MUTEXES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RWSEM_SPIN_ON_OWNER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RWSEM_XCHGADD_ALGORITHM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_RXKAD": {},
+    "CONFIG_SAMPLES": {},
+    "CONFIG_SATA_ACARD_AHCI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_AHCI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_AHCI_PLATFORM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_INIC162X": {},
+    "CONFIG_SATA_MV": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_NV": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_PMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_PROMISE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_QSTOR": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_SIL": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_SIL24": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_SIS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_SVW": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_SX4": {},
+    "CONFIG_SATA_ULI": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_VIA": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SATA_VITESSE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SBITMAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHEDSTATS": {},
+    "CONFIG_SCHED_AUTOGROUP": {},
+    "CONFIG_SCHED_DEBUG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHED_HRTICK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHED_INFO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHED_MC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHED_MC_PRIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCHED_OMIT_FRAME_POINTER": {},
+    "CONFIG_SCHED_SMT": {},
+    "CONFIG_SCHED_STACK_END_CHECK": {},
+    "CONFIG_SCIF_BUS": {},
+    "CONFIG_SCSI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_3W_9XXX": {},
+    "CONFIG_SCSI_3W_SAS": {},
+    "CONFIG_SCSI_AACRAID": {},
+    "CONFIG_SCSI_ACARD": {},
+    "CONFIG_SCSI_ADVANSYS": {},
+    "CONFIG_SCSI_AIC79XX": {},
+    "CONFIG_SCSI_AIC7XXX": {},
+    "CONFIG_SCSI_AIC94XX": {},
+    "CONFIG_SCSI_AM53C974": {},
+    "CONFIG_SCSI_ARCMSR": {},
+    "CONFIG_SCSI_BNX2_ISCSI": {},
+    "CONFIG_SCSI_CONSTANTS": {},
+    "CONFIG_SCSI_CXGB3_ISCSI": {},
+    "CONFIG_SCSI_CXGB4_ISCSI": {},
+    "CONFIG_SCSI_DC395x": {},
+    "CONFIG_SCSI_DEBUG": {},
+    "CONFIG_SCSI_DH": {},
+    "CONFIG_SCSI_DMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_DMX3191D": {},
+    "CONFIG_SCSI_DPT_I2O": {},
+    "CONFIG_SCSI_ESAS2R": {},
+    "CONFIG_SCSI_FC_ATTRS": {},
+    "CONFIG_SCSI_FUTURE_DOMAIN": {},
+    "CONFIG_SCSI_HPSA": {},
+    "CONFIG_SCSI_HPTIOP": {},
+    "CONFIG_SCSI_INIA100": {},
+    "CONFIG_SCSI_INITIO": {},
+    "CONFIG_SCSI_IPR": {},
+    "CONFIG_SCSI_IPS": {},
+    "CONFIG_SCSI_ISCI": {},
+    "CONFIG_SCSI_ISCSI_ATTRS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_LOGGING": {},
+    "CONFIG_SCSI_LOWLEVEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_MOD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_MPT2SAS": {},
+    "CONFIG_SCSI_MPT3SAS": {},
+    "CONFIG_SCSI_MQ_DEFAULT": {},
+    "CONFIG_SCSI_MVSAS": {},
+    "CONFIG_SCSI_MVUMI": {},
+    "CONFIG_SCSI_NETLINK": {},
+    "CONFIG_SCSI_OSD_DEBUG": {},
+    "CONFIG_SCSI_OSD_DPRINT_SENSE": {
+      "other": [
+        [
+          0,
+          "1"
+        ],
+        [
+          1,
+          "1"
+        ],
+        [
+          2,
+          "1"
+        ]
+      ]
+    },
+    "CONFIG_SCSI_OSD_INITIATOR": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_OSD_ULD": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_PM8001": {},
+    "CONFIG_SCSI_PMCRAID": {},
+    "CONFIG_SCSI_PROC_FS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_QLA_ISCSI": {},
+    "CONFIG_SCSI_QLOGIC_1280": {},
+    "CONFIG_SCSI_SAS_ATTRS": {},
+    "CONFIG_SCSI_SAS_LIBSAS": {},
+    "CONFIG_SCSI_SCAN_ASYNC": {},
+    "CONFIG_SCSI_SMARTPQI": {},
+    "CONFIG_SCSI_SNIC": {},
+    "CONFIG_SCSI_SPI_ATTRS": {},
+    "CONFIG_SCSI_SRP_ATTRS": {},
+    "CONFIG_SCSI_STEX": {},
+    "CONFIG_SCSI_SYM53C8XX_2": {},
+    "CONFIG_SCSI_UFSHCD": {},
+    "CONFIG_SCSI_VIRTIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SCSI_WD719X": {},
+    "CONFIG_SECCOMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECCOMP_FILTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECONDARY_TRUSTED_KEYRING": {},
+    "CONFIG_SECTION_MISMATCH_WARN_ONLY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITYFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_APPARMOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE": {
+      "other": [
+        [
+          0,
+          "1"
+        ],
+        [
+          1,
+          "1"
+        ],
+        [
+          2,
+          "1"
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_APPARMOR_DEBUG": {},
+    "CONFIG_SECURITY_APPARMOR_HASH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_APPARMOR_HASH_DEFAULT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_APPARMOR_STACKED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_DEFAULT_DISPLAY_APPARMOR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_DEFAULT_DISPLAY_NAME": {
+      "other": [
+        [
+          0,
+          "\"apparmor\""
+        ],
+        [
+          1,
+          "\"apparmor\""
+        ],
+        [
+          2,
+          "\"apparmor\""
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_DMESG_RESTRICT": {},
+    "CONFIG_SECURITY_LOADPIN": {},
+    "CONFIG_SECURITY_LSM_DEBUG": {},
+    "CONFIG_SECURITY_NETWORK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_NETWORK_XFRM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_PATH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_PERF_EVENTS_RESTRICT": {},
+    "CONFIG_SECURITY_SELINUX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_AVC_STATS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_BOOTPARAM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_BOOTPARAM_VALUE": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_CHECKREQPROT_VALUE": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_DEVELOP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_DISABLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SELINUX_STACKED": {},
+    "CONFIG_SECURITY_SMACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SMACK_APPEND_SIGNALS": {},
+    "CONFIG_SECURITY_SMACK_BRINGUP": {},
+    "CONFIG_SECURITY_SMACK_NETFILTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_SMACK_STACKED": {},
+    "CONFIG_SECURITY_STACKING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO_ACTIVATION_TRIGGER": {
+      "other": [
+        [
+          0,
+          "\"/sbin/init\""
+        ],
+        [
+          1,
+          "\"/sbin/init\""
+        ],
+        [
+          2,
+          "\"/sbin/init\""
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO_MAX_ACCEPT_ENTRY": {
+      "other": [
+        [
+          0,
+          "2048"
+        ],
+        [
+          1,
+          "2048"
+        ],
+        [
+          2,
+          "2048"
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO_MAX_AUDIT_LOG": {
+      "other": [
+        [
+          0,
+          "1024"
+        ],
+        [
+          1,
+          "1024"
+        ],
+        [
+          2,
+          "1024"
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO_OMIT_USERSPACE_LOADER": {},
+    "CONFIG_SECURITY_TOMOYO_POLICY_LOADER": {
+      "other": [
+        [
+          0,
+          "\"/sbin/tomoyo-init\""
+        ],
+        [
+          1,
+          "\"/sbin/tomoyo-init\""
+        ],
+        [
+          2,
+          "\"/sbin/tomoyo-init\""
+        ]
+      ]
+    },
+    "CONFIG_SECURITY_TOMOYO_STACKED": {},
+    "CONFIG_SECURITY_WRITABLE_HOOKS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SECURITY_YAMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SELECT_MEMORY_MODEL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SENSORS_LIS3LV02D": {},
+    "CONFIG_SERIAL_8250": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_8250_CONSOLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_8250_DEPRECATED_OPTIONS": {},
+    "CONFIG_SERIAL_8250_DW": {},
+    "CONFIG_SERIAL_8250_EXTENDED": {},
+    "CONFIG_SERIAL_8250_FINTEK": {},
+    "CONFIG_SERIAL_8250_FSL": {},
+    "CONFIG_SERIAL_8250_LPSS": {},
+    "CONFIG_SERIAL_8250_MID": {},
+    "CONFIG_SERIAL_8250_MOXA": {},
+    "CONFIG_SERIAL_8250_NR_UARTS": {
+      "other": [
+        [
+          0,
+          "4"
+        ],
+        [
+          1,
+          "4"
+        ],
+        [
+          2,
+          "4"
+        ]
+      ]
+    },
+    "CONFIG_SERIAL_8250_PCI": {},
+    "CONFIG_SERIAL_8250_PNP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_8250_RT288X": {},
+    "CONFIG_SERIAL_8250_RUNTIME_UARTS": {
+      "other": [
+        [
+          0,
+          "4"
+        ],
+        [
+          1,
+          "4"
+        ],
+        [
+          2,
+          "4"
+        ]
+      ]
+    },
+    "CONFIG_SERIAL_ALTERA_JTAGUART": {},
+    "CONFIG_SERIAL_ALTERA_UART": {},
+    "CONFIG_SERIAL_ARC": {},
+    "CONFIG_SERIAL_CORE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_CORE_CONSOLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_DEV_BUS": {},
+    "CONFIG_SERIAL_EARLYCON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SERIAL_FSL_LPUART": {},
+    "CONFIG_SERIAL_JSM": {},
+    "CONFIG_SERIAL_NONSTANDARD": {},
+    "CONFIG_SERIAL_RP2": {},
+    "CONFIG_SERIAL_SCCNXP": {},
+    "CONFIG_SERIAL_UARTLITE": {},
+    "CONFIG_SERIO": {},
+    "CONFIG_SFI": {},
+    "CONFIG_SGETMASK_SYSCALL": {},
+    "CONFIG_SGI_IOC4": {},
+    "CONFIG_SG_POOL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SG_SPLIT": {},
+    "CONFIG_SHMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SH_TIMER_CMT": {},
+    "CONFIG_SH_TIMER_MTU2": {},
+    "CONFIG_SH_TIMER_TMU": {},
+    "CONFIG_SIGNALFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SIGNED_PE_FILE_VERIFICATION": {},
+    "CONFIG_SLAB": {},
+    "CONFIG_SLAB_FREELIST_HARDENED": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SLAB_FREELIST_RANDOM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SLAB_MERGE_DEFAULT": {},
+    "CONFIG_SLIP": {},
+    "CONFIG_SLOB": {},
+    "CONFIG_SLUB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SLUB_CPU_PARTIAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SLUB_DEBUG": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SLUB_DEBUG_ON": {},
+    "CONFIG_SLUB_MEMCG_SYSFS_ON": {},
+    "CONFIG_SLUB_STATS": {},
+    "CONFIG_SMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SM_FTL": {},
+    "CONFIG_SOCK_CGROUP_DATA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SOC_TI": {},
+    "CONFIG_SOFTLOCKUP_DETECTOR": {},
+    "CONFIG_SOUND": {},
+    "CONFIG_SPARSEMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPARSEMEM_EXTREME": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPARSEMEM_MANUAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPARSEMEM_VMEMMAP": {},
+    "CONFIG_SPARSEMEM_VMEMMAP_ENABLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPARSE_IRQ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SPI": {},
+    "CONFIG_SPLIT_PTLOCK_CPUS": {
+      "other": [
+        [
+          0,
+          "4"
+        ],
+        [
+          1,
+          "4"
+        ],
+        [
+          2,
+          "4"
+        ]
+      ]
+    },
+    "CONFIG_SPMI": {},
+    "CONFIG_SQUASHFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_4K_DEVBLK_SIZE": {},
+    "CONFIG_SQUASHFS_DECOMP_MULTI": {},
+    "CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU": {},
+    "CONFIG_SQUASHFS_DECOMP_SINGLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_EMBEDDED": {},
+    "CONFIG_SQUASHFS_FILE_CACHE": {},
+    "CONFIG_SQUASHFS_FILE_DIRECT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE": {
+      "other": [
+        [
+          0,
+          "3"
+        ],
+        [
+          1,
+          "3"
+        ],
+        [
+          2,
+          "3"
+        ]
+      ]
+    },
+    "CONFIG_SQUASHFS_LZ4": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_LZO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_XZ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_ZLIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SQUASHFS_ZSTD": {},
+    "CONFIG_SRAM": {},
+    "CONFIG_SRCU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SSB": {},
+    "CONFIG_SSB_POSSIBLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SSFDC": {},
+    "CONFIG_STACKTRACE": {},
+    "CONFIG_STACKTRACE_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STACK_VALIDATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STAGING": {},
+    "CONFIG_STANDALONE": {},
+    "CONFIG_STATIC_USERMODEHELPER": {},
+    "CONFIG_STM": {},
+    "CONFIG_STP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STREAM_PARSER": {},
+    "CONFIG_STRICT_DEVMEM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STRICT_KERNEL_RWX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STRICT_MODULE_RWX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_STRING_SELFTEST": {},
+    "CONFIG_STRIP_ASM_SYMS": {},
+    "CONFIG_SUNRPC": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SUNRPC_DEBUG": {},
+    "CONFIG_SUNRPC_GSS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SUNXI_SRAM": {},
+    "CONFIG_SUSPEND": {},
+    "CONFIG_SWAP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SWIOTLB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYNC_FILE": {},
+    "CONFIG_SYN_COOKIES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSCTL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSCTL_EXCEPTION_TRACE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSCTL_SYSCALL": {},
+    "CONFIG_SYSFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSFS_DEPRECATED": {},
+    "CONFIG_SYSFS_SYSCALL": {},
+    "CONFIG_SYSTEM_BLACKLIST_KEYRING": {},
+    "CONFIG_SYSTEM_DATA_VERIFICATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSTEM_EXTRA_CERTIFICATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSTEM_EXTRA_CERTIFICATE_SIZE": {
+      "other": [
+        [
+          0,
+          "4096"
+        ],
+        [
+          1,
+          "4096"
+        ],
+        [
+          2,
+          "4096"
+        ]
+      ]
+    },
+    "CONFIG_SYSTEM_TRUSTED_KEYRING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSTEM_TRUSTED_KEYS": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_SYSVIPC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSVIPC_COMPAT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSVIPC_SYSCTL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYSV_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_SYS_HYPERVISOR": {},
+    "CONFIG_TAP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TARGET_CORE": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TASKSTATS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TASKS_RCU": {},
+    "CONFIG_TASK_DELAY_ACCT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TASK_IO_ACCOUNTING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TASK_XACCT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TCG_TPM": {},
+    "CONFIG_TCM_FILEIO": {},
+    "CONFIG_TCM_IBLOCK": {},
+    "CONFIG_TCM_PSCSI": {},
+    "CONFIG_TCM_USER2": {},
+    "CONFIG_TCP_CONG_ADVANCED": {},
+    "CONFIG_TCP_CONG_CUBIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TCP_MD5SIG": {},
+    "CONFIG_TELCLOCK": {},
+    "CONFIG_TEST_ASYNC_DRIVER_PROBE": {},
+    "CONFIG_TEST_BITMAP": {},
+    "CONFIG_TEST_BPF": {},
+    "CONFIG_TEST_FIND_BIT": {},
+    "CONFIG_TEST_HASH": {},
+    "CONFIG_TEST_HEXDUMP": {},
+    "CONFIG_TEST_KMOD": {},
+    "CONFIG_TEST_KSTRTOX": {},
+    "CONFIG_TEST_LIST_SORT": {},
+    "CONFIG_TEST_LKM": {},
+    "CONFIG_TEST_POWER": {},
+    "CONFIG_TEST_PRINTF": {},
+    "CONFIG_TEST_RHASHTABLE": {},
+    "CONFIG_TEST_SORT": {},
+    "CONFIG_TEST_STATIC_KEYS": {},
+    "CONFIG_TEST_STRING_HELPERS": {},
+    "CONFIG_TEST_SYSCTL": {},
+    "CONFIG_TEST_UDELAY": {},
+    "CONFIG_TEST_USER_COPY": {},
+    "CONFIG_TEST_UUID": {},
+    "CONFIG_TEXTSEARCH": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TEXTSEARCH_BM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TEXTSEARCH_FSM": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TEXTSEARCH_KMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THERMAL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE": {},
+    "CONFIG_THERMAL_DEFAULT_GOV_POWER_ALLOCATOR": {},
+    "CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THERMAL_DEFAULT_GOV_USER_SPACE": {},
+    "CONFIG_THERMAL_EMERGENCY_POWEROFF_DELAY_MS": {
+      "other": [
+        [
+          0,
+          "0"
+        ],
+        [
+          1,
+          "0"
+        ],
+        [
+          2,
+          "0"
+        ]
+      ]
+    },
+    "CONFIG_THERMAL_EMULATION": {},
+    "CONFIG_THERMAL_GOV_BANG_BANG": {},
+    "CONFIG_THERMAL_GOV_FAIR_SHARE": {},
+    "CONFIG_THERMAL_GOV_POWER_ALLOCATOR": {},
+    "CONFIG_THERMAL_GOV_STEP_WISE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THERMAL_GOV_USER_SPACE": {},
+    "CONFIG_THERMAL_WRITABLE_TRIPS": {},
+    "CONFIG_THIN_ARCHIVES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THREAD_INFO_IN_TASK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_THUNDERBOLT": {},
+    "CONFIG_TICK_CPU_ACCOUNTING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TICK_ONESHOT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TIFM_CORE": {},
+    "CONFIG_TIMERFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TIPC": {},
+    "CONFIG_TLS": {},
+    "CONFIG_TMPFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TMPFS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TMPFS_XATTR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TORTURE_TEST": {},
+    "CONFIG_TRACE_IRQFLAGS_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TRACE_SINK": {},
+    "CONFIG_TRACING_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TRANSPARENT_HUGEPAGE": {},
+    "CONFIG_TREE_RCU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TREE_SRCU": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TRIM_UNUSED_KSYMS": {},
+    "CONFIG_TTY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TTY_PRINTK": {},
+    "CONFIG_TUN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_TUN_VNET_CROSS_LE": {},
+    "CONFIG_UBIFS_ATIME_SUPPORT": {},
+    "CONFIG_UBIFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UBIFS_FS_ADVANCED_COMPR": {},
+    "CONFIG_UBIFS_FS_ENCRYPTION": {},
+    "CONFIG_UBIFS_FS_LZO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UBIFS_FS_SECURITY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UBIFS_FS_ZLIB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UBSAN": {},
+    "CONFIG_UCS2_STRING": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UDF_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UDF_NLS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UEVENT_HELPER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UEVENT_HELPER_PATH": {
+      "other": [
+        [
+          0,
+          "\"\""
+        ],
+        [
+          1,
+          "\"\""
+        ],
+        [
+          2,
+          "\"\""
+        ]
+      ]
+    },
+    "CONFIG_UFS_DEBUG": {},
+    "CONFIG_UFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UFS_FS_WRITE": {},
+    "CONFIG_UHID": {},
+    "CONFIG_UID16": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UIO_AEC": {},
+    "CONFIG_UIO_CIF": {},
+    "CONFIG_UIO_DMEM_GENIRQ": {},
+    "CONFIG_UIO_MF624": {},
+    "CONFIG_UIO_NETX": {},
+    "CONFIG_UIO_PCI_GENERIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UIO_PDRV_GENIRQ": {},
+    "CONFIG_UIO_PRUSS": {},
+    "CONFIG_UIO_SERCOS3": {},
+    "CONFIG_UNIX": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UNIX98_PTYS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UNIX_DIAG": {},
+    "CONFIG_UNUSED_SYMBOLS": {},
+    "CONFIG_UNWINDER_FRAME_POINTER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UNWINDER_GUESS": {},
+    "CONFIG_UNWINDER_ORC": {},
+    "CONFIG_UPROBES": {},
+    "CONFIG_USB_OHCI_LITTLE_ENDIAN": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_USB_SUPPORT": {},
+    "CONFIG_USELIB": {},
+    "CONFIG_USERFAULTFD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_USER_NS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_USER_RETURN_NOTIFIER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_USER_STACKTRACE_SUPPORT": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_USE_PERCPU_NUMA_NODE_ID": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UTS_NS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_UWB": {},
+    "CONFIG_VERSION_SIGNATURE": {
+      "other": [
+        [
+          0,
+          "\"Ubuntu 4.15.0-1010.10-kvm 4.15.17\""
+        ],
+        [
+          1,
+          "\"Ubuntu 4.15.0-1011.11-kvm 4.15.18\""
+        ],
+        [
+          2,
+          "\"Ubuntu 4.15.0-1012.12-kvm 4.15.18\""
+        ]
+      ]
+    },
+    "CONFIG_VETH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VFAT_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VGASTATE": {},
+    "CONFIG_VGA_ARB": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VGA_ARB_MAX_GPUS": {
+      "other": [
+        [
+          0,
+          "16"
+        ],
+        [
+          1,
+          "16"
+        ],
+        [
+          2,
+          "16"
+        ]
+      ]
+    },
+    "CONFIG_VGA_SWITCHEROO": {},
+    "CONFIG_VHOST_CROSS_ENDIAN_LEGACY": {},
+    "CONFIG_VHOST_NET": {},
+    "CONFIG_VHOST_SCSI": {},
+    "CONFIG_VIRTIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_BALLOON": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_BLK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_BLK_SCSI": {},
+    "CONFIG_VIRTIO_CONSOLE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_INPUT": {},
+    "CONFIG_VIRTIO_MMIO": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_MMIO_CMDLINE_DEVICES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_NET": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_PCI": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTIO_PCI_LEGACY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRTUALIZATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VIRT_CPU_ACCOUNTING_GEN": {},
+    "CONFIG_VIRT_DRIVERS": {},
+    "CONFIG_VIRT_TO_BUS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VLAN_8021Q": {},
+    "CONFIG_VM86": {},
+    "CONFIG_VMAP_STACK": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VME_BUS": {},
+    "CONFIG_VMWARE_PVSCSI": {},
+    "CONFIG_VMWARE_VMCI": {},
+    "CONFIG_VMXNET3": {},
+    "CONFIG_VM_EVENT_COUNTERS": {},
+    "CONFIG_VOP_BUS": {},
+    "CONFIG_VSOCKETS": {},
+    "CONFIG_VT": {},
+    "CONFIG_VXFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_VXLAN": {},
+    "CONFIG_W1": {},
+    "CONFIG_WAN": {},
+    "CONFIG_WARN_ALL_UNSEEDED_RANDOM": {},
+    "CONFIG_WATCHDOG": {},
+    "CONFIG_WIMAX": {},
+    "CONFIG_WIRELESS": {},
+    "CONFIG_WLAN": {},
+    "CONFIG_WQ_WATCHDOG": {},
+    "CONFIG_WW_MUTEX_SELFTEST": {},
+    "CONFIG_X25": {},
+    "CONFIG_X509_CERTIFICATE_PARSER": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_5LEVEL": {},
+    "CONFIG_X86_64": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_64_ACPI_NUMA": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_64_SMP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_ACPI_CPUFREQ": {},
+    "CONFIG_X86_AMD_PLATFORM_DEVICE": {},
+    "CONFIG_X86_CHECK_BIOS_CORRUPTION": {},
+    "CONFIG_X86_CMOV": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_CMPXCHG64": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_CPUID": {},
+    "CONFIG_X86_DEBUGCTLMSR": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_DEBUG_FPU": {},
+    "CONFIG_X86_DEV_DMA_OPS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_DIRECT_GBPAGES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_EXTENDED_PLATFORM": {},
+    "CONFIG_X86_FAST_FEATURE_TESTS": {},
+    "CONFIG_X86_FEATURE_NAMES": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_INTEL_LPSS": {},
+    "CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS": {},
+    "CONFIG_X86_INTEL_MPX": {},
+    "CONFIG_X86_INTEL_PSTATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_INTEL_UMIP": {},
+    "CONFIG_X86_INTEL_USERCOPY": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_INTERNODE_CACHE_SHIFT": {
+      "other": [
+        [
+          0,
+          "6"
+        ],
+        [
+          1,
+          "6"
+        ],
+        [
+          2,
+          "6"
+        ]
+      ]
+    },
+    "CONFIG_X86_IO_APIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_L1_CACHE_SHIFT": {
+      "other": [
+        [
+          0,
+          "6"
+        ],
+        [
+          1,
+          "6"
+        ],
+        [
+          2,
+          "6"
+        ]
+      ]
+    },
+    "CONFIG_X86_LOCAL_APIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_MCE": {},
+    "CONFIG_X86_MINIMUM_CPU_FAMILY": {
+      "other": [
+        [
+          0,
+          "64"
+        ],
+        [
+          1,
+          "64"
+        ],
+        [
+          2,
+          "64"
+        ]
+      ]
+    },
+    "CONFIG_X86_MPPARSE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_MSR": {},
+    "CONFIG_X86_NEED_RELOCS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_P4_CLOCKMOD": {},
+    "CONFIG_X86_P6_NOP": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_PCC_CPUFREQ": {},
+    "CONFIG_X86_PLATFORM_DEVICES": {},
+    "CONFIG_X86_PMEM_LEGACY": {},
+    "CONFIG_X86_PM_TIMER": {},
+    "CONFIG_X86_PTDUMP": {},
+    "CONFIG_X86_PTDUMP_CORE": {},
+    "CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS": {},
+    "CONFIG_X86_RESERVE_LOW": {
+      "other": [
+        [
+          0,
+          "64"
+        ],
+        [
+          1,
+          "64"
+        ],
+        [
+          2,
+          "64"
+        ]
+      ]
+    },
+    "CONFIG_X86_SMAP": {},
+    "CONFIG_X86_SPEEDSTEP_CENTRINO": {},
+    "CONFIG_X86_SPEEDSTEP_LIB": {},
+    "CONFIG_X86_SYSFB": {},
+    "CONFIG_X86_TSC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_USE_PPRO_CHECKSUM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_VERBOSE_BOOTUP": {},
+    "CONFIG_X86_VSYSCALL_EMULATION": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_X2APIC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_X86_X32": {},
+    "CONFIG_XEN": {},
+    "CONFIG_XFRM": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFRM_ALGO": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFRM_IPCOMP": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFRM_MIGRATE": {},
+    "CONFIG_XFRM_OFFLOAD": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFRM_STATISTICS": {},
+    "CONFIG_XFRM_SUB_POLICY": {},
+    "CONFIG_XFRM_USER": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFS_DEBUG": {},
+    "CONFIG_XFS_FS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFS_ONLINE_SCRUB": {},
+    "CONFIG_XFS_POSIX_ACL": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XFS_QUOTA": {},
+    "CONFIG_XFS_RT": {},
+    "CONFIG_XFS_WARN": {},
+    "CONFIG_XILLYBUS": {},
+    "CONFIG_XOR_BLOCKS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XPS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XXHASH": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XZ_DEC": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XZ_DEC_ARM": {},
+    "CONFIG_XZ_DEC_ARMTHUMB": {},
+    "CONFIG_XZ_DEC_BCJ": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_XZ_DEC_IA64": {},
+    "CONFIG_XZ_DEC_POWERPC": {},
+    "CONFIG_XZ_DEC_SPARC": {},
+    "CONFIG_XZ_DEC_TEST": {},
+    "CONFIG_XZ_DEC_X86": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZBUD": {},
+    "CONFIG_ZISOFS": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZLIB_DEFLATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZLIB_INFLATE": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZONE_DMA": {},
+    "CONFIG_ZONE_DMA32": {
+      "built_in": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZPOOL": {},
+    "CONFIG_ZSMALLOC": {},
+    "CONFIG_ZSTD_COMPRESS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    },
+    "CONFIG_ZSTD_DECOMPRESS": {
+      "module": [
+        0,
+        1,
+        2
+      ]
+    }
+  }
+}

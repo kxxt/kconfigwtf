@@ -20,6 +20,14 @@ struct TestManifest {
     configs: Vec<String>,
 }
 
+fn assert_config_missing(index: &PackageIndex, config_name: &str) {
+    let occurrences = index.entries.get(config_name).expect("config entry");
+    assert!(
+        occurrences.is_empty(),
+        "{config_name} should be tracked as missing-by-default"
+    );
+}
+
 #[test]
 fn site_command_generates_static_site_from_data_directory() {
     let temp = tempfile::tempdir().expect("tempdir");
@@ -166,10 +174,7 @@ fn debian_index_command_indexes_local_packages_file() {
         Architecture::Amd64
     );
     assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -252,10 +257,7 @@ fn void_index_command_indexes_local_void_packages_checkout() {
             .value,
         ConfigValue::BuiltIn
     );
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -301,10 +303,7 @@ fn chromeos_index_command_indexes_local_recovery_image() {
             .value,
         ConfigValue::BuiltIn
     );
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -466,10 +465,7 @@ fn android_index_command_indexes_local_release_builds_metadata() {
         index.kernels["android16-6.12-2025-06_r1/arm64"].architecture,
         Architecture::Arm64
     );
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -722,10 +718,7 @@ fn aosc_index_command_indexes_local_packages_file() {
             .expect("parse package index");
     assert_eq!(index.distribution, Distribution::AoscOS);
     assert_eq!(index.package_name, "linux-kernel-<VERSION>");
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -1126,10 +1119,7 @@ fn apt_index_command_indexes_local_packages_file(case: AptCliCase<'_>) {
             .expect("parse package index");
     assert_eq!(index.distribution, case.distribution);
     assert_eq!(index.package_name, case.expected_index_package_name);
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -1203,10 +1193,7 @@ x86_64
         index.kernels["6.12.1.arch1-1/amd64"].architecture,
         Architecture::Amd64
     );
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]
@@ -1432,10 +1419,7 @@ A:x86_64
             .expect("parse Alpine index");
     assert_eq!(index.distribution, Distribution::Alpine);
     assert_eq!(index.package_name, "linux-lts");
-    assert_eq!(
-        index.entries.get("CONFIG_UNUSED").expect("CONFIG_UNUSED")[0].value,
-        ConfigValue::Missing
-    );
+    assert_config_missing(&index, "CONFIG_UNUSED");
 }
 
 #[test]

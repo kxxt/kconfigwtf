@@ -29,6 +29,7 @@ walkdir = "2.5"
 regex = "1"
 rpm = { version = "0.23.5", default-features = false, features = ["payload", "gzip-compression", "xz-compression", "zstd-compression", "bzip2-compression"] }
 quick-xml = "0.38"
+bzip2 = { version = "0.6.1", default-features = false, features = ["bzip2-sys"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"

@@ -12,7 +12,10 @@ use minijinja::{Environment, context};
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
-use crate::index::{ConfigValue, PackageIndex, normalize_config_name};
+use crate::index::{
+    ConfigValue, PackageIndex, is_package_index_file_name, normalize_config_name,
+    read_package_index,
+};
 
 const MANIFEST_FILE_NAME: &str = "indexes.json";
 const DATA_OUTPUT_DIR: &str = "data";
@@ -469,7 +472,10 @@ fn find_package_indexes_with_progress(
         if let Some(progress) = progress {
             progress.tick();
         }
-        if !entry.file_type().is_file() || entry.file_name() != "index.json" {
+        let Some(name) = entry.file_name().to_str() else {
+            continue;
+        };
+        if !entry.file_type().is_file() || !is_package_index_file_name(name) {
             continue;
         }
 
@@ -743,13 +749,6 @@ fn render_sources(records: &[&RenderRecord]) -> String {
         }
         count => format!("{count} packages"),
     }
-}
-
-fn read_package_index(index_path: &Path) -> Result<PackageIndex> {
-    let json = fs::read_to_string(index_path)
-        .with_context(|| format!("reading {}", index_path.display()))?;
-    serde_json::from_str::<PackageIndex>(&json)
-        .with_context(|| format!("parsing package index {}", index_path.display()))
 }
 
 fn copy_data_dir(source: &Path, destination: &Path, progress: Option<&ProgressBar>) -> Result<()> {
