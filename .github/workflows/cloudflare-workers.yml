@@ -13,6 +13,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  CLOUDFLARE_WORKER_NAME: kconfigwtf
 
 jobs:
   deploy:
@@ -31,7 +32,8 @@ jobs:
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
+          wranglerVersion: "4.68.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: deploy
+          command: deploy .ci/public --name=${{ env.CLOUDFLARE_WORKER_NAME }} --compatibility-date=2026-05-25

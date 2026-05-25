@@ -532,13 +532,13 @@ instead of being stored as a workflow artifact.
 Cloudflare Workers deployment is configured in
 [.github/workflows/cloudflare-workers.yml](./.github/workflows/cloudflare-workers.yml).
 The deploy workflow builds the static site from the checked-in `data/` tree and
-deploys it as a static-assets Worker using
-[wrangler.jsonc](../wrangler.jsonc) on pushes to `main` or `master`. It can
-also be triggered manually.
+deploys `.ci/public` directly with `wrangler deploy <directory>` on pushes to
+`main` or `master`. It can also be triggered manually.
 
 Repository setup required:
 
-- Create a Worker named `kconfigwtf`, or adjust `name` in `wrangler.jsonc`.
+- Create a Worker named `kconfigwtf`, or adjust `CLOUDFLARE_WORKER_NAME` in
+  the workflow.
 - Add `CLOUDFLARE_API_TOKEN` to GitHub Actions secrets.
 - Add `CLOUDFLARE_ACCOUNT_ID` to GitHub Actions secrets.
 
@@ -546,6 +546,12 @@ The Cloudflare Workers build itself runs:
 
 ```sh
 cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf
+```
+
+The deploy step uses:
+
+```sh
+wrangler deploy .ci/public --name=kconfigwtf --compatibility-date=2026-05-25
 ```
 
 ## Architecture
