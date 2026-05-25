@@ -123,6 +123,13 @@ button:hover {
   margin-top: 18px;
 }
 
+#config-body {
+  margin: 0;
+  padding: 18px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
 .result-header {
   display: flex;
   justify-content: space-between;
@@ -185,6 +192,15 @@ tr:last-child td {
 a {
   color: var(--accent);
   font-weight: 700;
+}
+
+.config-entry-link {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.config-entry-link:hover {
+  color: var(--accent-hover);
 }
 
 .link-button,

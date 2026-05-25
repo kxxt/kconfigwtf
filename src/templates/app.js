@@ -17,6 +17,7 @@ let manifestPromise = null;
 let configNames = [];
 let isNavigating = false;
 let previousInputValue = "";
+let activeConfigRequestId = 0;
 const maxSuggestions = 200;
 
 function bareConfigName(value) {
@@ -85,6 +86,49 @@ function configPageUrl(configName) {
   return `${script.src.replace(/app\.js$/, "")}CONFIG_/${encodeURIComponent(configName)}/`;
 }
 
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function renderConfigLine(line) {
+  let match = line.match(/^(CONFIG_[A-Z0-9_]+)(=.*)$/);
+  if (match) {
+    const [, configName, suffix] = match;
+    return `<a class="config-entry-link" href="${configPageUrl(
+      bareConfigName(configName),
+    )}">${escapeHtml(configName)}</a>${escapeHtml(suffix)}`;
+  }
+
+  match = line.match(/^(# )(CONFIG_[A-Z0-9_]+)( is not set)$/);
+  if (match) {
+    const [, prefix, configName, suffix] = match;
+    return `${escapeHtml(prefix)}<a class="config-entry-link" href="${configPageUrl(
+      bareConfigName(configName),
+    )}">${escapeHtml(configName)}</a>${escapeHtml(suffix)}`;
+  }
+
+  return escapeHtml(line);
+}
+
+function renderConfigText(configText) {
+  return configText
+    .replaceAll("\r\n", "\n")
+    .replaceAll("\r", "\n")
+    .split("\n")
+    .map(renderConfigLine)
+    .join("\n");
+}
+
+function scrollConfigViewerIntoView() {
+  configViewer.scrollIntoView({
+    block: "start",
+  });
+}
+
 function navigateToConfig(configName) {
   isNavigating = true;
   window.location.href = configPageUrl(configName);
@@ -125,17 +169,29 @@ function shouldNavigateFromInputEvent(event) {
 }
 
 async function showConfigFromButton(button) {
+  const requestId = ++activeConfigRequestId;
   configViewer.hidden = false;
   configTitle.textContent = button.dataset.configTitle || "Config";
   configLink.href = button.dataset.configUrl;
   configBody.textContent = "Loading...";
+  scrollConfigViewerIntoView();
 
-  const response = await fetch(button.dataset.configUrl);
-  if (!response.ok) {
-    configBody.textContent = `Unable to load config: ${response.status}`;
-    return;
+  try {
+    const response = await fetch(button.dataset.configUrl);
+    if (requestId !== activeConfigRequestId) {
+      return;
+    }
+    if (!response.ok) {
+      configBody.textContent = `Unable to load config: ${response.status}`;
+      return;
+    }
+    configBody.innerHTML = renderConfigText(await response.text());
+  } catch (error) {
+    if (requestId !== activeConfigRequestId) {
+      return;
+    }
+    configBody.textContent = `Unable to load config: ${error.message}`;
   }
-  configBody.textContent = await response.text();
 }
 
 form.addEventListener("submit", async (event) => {
