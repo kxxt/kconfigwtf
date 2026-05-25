@@ -10,7 +10,9 @@ use walkdir::WalkDir;
 
 use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{
+    KernelConfigIndexer, KernelConfigPackage, normalize_nix_release_label, rolling_release_label,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StorePackageManager {
@@ -21,6 +23,7 @@ pub enum StorePackageManager {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StorePackageIndexerConfig {
     pub distribution: Distribution,
+    pub release: String,
     pub manager: StorePackageManager,
     pub packages: Vec<String>,
     pub system: String,
@@ -37,6 +40,20 @@ pub struct StorePackageIndexer {
 impl StorePackageIndexer {
     pub fn new(config: StorePackageIndexerConfig) -> Self {
         Self { config }
+    }
+}
+
+pub fn release_for_store_manager(
+    distribution: &Distribution,
+    manager: &StorePackageManager,
+) -> String {
+    match manager {
+        StorePackageManager::Nix { flake_ref, .. }
+            if matches!(distribution, Distribution::NixOS) =>
+        {
+            normalize_nix_release_label(flake_ref)
+        }
+        _ => rolling_release_label(),
     }
 }
 
@@ -82,6 +99,7 @@ impl KernelConfigIndexer for StorePackageIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: self.config.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: package_name.clone(),
                         package_version: resolved.version.clone().unwrap_or_else(|| {
                             version_from_store_path(package_name, &store_path)

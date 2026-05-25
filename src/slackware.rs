@@ -32,6 +32,7 @@ pub struct SlackwareRepoFeed {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SlackwareIndexerConfig {
+    pub release: String,
     pub feeds: Vec<SlackwareRepoFeed>,
     pub package_name_prefix: String,
     pub max_packages: Option<usize>,
@@ -147,6 +148,7 @@ impl KernelConfigIndexer for SlackwareIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: feed.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: candidate.name.clone(),
                         package_version: candidate.version.clone(),
                         architecture: candidate.architecture.clone(),
@@ -561,6 +563,7 @@ bash: The GNU Bourne-Again Shell
         }];
 
         let config = SlackwareIndexerConfig {
+            release: "15.0".to_string(),
             feeds,
             package_name_prefix: "kernel-".to_string(),
             max_packages: None,

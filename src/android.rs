@@ -7,7 +7,7 @@ use serde::Deserialize;
 use crate::ikconfig::looks_like_html;
 pub use crate::ikconfig::{extract_ikconfig_from_image, looks_like_kernel_config};
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_release_label};
 
 const DEFAULT_TARGET: &str = "kernel_aarch64";
 const DEFAULT_CONFIG_ARTIFACT: &str = "kernel_aarch64_dot_config";
@@ -296,6 +296,7 @@ impl KernelConfigIndexer for AndroidGkiIndexer {
             }
             packages.push(KernelConfigPackage {
                 distribution: Distribution::Android,
+                release: normalize_release_label(&self.config.branch),
                 package_name: metadata.name.clone(),
                 package_version: release.tag.clone(),
                 architecture: self.config.architecture.clone(),

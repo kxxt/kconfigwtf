@@ -33,6 +33,7 @@ pub struct VoidRepoFeed {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoidIndexerConfig {
+    pub release: String,
     pub feeds: Vec<VoidRepoFeed>,
     pub package_name_prefix: String,
     pub max_packages: Option<usize>,
@@ -254,6 +255,7 @@ impl KernelConfigIndexer for VoidIndexer {
                     found_config = true;
                     packages.push(KernelConfigPackage {
                         distribution: feed.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: template.package_name.clone(),
                         package_version: format!("{}_{}", template.version, template.revision),
                         architecture: feed.architecture.clone(),

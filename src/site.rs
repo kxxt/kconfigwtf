@@ -483,6 +483,7 @@ mod tests {
         write_packages_to_data_dir(
             [KernelConfigPackage {
                 distribution: Distribution::Debian,
+                release: "trixie".to_string(),
                 package_name: "linux-image-amd64".to_string(),
                 package_version: "6.1.0-1".to_string(),
                 architecture: Architecture::Amd64,

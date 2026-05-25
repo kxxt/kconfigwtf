@@ -13,7 +13,7 @@ use tempfile::NamedTempFile;
 
 use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_release_label};
 
 const SECTOR_SIZE: u64 = 512;
 
@@ -89,6 +89,7 @@ impl KernelConfigIndexer for ChromeOsIndexer {
 
         Ok(vec![KernelConfigPackage {
             distribution: Distribution::ChromeOS,
+            release: normalize_release_label(&extracted.platform_version),
             package_name: extracted.platform_version,
             package_version: extracted.kernel_version,
             architecture: self.config.architecture.clone(),

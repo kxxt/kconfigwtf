@@ -11,7 +11,7 @@ use std::str::FromStr;
 
 use crate::indexer::KernelConfigPackage;
 
-pub const INDEX_SCHEMA_VERSION: u32 = 4;
+pub const INDEX_SCHEMA_VERSION: u32 = 5;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Distribution {
@@ -299,6 +299,8 @@ impl<'de> Deserialize<'de> for ConfigValue {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PackageKernel {
     pub version: String,
+    #[serde(default = "unknown_release_label")]
+    pub release: String,
     pub architecture: Architecture,
     pub config_path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -358,6 +360,7 @@ impl PackageIndex {
             kernel.clone(),
             PackageKernel {
                 version: package.package_version.clone(),
+                release: package.release.clone(),
                 architecture: package.architecture.clone(),
                 config_path,
                 source: package.source.clone(),
@@ -480,6 +483,10 @@ pub fn config_relative_path(version: &str, architecture: &Architecture) -> Strin
     format!("{version}/{}/config", architecture.as_str())
 }
 
+fn unknown_release_label() -> String {
+    "unknown".to_string()
+}
+
 fn path_segment<'a>(value: &'a str, label: &str) -> Result<&'a str> {
     if value.is_empty()
         || value == "."
@@ -588,6 +595,7 @@ NOT_A_CONFIG=y
     fn builds_package_index_from_kernel_config_packages_without_entry_metadata_duplication() {
         let package = KernelConfigPackage {
             distribution: Distribution::Debian,
+            release: "trixie".to_string(),
             package_name: "linux-image-amd64".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,
@@ -603,6 +611,7 @@ NOT_A_CONFIG=y
         assert_eq!(index.package_name, "linux-image-amd64");
         assert_eq!(bpf[0].kernel, "6.1.0-1/amd64");
         assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
+        assert_eq!(index.kernels["6.1.0-1/amd64"].release, "trixie");
         assert_eq!(
             index.kernels["6.1.0-1/amd64"].config_path,
             "6.1.0-1/amd64/config"
@@ -625,6 +634,7 @@ NOT_A_CONFIG=y
     fn serializes_typed_distribution_and_architecture_as_strings() {
         let kernel = PackageKernel {
             version: "6.1.0-1".to_string(),
+            release: "trixie".to_string(),
             architecture: Architecture::Amd64,
             config_path: "6.1.0-1/amd64/config".to_string(),
             source: None,
@@ -644,6 +654,7 @@ NOT_A_CONFIG=y
     fn writes_data_tree_with_raw_config_and_package_index() {
         let package = KernelConfigPackage {
             distribution: Distribution::Debian,
+            release: "trixie".to_string(),
             package_name: "linux-image-amd64".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,
@@ -672,6 +683,7 @@ NOT_A_CONFIG=y
         let temp = tempfile::tempdir().expect("tempdir");
         let amd64 = KernelConfigPackage {
             distribution: Distribution::Debian,
+            release: "trixie".to_string(),
             package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,
@@ -680,6 +692,7 @@ NOT_A_CONFIG=y
         };
         let riscv64 = KernelConfigPackage {
             distribution: Distribution::Debian,
+            release: "trixie".to_string(),
             package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Riscv64,
@@ -709,6 +722,7 @@ NOT_A_CONFIG=y
         let temp = tempfile::tempdir().expect("tempdir");
         let package = KernelConfigPackage {
             distribution: Distribution::Debian,
+            release: "trixie".to_string(),
             package_name: "linux-image-<VERSION>-<ARCH>".to_string(),
             package_version: "6.1.0-1".to_string(),
             architecture: Architecture::Amd64,

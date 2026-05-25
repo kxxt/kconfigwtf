@@ -21,6 +21,10 @@ use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
 use kconfigwtf::index::{Architecture, Distribution, write_packages_to_data_dir};
+use kconfigwtf::indexer::{
+    normalize_alpine_release_label, normalize_apt_release_label, normalize_rpm_release_label,
+    normalize_slackware_release_label, rolling_release_label,
+};
 use kconfigwtf::openwrt::{
     DEFAULT_TARGETS_URL as DEFAULT_OPENWRT_TARGETS_URL, OpenWrtIndexer, OpenWrtIndexerConfig,
     OpenWrtTargetsLocation,
@@ -31,7 +35,7 @@ use kconfigwtf::slackware::{
 };
 use kconfigwtf::store::{
     StorePackageIndexer, StorePackageIndexerConfig, StorePackageManager,
-    default_system_for_architecture, discover_nix_kernel_packages,
+    default_system_for_architecture, discover_nix_kernel_packages, release_for_store_manager,
 };
 use kconfigwtf::void::{
     DEFAULT_VOID_GITHUB_RAW_SRCPKGS_URL, VoidIndexer, VoidIndexerConfig, VoidPackageBase,
@@ -1202,6 +1206,7 @@ async fn index_aosc(args: AoscArgs) -> Result<()> {
 
         DebianIndexerConfig {
             distribution: Distribution::AoscOS,
+            release: normalize_apt_release_label(&args.suite),
             feeds: vec![DebianPackageFeed {
                 architecture,
                 packages: PackageIndexLocation::Path(packages_file.clone()),
@@ -1234,6 +1239,7 @@ async fn index_aosc(args: AoscArgs) -> Result<()> {
 
         DebianIndexerConfig {
             distribution: Distribution::AoscOS,
+            release: normalize_apt_release_label(suite),
             feeds,
             package_name_prefix: args.package_prefix.clone(),
             required_package_substrings: vec![],
@@ -1309,6 +1315,11 @@ async fn index_nixos(args: NixOsArgs) -> Result<()> {
         architecture: args.architecture,
         max_packages: args.max_packages,
         skip_failed_packages: discovered_packages,
+        release: String::new(),
+    };
+    let config = StorePackageIndexerConfig {
+        release: release_for_store_manager(&config.distribution, &config.manager),
+        ..config
     };
     let indexer = StorePackageIndexer::new(config);
     let packages = indexer.index().await?;
@@ -1330,6 +1341,7 @@ async fn index_guix(args: GuixArgs) -> Result<()> {
         architecture: args.architecture,
         max_packages: args.max_packages,
         skip_failed_packages: false,
+        release: rolling_release_label(),
     };
     let indexer = StorePackageIndexer::new(config);
     let packages = indexer.index().await?;
@@ -1413,6 +1425,7 @@ async fn void_config_from_args(args: &VoidArgs) -> Result<VoidIndexerConfig> {
     }
 
     Ok(VoidIndexerConfig {
+        release: rolling_release_label(),
         feeds,
         package_name_prefix: args.package_prefix.clone(),
         max_packages: args.max_packages,
@@ -1432,6 +1445,7 @@ fn slackware_config_from_args(args: &SlackwareArgs) -> Result<SlackwareIndexerCo
             .unwrap_or(Architecture::Amd64);
 
         return Ok(SlackwareIndexerConfig {
+            release: normalize_slackware_release_label(&args.release),
             feeds: vec![SlackwareRepoFeed {
                 distribution: Distribution::Slackware,
                 architecture,
@@ -1461,6 +1475,7 @@ fn slackware_config_from_args(args: &SlackwareArgs) -> Result<SlackwareIndexerCo
         .collect();
 
     Ok(SlackwareIndexerConfig {
+        release: normalize_slackware_release_label(release),
         feeds,
         package_name_prefix: args.package_prefix.clone(),
         max_packages: args.max_packages,
@@ -1623,6 +1638,7 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
         let include_kernel_packages = is_archlinux_riscv(&args.distribution, &architecture);
 
         ArchIndexerConfig {
+            release: rolling_release_label(),
             feeds: vec![ArchRepoFeed {
                 distribution,
                 architecture,
@@ -1672,6 +1688,7 @@ fn arch_config_from_args(args: &ArchArgs) -> Result<ArchIndexerConfig> {
             .collect::<Vec<_>>();
 
         ArchIndexerConfig {
+            release: rolling_release_label(),
             feeds,
             package_name_prefix: args.package_prefix.clone(),
             max_packages: args.max_packages,
@@ -1708,6 +1725,7 @@ fn eweos_config_from_args(args: &EweOsArgs) -> Result<ArchIndexerConfig> {
             .unwrap_or(Architecture::Amd64);
 
         ArchIndexerConfig {
+            release: rolling_release_label(),
             feeds: vec![ArchRepoFeed {
                 distribution: Distribution::EweOS,
                 architecture,
@@ -1746,6 +1764,7 @@ fn alpine_config_from_args(args: &AlpineArgs) -> Result<AlpineIndexerConfig> {
             .unwrap_or(Architecture::Amd64);
 
         AlpineIndexerConfig {
+            release: normalize_alpine_release_label(&args.release),
             feeds: vec![AlpineRepoFeed {
                 distribution: Distribution::Alpine,
                 architecture,
@@ -1777,6 +1796,7 @@ fn alpine_config_from_args(args: &AlpineArgs) -> Result<AlpineIndexerConfig> {
         }
 
         AlpineIndexerConfig {
+            release: normalize_alpine_release_label(&args.release),
             feeds,
             package_name_prefix: args.package_prefix.clone(),
             max_packages: args.max_packages,
@@ -1843,6 +1863,7 @@ fn apt_config_from_args(args: AptConfigArgs<'_>) -> Result<DebianIndexerConfig> 
 
         DebianIndexerConfig {
             distribution: args.distribution.clone(),
+            release: normalize_apt_release_label(args.suite),
             feeds: vec![DebianPackageFeed {
                 architecture,
                 packages: PackageIndexLocation::Path((*packages_file).clone()),
@@ -1885,6 +1906,7 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
 
         FedoraIndexerConfig {
             distribution: Distribution::Fedora,
+            release: normalize_rpm_release_label(&Distribution::Fedora, &args.release),
             feeds: vec![FedoraRepoFeed {
                 architecture,
                 repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
@@ -1934,6 +1956,12 @@ async fn rpm_config_from_args(
 
         FedoraIndexerConfig {
             distribution: distribution.clone(),
+            release: normalize_rpm_release_label(
+                &distribution,
+                args.release
+                    .as_deref()
+                    .unwrap_or(default_rpm_release(&distribution)),
+            ),
             feeds: vec![FedoraRepoFeed {
                 architecture,
                 repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
@@ -1961,6 +1989,12 @@ async fn rpm_config_from_args(
 
         FedoraIndexerConfig {
             distribution: distribution.clone(),
+            release: normalize_rpm_release_label(
+                &distribution,
+                args.release
+                    .as_deref()
+                    .unwrap_or(default_rpm_release(&distribution)),
+            ),
             feeds,
             package_name: package_name.clone(),
             package_names: package_names.clone(),

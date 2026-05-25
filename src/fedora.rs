@@ -8,7 +8,7 @@ use quick_xml::Reader;
 use quick_xml::events::{BytesStart, Event};
 
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_rpm_release_label};
 
 const DEFAULT_PACKAGE_NAME: &str = "kernel-core";
 
@@ -34,6 +34,7 @@ pub struct FedoraRepoFeed {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FedoraIndexerConfig {
     pub distribution: Distribution,
+    pub release: String,
     pub feeds: Vec<FedoraRepoFeed>,
     pub package_name: String,
     pub package_names: Vec<String>,
@@ -62,6 +63,7 @@ impl FedoraIndexerConfig {
 
         Self {
             distribution: Distribution::Fedora,
+            release: normalize_rpm_release_label(&Distribution::Fedora, release),
             feeds,
             package_name: DEFAULT_PACKAGE_NAME.to_string(),
             package_names: vec![DEFAULT_PACKAGE_NAME.to_string()],
@@ -173,6 +175,7 @@ impl KernelConfigIndexer for FedoraIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: self.config.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: candidate.name.clone(),
                         package_version: candidate.version.clone(),
                         architecture: candidate.architecture.clone(),

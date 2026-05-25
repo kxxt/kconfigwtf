@@ -9,7 +9,7 @@ use liblzma::read::XzDecoder;
 use tar::Archive;
 
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, rolling_release_label};
 
 const DEFAULT_PACKAGE_PREFIX: &str = "linux";
 
@@ -43,6 +43,7 @@ pub struct ArchRepoFeed {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArchIndexerConfig {
+    pub release: String,
     pub feeds: Vec<ArchRepoFeed>,
     pub package_name_prefix: String,
     pub max_packages: Option<usize>,
@@ -88,6 +89,7 @@ impl ArchIndexerConfig {
             .collect();
 
         Self {
+            release: rolling_release_label(),
             feeds,
             package_name_prefix: DEFAULT_PACKAGE_PREFIX.to_string(),
             max_packages: None,
@@ -198,6 +200,7 @@ impl KernelConfigIndexer for ArchIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: feed.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: normalize_arch_kernel_package_name(&candidate.name),
                         package_version: candidate.version.clone(),
                         architecture: candidate.architecture.clone(),

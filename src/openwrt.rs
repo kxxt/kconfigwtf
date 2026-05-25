@@ -10,7 +10,7 @@ use zstd::stream::read::Decoder as ZstdDecoder;
 
 use crate::ikconfig::looks_like_kernel_config;
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_openwrt_release_label};
 
 pub const DEFAULT_TARGETS_URL: &str = "https://downloads.openwrt.org/snapshots/targets";
 
@@ -246,6 +246,7 @@ impl KernelConfigIndexer for OpenWrtIndexer {
 
             packages.push(KernelConfigPackage {
                 distribution: Distribution::OpenWrt,
+                release: normalize_openwrt_release_label(profiles.version_number.as_deref()),
                 package_name: normalized_target_name(&profiles.target),
                 package_version: target_build_version(&profiles),
                 architecture: architecture_from_arch_packages(&profiles.arch_packages),

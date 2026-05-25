@@ -10,7 +10,7 @@ use tar::Archive;
 
 use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
-use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
+use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_apt_release_label};
 
 const DEFAULT_PACKAGE_PREFIX: &str = "linux-image-";
 
@@ -36,6 +36,7 @@ pub struct DebianPackageFeed {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DebianIndexerConfig {
     pub distribution: Distribution,
+    pub release: String,
     pub feeds: Vec<DebianPackageFeed>,
     pub package_name_prefix: String,
     pub required_package_substrings: Vec<String>,
@@ -66,6 +67,7 @@ impl DebianIndexerConfig {
 
         Self {
             distribution: Distribution::Debian,
+            release: normalize_apt_release_label(suite),
             feeds,
             package_name_prefix: DEFAULT_PACKAGE_PREFIX.to_string(),
             required_package_substrings: Vec::new(),
@@ -172,6 +174,7 @@ impl KernelConfigIndexer for DebianIndexer {
                 for (config_path, config_text) in configs {
                     packages.push(KernelConfigPackage {
                         distribution: self.config.distribution.clone(),
+                        release: self.config.release.clone(),
                         package_name: normalize_apt_kernel_package_name(
                             &candidate.name,
                             &self.config.package_name_prefix,
