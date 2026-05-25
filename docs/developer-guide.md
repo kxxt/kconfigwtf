@@ -529,21 +529,20 @@ build the same static site content.
 Coverage is uploaded to Codecov from GitHub Actions with tokenless OIDC auth
 instead of being stored as a workflow artifact.
 
-GitHub Pages deployment is configured in
-[.github/workflows/github-pages.yml](./.github/workflows/github-pages.yml).
-The deploy workflow publishes the generated `public` artifact from the checked-in
-`data/` tree on pushes to `main` or `master`, and it can also be triggered
-manually. Because the generated site includes filenames that are not valid on
-all filesystems, the workflow first packs the site into a `tar.gz` file and
-uploads that archive as the `github-pages` artifact consumed by
-`actions/deploy-pages`.
+Cloudflare Pages deployment is configured in
+[.github/workflows/cloudflare-pages.yml](./.github/workflows/cloudflare-pages.yml).
+The deploy workflow builds the static site from the checked-in `data/` tree and
+deploys `.ci/public` directly with Wrangler on pushes to `main` or `master`. It
+can also be triggered manually.
 
 Repository setup required:
 
-- In GitHub Pages settings, set the source to `GitHub Actions`.
-- Ensure the default branch is the one you want to publish from.
+- Create a Cloudflare Pages project named `kconfigwtf`, or adjust the workflow
+  project name to match your Pages project.
+- Add `CLOUDFLARE_API_TOKEN` to GitHub Actions secrets.
+- Add `CLOUDFLARE_ACCOUNT_ID` to GitHub Actions secrets.
 
-The GitHub Pages build itself runs:
+The Cloudflare Pages build itself runs:
 
 ```sh
 cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf
