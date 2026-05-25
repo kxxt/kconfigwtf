@@ -942,6 +942,10 @@ struct SiteArgs {
     /// Browser page title.
     #[arg(long, default_value = "kconfigwtf")]
     title: String,
+
+    /// Number of worker threads for config page rendering. Defaults to available CPUs.
+    #[arg(long)]
+    jobs: Option<usize>,
 }
 
 #[tokio::main]
@@ -2203,7 +2207,16 @@ fn rpm_architecture_segment(architecture: &Architecture) -> &str {
 }
 
 fn generate_site(args: SiteArgs) -> Result<()> {
-    SiteGenerator::new(args.title).generate(args.data_dir, args.output_dir)
+    let generator = SiteGenerator::new(args.title);
+    let generator = if let Some(jobs) = args.jobs {
+        if jobs == 0 {
+            bail!("--jobs must be at least 1");
+        }
+        generator.with_parallelism(jobs)?
+    } else {
+        generator
+    };
+    generator.generate(args.data_dir, args.output_dir)
 }
 
 #[cfg(test)]

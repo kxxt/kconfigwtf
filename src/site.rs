@@ -1,8 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::thread;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use chrono::{DateTime, Utc};
 use minijinja::{Environment, context};
 use serde::{Deserialize, Serialize};
@@ -42,13 +44,24 @@ struct RenderRecord {
 
 pub struct SiteGenerator {
     title: String,
+    parallelism: usize,
 }
 
 impl SiteGenerator {
     pub fn new(title: impl Into<String>) -> Self {
         Self {
             title: title.into(),
+            parallelism: default_parallelism(),
         }
+    }
+
+    pub fn with_parallelism(mut self, parallelism: usize) -> Result<Self> {
+        if parallelism == 0 {
+            bail!("site generator parallelism must be at least 1");
+        }
+
+        self.parallelism = parallelism;
+        Ok(self)
     }
 
     pub fn generate(&self, data_dir: impl AsRef<Path>, output_dir: impl AsRef<Path>) -> Result<()> {
@@ -62,12 +75,7 @@ impl SiteGenerator {
         copy_data_dir(data_dir, &output_dir.join(DATA_OUTPUT_DIR))?;
         let manifest = build_manifest(&loaded_indexes);
 
-        let mut env = Environment::new();
-        env.add_template("index.html", include_str!("templates/index.html"))
-            .context("registering index.html template")?;
-
         write_page(
-            &env,
             output_dir.join("index.html"),
             PageRender {
                 site_title: &self.title,
@@ -81,32 +89,13 @@ impl SiteGenerator {
             },
         )?;
 
-        for config in &manifest.configs {
-            let config_name = normalize_config_name(config);
-            let records = records_for_config(&config_name, &loaded_indexes, "../../");
-            let page_dir = output_dir.join(CONFIG_OUTPUT_DIR).join(config);
-            fs::create_dir_all(&page_dir).with_context(|| {
-                format!("creating config page directory {}", page_dir.display())
-            })?;
-            write_page(
-                &env,
-                page_dir.join("index.html"),
-                PageRender {
-                    site_title: &self.title,
-                    page_title: &format!("{config_name} - {}", self.title),
-                    asset_prefix: "../../",
-                    manifest_file: MANIFEST_FILE_NAME,
-                    result_title: &config_name,
-                    result_count: &format!(
-                        "{} match{}",
-                        records.len(),
-                        if records.len() == 1 { "" } else { "es" }
-                    ),
-                    table_body: &render_results_table(&records),
-                    config_viewer_hidden: true,
-                },
-            )?;
-        }
+        write_config_pages(
+            &manifest.configs,
+            &loaded_indexes,
+            output_dir,
+            &self.title,
+            self.parallelism,
+        )?;
 
         fs::write(output_dir.join("app.js"), include_str!("templates/app.js"))
             .with_context(|| format!("writing {}", output_dir.join("app.js").display()))?;
@@ -137,7 +126,8 @@ struct PageRender<'a> {
     config_viewer_hidden: bool,
 }
 
-fn write_page(env: &Environment<'_>, path: PathBuf, page: PageRender<'_>) -> Result<()> {
+fn write_page(path: PathBuf, page: PageRender<'_>) -> Result<()> {
+    let env = page_environment()?;
     let html = env
         .get_template("index.html")
         .context("loading index.html template")?
@@ -154,6 +144,102 @@ fn write_page(env: &Environment<'_>, path: PathBuf, page: PageRender<'_>) -> Res
         .context("rendering index.html")?;
 
     fs::write(&path, html).with_context(|| format!("writing {}", path.display()))
+}
+
+fn page_environment() -> Result<Environment<'static>> {
+    let mut env = Environment::new();
+    env.add_template("index.html", include_str!("templates/index.html"))
+        .context("registering index.html template")?;
+    Ok(env)
+}
+
+fn default_parallelism() -> usize {
+    thread::available_parallelism()
+        .map(usize::from)
+        .unwrap_or(1)
+}
+
+fn write_config_pages(
+    configs: &[String],
+    loaded_indexes: &[LoadedPackageIndex],
+    output_dir: &Path,
+    title: &str,
+    parallelism: usize,
+) -> Result<()> {
+    if configs.is_empty() {
+        return Ok(());
+    }
+
+    let worker_count = parallelism.max(1).min(configs.len());
+    if worker_count == 1 {
+        for config in configs {
+            write_config_page(config, loaded_indexes, output_dir, title)?;
+        }
+        return Ok(());
+    }
+
+    let next = AtomicUsize::new(0);
+    thread::scope(|scope| -> Result<()> {
+        let mut handles = Vec::with_capacity(worker_count);
+        for _ in 0..worker_count {
+            handles.push(scope.spawn(|| -> Result<()> {
+                loop {
+                    let index = next.fetch_add(1, Ordering::Relaxed);
+                    if index >= configs.len() {
+                        break;
+                    }
+
+                    write_config_page(&configs[index], loaded_indexes, output_dir, title)?;
+                }
+
+                Ok(())
+            }));
+        }
+
+        for handle in handles {
+            let result = handle
+                .join()
+                .map_err(|_| anyhow!("site build worker panicked"))?;
+            result?;
+        }
+
+        Ok(())
+    })
+}
+
+fn write_config_page(
+    config: &str,
+    loaded_indexes: &[LoadedPackageIndex],
+    output_dir: &Path,
+    title: &str,
+) -> Result<()> {
+    let config_name = normalize_config_name(config);
+    let records = records_for_config(&config_name, loaded_indexes, "../../");
+    let page_dir = output_dir.join(CONFIG_OUTPUT_DIR).join(config);
+    fs::create_dir_all(&page_dir)
+        .with_context(|| format!("creating config page directory {}", page_dir.display()))?;
+
+    let page_title = format!("{config_name} - {title}");
+    let result_count = format!(
+        "{} match{}",
+        records.len(),
+        if records.len() == 1 { "" } else { "es" }
+    );
+    let table_body = render_results_table(&records);
+
+    write_page(
+        page_dir.join("index.html"),
+        PageRender {
+            site_title: title,
+            page_title: &page_title,
+            asset_prefix: "../../",
+            manifest_file: MANIFEST_FILE_NAME,
+            result_title: &config_name,
+            result_count: &result_count,
+            table_body: &table_body,
+            config_viewer_hidden: true,
+        },
+    )
 }
 
 pub fn find_package_indexes(data_dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
@@ -526,5 +612,44 @@ mod tests {
         assert!(bpf_page.contains(
             "data-config-url=\"../../data/debian/linux-image-amd64/6.1.0-1/amd64/config\""
         ));
+    }
+
+    #[test]
+    fn writes_static_site_files_with_parallel_workers() {
+        let data = tempfile::tempdir().expect("data tempdir");
+        let site = tempfile::tempdir().expect("site tempdir");
+        write_packages_to_data_dir(
+            [KernelConfigPackage {
+                distribution: Distribution::Debian,
+                release: "trixie".to_string(),
+                package_name: "linux-image-amd64".to_string(),
+                package_version: "6.1.0-1".to_string(),
+                architecture: Architecture::Amd64,
+                source: None,
+                config_text: "CONFIG_BPF=y\nCONFIG_EXT4_FS=m\nCONFIG_INET=y\n".to_string(),
+            }],
+            data.path(),
+        )
+        .expect("write data");
+
+        SiteGenerator::new("kconfigwtf")
+            .with_parallelism(2)
+            .expect("set parallelism")
+            .generate(data.path(), site.path())
+            .expect("generate site");
+
+        assert!(site.path().join("CONFIG_/BPF/index.html").exists());
+        assert!(site.path().join("CONFIG_/EXT4_FS/index.html").exists());
+        assert!(site.path().join("CONFIG_/INET/index.html").exists());
+    }
+
+    #[test]
+    fn rejects_zero_parallelism() {
+        let error = match SiteGenerator::new("kconfigwtf").with_parallelism(0) {
+            Ok(_) => panic!("parallelism should fail"),
+            Err(error) => error,
+        };
+
+        assert!(error.to_string().contains("at least 1"));
     }
 }
