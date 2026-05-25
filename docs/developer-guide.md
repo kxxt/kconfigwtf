@@ -529,20 +529,20 @@ build the same static site content.
 Coverage is uploaded to Codecov from GitHub Actions with tokenless OIDC auth
 instead of being stored as a workflow artifact.
 
-Cloudflare Pages deployment is configured in
-[.github/workflows/cloudflare-pages.yml](./.github/workflows/cloudflare-pages.yml).
+Cloudflare Workers deployment is configured in
+[.github/workflows/cloudflare-workers.yml](./.github/workflows/cloudflare-workers.yml).
 The deploy workflow builds the static site from the checked-in `data/` tree and
-deploys `.ci/public` directly with Wrangler on pushes to `main` or `master`. It
-can also be triggered manually.
+deploys it as a static-assets Worker using
+[wrangler.jsonc](../wrangler.jsonc) on pushes to `main` or `master`. It can
+also be triggered manually.
 
 Repository setup required:
 
-- Create a Cloudflare Pages project named `kconfigwtf`, or adjust the workflow
-  project name to match your Pages project.
+- Create a Worker named `kconfigwtf`, or adjust `name` in `wrangler.jsonc`.
 - Add `CLOUDFLARE_API_TOKEN` to GitHub Actions secrets.
 - Add `CLOUDFLARE_ACCOUNT_ID` to GitHub Actions secrets.
 
-The Cloudflare Pages build itself runs:
+The Cloudflare Workers build itself runs:
 
 ```sh
 cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf

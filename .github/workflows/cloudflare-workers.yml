@@ -1,4 +1,4 @@
-name: Cloudflare Pages
+name: Cloudflare Workers
 
 on:
   push:
@@ -8,16 +8,15 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: cloudflare-pages-${{ github.ref }}
+  group: cloudflare-workers-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
-  CLOUDFLARE_PAGES_PROJECT_NAME: kconfigwtf
 
 jobs:
   deploy:
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,11 +27,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Build static site
         run: cargo run --locked -- site --data-dir data --output-dir .ci/public --title kconfigwtf
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Workers
         id: deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy .ci/public --project-name=${{ env.CLOUDFLARE_PAGES_PROJECT_NAME }}
+          command: deploy
