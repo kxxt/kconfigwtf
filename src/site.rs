@@ -69,14 +69,49 @@ impl SiteGenerator {
     pub fn generate(&self, data_dir: impl AsRef<Path>, output_dir: impl AsRef<Path>) -> Result<()> {
         let data_dir = data_dir.as_ref();
         let output_dir = output_dir.as_ref();
+        let progress = SiteBuildProgress::new();
         fs::create_dir_all(output_dir)
             .with_context(|| format!("creating site output directory {}", output_dir.display()))?;
 
-        let package_index_paths = find_package_indexes(data_dir)?;
-        let loaded_indexes = load_package_indexes(data_dir, &package_index_paths)?;
-        copy_data_dir(data_dir, &output_dir.join(DATA_OUTPUT_DIR))?;
-        let manifest = build_manifest(&loaded_indexes);
+        let discovery_progress = progress.spinner("discovering package indexes")?;
+        let package_index_paths =
+            find_package_indexes_with_progress(data_dir, Some(&discovery_progress))?;
+        discovery_progress.finish_with_message(format!(
+            "discovered {} package indexes",
+            package_index_paths.len()
+        ));
 
+        let load_progress = progress.bar(
+            package_index_paths.len() as u64,
+            format!("loading {} package indexes", package_index_paths.len()),
+        )?;
+        let loaded_indexes =
+            load_package_indexes(data_dir, &package_index_paths, Some(&load_progress))?;
+        load_progress.finish_with_message(format!(
+            "loaded {} package indexes",
+            package_index_paths.len()
+        ));
+
+        let copy_file_count = count_files_in_tree(data_dir)?;
+        let copy_progress = progress.bar(
+            copy_file_count,
+            format!("copying {copy_file_count} data files"),
+        )?;
+        copy_data_dir(
+            data_dir,
+            &output_dir.join(DATA_OUTPUT_DIR),
+            Some(&copy_progress),
+        )?;
+        copy_progress.finish_with_message(format!("copied {copy_file_count} data files"));
+
+        let manifest_progress = progress.spinner("building manifest")?;
+        let manifest = build_manifest(&loaded_indexes);
+        manifest_progress.finish_with_message(format!(
+            "built manifest for {} configs",
+            manifest.configs.len()
+        ));
+
+        let root_page_progress = progress.spinner("writing root page")?;
         write_page(
             output_dir.join("index.html"),
             PageRender {
@@ -90,6 +125,7 @@ impl SiteGenerator {
                 config_viewer_hidden: true,
             },
         )?;
+        root_page_progress.finish_with_message("wrote root page".to_string());
 
         write_config_pages(
             &manifest.configs,
@@ -97,8 +133,10 @@ impl SiteGenerator {
             output_dir,
             &self.title,
             self.parallelism,
+            &progress,
         )?;
 
+        let assets_progress = progress.spinner("writing static assets")?;
         fs::write(output_dir.join("app.js"), include_str!("templates/app.js"))
             .with_context(|| format!("writing {}", output_dir.join("app.js").display()))?;
         fs::write(
@@ -106,12 +144,15 @@ impl SiteGenerator {
             include_str!("templates/styles.css"),
         )
         .with_context(|| format!("writing {}", output_dir.join("styles.css").display()))?;
+        assets_progress.finish_with_message("wrote static assets".to_string());
 
         let manifest_json =
             serde_json::to_string_pretty(&manifest).context("serializing site manifest")?;
+        let write_manifest_progress = progress.spinner("writing site manifest")?;
         fs::write(output_dir.join(MANIFEST_FILE_NAME), manifest_json).with_context(|| {
             format!("writing {}", output_dir.join(MANIFEST_FILE_NAME).display())
         })?;
+        write_manifest_progress.finish_with_message("wrote site manifest".to_string());
 
         Ok(())
     }
@@ -167,13 +208,14 @@ fn write_config_pages(
     output_dir: &Path,
     title: &str,
     parallelism: usize,
+    progress: &SiteBuildProgress,
 ) -> Result<()> {
     if configs.is_empty() {
         return Ok(());
     }
 
     let worker_count = parallelism.max(1).min(configs.len());
-    let progress = SiteBuildProgress::new(configs.len(), worker_count)?;
+    let progress = ConfigPageProgress::new(progress, configs.len(), worker_count)?;
     if worker_count == 1 {
         let result = (|| -> Result<()> {
             let worker = progress.worker(0);
@@ -263,28 +305,65 @@ fn write_config_page(
 }
 
 struct SiteBuildProgress {
+    multi: Option<MultiProgress>,
+}
+
+impl SiteBuildProgress {
+    fn new() -> Self {
+        if !io::stderr().is_terminal() {
+            return Self { multi: None };
+        }
+
+        Self {
+            multi: Some(MultiProgress::with_draw_target(
+                ProgressDrawTarget::stderr_with_hz(10),
+            )),
+        }
+    }
+
+    fn spinner(&self, message: impl Into<String>) -> Result<ProgressBar> {
+        let spinner = self.add_progress_bar(ProgressBar::new_spinner());
+        spinner.set_style(phase_spinner_style()?);
+        spinner.enable_steady_tick(std::time::Duration::from_millis(100));
+        spinner.set_message(message.into());
+        Ok(spinner)
+    }
+
+    fn bar(&self, length: u64, message: impl Into<String>) -> Result<ProgressBar> {
+        let bar = self.add_progress_bar(ProgressBar::new(length));
+        bar.set_style(phase_bar_style()?);
+        bar.set_message(message.into());
+        Ok(bar)
+    }
+
+    fn add_progress_bar(&self, bar: ProgressBar) -> ProgressBar {
+        match &self.multi {
+            Some(multi) => multi.add(bar),
+            None => ProgressBar::hidden(),
+        }
+    }
+}
+
+struct ConfigPageProgress {
     total: ProgressBar,
     workers: Vec<ProgressBar>,
 }
 
-impl SiteBuildProgress {
-    fn new(total_configs: usize, worker_count: usize) -> Result<Self> {
-        if !io::stderr().is_terminal() {
-            return Ok(Self {
-                total: ProgressBar::hidden(),
-                workers: Vec::new(),
-            });
-        }
-
-        let multi = MultiProgress::with_draw_target(ProgressDrawTarget::stderr_with_hz(10));
-        let total = multi.add(ProgressBar::new(total_configs as u64));
-        total.set_style(total_progress_style()?);
-        total.set_message(format!("building {total_configs} config pages"));
+impl ConfigPageProgress {
+    fn new(
+        progress: &SiteBuildProgress,
+        total_configs: usize,
+        worker_count: usize,
+    ) -> Result<Self> {
+        let total = progress.bar(
+            total_configs as u64,
+            format!("building {total_configs} config pages"),
+        )?;
 
         let workers = if worker_count > 1 {
             let mut workers = Vec::with_capacity(worker_count);
             for index in 0..worker_count {
-                let worker = multi.add(ProgressBar::new_spinner());
+                let worker = progress.add_progress_bar(ProgressBar::new_spinner());
                 worker.set_style(worker_progress_style()?);
                 worker.enable_steady_tick(std::time::Duration::from_millis(100));
                 worker.set_message(format!("worker {:02}: idle", index + 1));
@@ -355,12 +434,17 @@ impl SiteBuildWorkerProgress {
     }
 }
 
-fn total_progress_style() -> Result<ProgressStyle> {
+fn phase_bar_style() -> Result<ProgressStyle> {
     ProgressStyle::with_template(
         "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}",
     )
     .map(|style| style.progress_chars("##-"))
-    .context("building total site progress style")
+    .context("building site progress bar style")
+}
+
+fn phase_spinner_style() -> Result<ProgressStyle> {
+    ProgressStyle::with_template("{spinner:.green} [{elapsed_precise}] {msg}")
+        .context("building site spinner progress style")
 }
 
 fn worker_progress_style() -> Result<ProgressStyle> {
@@ -369,17 +453,29 @@ fn worker_progress_style() -> Result<ProgressStyle> {
 }
 
 pub fn find_package_indexes(data_dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
+    find_package_indexes_with_progress(data_dir, None)
+}
+
+fn find_package_indexes_with_progress(
+    data_dir: impl AsRef<Path>,
+    progress: Option<&ProgressBar>,
+) -> Result<Vec<PathBuf>> {
     let data_dir = data_dir.as_ref();
     let mut indexes = Vec::new();
 
     for entry in WalkDir::new(data_dir) {
         let entry = entry.with_context(|| format!("walking {}", data_dir.display()))?;
+        if let Some(progress) = progress {
+            progress.tick();
+        }
         if !entry.file_type().is_file() || entry.file_name() != "index.json" {
             continue;
         }
 
-        read_package_index(entry.path())?;
         indexes.push(entry.path().to_path_buf());
+        if let Some(progress) = progress {
+            progress.set_message(format!("discovering package indexes ({})", indexes.len()));
+        }
     }
 
     indexes.sort();
@@ -389,6 +485,7 @@ pub fn find_package_indexes(data_dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> 
 fn load_package_indexes(
     data_dir: &Path,
     package_indexes: &[PathBuf],
+    progress: Option<&ProgressBar>,
 ) -> Result<Vec<LoadedPackageIndex>> {
     package_indexes
         .iter()
@@ -400,13 +497,17 @@ fn load_package_indexes(
                     data_dir.display()
                 )
             })?;
-            Ok(LoadedPackageIndex {
+            let result = Ok(LoadedPackageIndex {
                 url: format!(
                     "{DATA_OUTPUT_DIR}/{}",
                     relative.to_string_lossy().replace('\\', "/")
                 ),
                 index: read_package_index(index_path)?,
-            })
+            });
+            if let Some(progress) = progress {
+                progress.inc(1);
+            }
+            result
         })
         .collect()
 }
@@ -628,7 +729,7 @@ fn read_package_index(index_path: &Path) -> Result<PackageIndex> {
         .with_context(|| format!("parsing package index {}", index_path.display()))
 }
 
-fn copy_data_dir(source: &Path, destination: &Path) -> Result<()> {
+fn copy_data_dir(source: &Path, destination: &Path, progress: Option<&ProgressBar>) -> Result<()> {
     fs::create_dir_all(destination)
         .with_context(|| format!("creating data output directory {}", destination.display()))?;
 
@@ -657,10 +758,26 @@ fn copy_data_dir(source: &Path, destination: &Path) -> Result<()> {
             fs::copy(entry.path(), &target).with_context(|| {
                 format!("copying {} to {}", entry.path().display(), target.display())
             })?;
+            if let Some(progress) = progress {
+                progress.inc(1);
+            }
         }
     }
 
     Ok(())
+}
+
+fn count_files_in_tree(root: &Path) -> Result<u64> {
+    let mut count = 0u64;
+
+    for entry in WalkDir::new(root) {
+        let entry = entry.with_context(|| format!("walking {}", root.display()))?;
+        if entry.file_type().is_file() {
+            count += 1;
+        }
+    }
+
+    Ok(count)
 }
 
 fn escape_html(input: &str) -> String {
