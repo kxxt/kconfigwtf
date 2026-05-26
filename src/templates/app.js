@@ -11,6 +11,7 @@ const configViewer = document.querySelector("#config-viewer");
 const configTitle = document.querySelector("#config-title");
 const configLink = document.querySelector("#config-link");
 const configBody = document.querySelector("#config-body");
+const resultsColumnCount = 6;
 
 let manifest = null;
 let manifestPromise = null;
@@ -75,7 +76,7 @@ function renderSearchError(message) {
   tbody.replaceChildren();
   const row = document.createElement("tr");
   const td = document.createElement("td");
-  td.colSpan = 5;
+  td.colSpan = resultsColumnCount;
   td.className = "empty";
   td.textContent = message;
   row.append(td);

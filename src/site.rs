@@ -36,6 +36,7 @@ struct LoadedPackageIndex {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct RenderRecord {
     distribution: String,
+    release: String,
     package_name: String,
     version: String,
     architecture: String,
@@ -121,7 +122,7 @@ impl SiteGenerator {
                 manifest_file: MANIFEST_FILE_NAME,
                 result_title: "Enter a config entry",
                 result_count: "",
-                table_body: r#"<tr><td colspan="5" class="empty">No lookup has been run yet.</td></tr>"#,
+                table_body: r#"<tr><td colspan="6" class="empty">No lookup has been run yet.</td></tr>"#,
                 config_viewer_hidden: true,
             },
         )?;
@@ -563,6 +564,7 @@ fn records_for_config(
                 .unwrap_or_else(|| ConfigValue::Missing.as_display_value().to_string());
             records.push(RenderRecord {
                 distribution: package_index.index.distribution.to_string(),
+                release: kernel.release.clone(),
                 package_name: package_index.index.package_name.clone(),
                 version: kernel.version.clone(),
                 architecture: kernel.architecture.to_string(),
@@ -576,12 +578,14 @@ fn records_for_config(
     records.sort_by(|left, right| {
         (
             &left.distribution,
+            &left.release,
             &left.package_name,
             &left.version,
             &left.architecture,
         )
             .cmp(&(
                 &right.distribution,
+                &right.release,
                 &right.package_name,
                 &right.version,
                 &right.architecture,
@@ -592,14 +596,18 @@ fn records_for_config(
 
 fn render_results_table(records: &[RenderRecord]) -> String {
     if records.is_empty() {
-        return r#"<tr><td colspan="5" class="empty">No indexed kernel config contains this entry.</td></tr>"#.to_string();
+        return r#"<tr><td colspan="6" class="empty">No indexed kernel config contains this entry.</td></tr>"#.to_string();
     }
 
-    let mut distributions: BTreeMap<&str, BTreeMap<&str, BTreeMap<&str, Vec<&RenderRecord>>>> =
-        BTreeMap::new();
+    let mut distributions: BTreeMap<
+        &str,
+        BTreeMap<&str, BTreeMap<&str, BTreeMap<&str, Vec<&RenderRecord>>>>,
+    > = BTreeMap::new();
     for record in records {
         distributions
             .entry(&record.distribution)
+            .or_default()
+            .entry(&record.release)
             .or_default()
             .entry(&record.package_name)
             .or_default()
@@ -609,38 +617,53 @@ fn render_results_table(records: &[RenderRecord]) -> String {
     }
 
     let mut html = String::new();
-    for (distribution, packages) in distributions {
-        let distribution_rowspan = packages.values().map(|values| values.len()).sum::<usize>();
+    for (distribution, releases) in distributions {
+        let distribution_rowspan = releases
+            .values()
+            .map(|packages| packages.values().map(|values| values.len()).sum::<usize>())
+            .sum::<usize>();
         let mut wrote_distribution = false;
 
-        for (package, value_groups) in packages {
-            let package_rowspan = value_groups.len();
-            let mut wrote_package = false;
+        for (release, packages) in releases {
+            let release_rowspan = packages.values().map(|values| values.len()).sum::<usize>();
+            let mut wrote_release = false;
 
-            for (value, records) in value_groups {
-                html.push_str("<tr>");
-                if !wrote_distribution {
-                    html.push_str(&format!(
-                        r#"<td rowspan="{distribution_rowspan}" class="group-cell">{}</td>"#,
-                        escape_html(distribution)
-                    ));
-                    wrote_distribution = true;
+            for (package, value_groups) in packages {
+                let package_rowspan = value_groups.len();
+                let mut wrote_package = false;
+
+                for (value, records) in value_groups {
+                    html.push_str("<tr>");
+                    if !wrote_distribution {
+                        html.push_str(&format!(
+                            r#"<td rowspan="{distribution_rowspan}" class="group-cell">{}</td>"#,
+                            escape_html(distribution)
+                        ));
+                        wrote_distribution = true;
+                    }
+                    if !wrote_release {
+                        html.push_str(&format!(
+                            r#"<td rowspan="{release_rowspan}" class="group-cell">{}</td>"#,
+                            escape_html(release)
+                        ));
+                        wrote_release = true;
+                    }
+                    if !wrote_package {
+                        html.push_str(&format!(
+                            r#"<td rowspan="{package_rowspan}" class="group-cell package-cell">{}</td>"#,
+                            escape_html(package)
+                        ));
+                        wrote_package = true;
+                    }
+                    html.push_str(&format!("<td>{}</td>", escape_html(value)));
+                    html.push_str("<td>");
+                    html.push_str(&render_version_tags(&records));
+                    html.push_str("</td>");
+                    html.push_str("<td>");
+                    html.push_str(&render_sources(&records));
+                    html.push_str("</td>");
+                    html.push_str("</tr>");
                 }
-                if !wrote_package {
-                    html.push_str(&format!(
-                        r#"<td rowspan="{package_rowspan}" class="group-cell package-cell">{}</td>"#,
-                        escape_html(package)
-                    ));
-                    wrote_package = true;
-                }
-                html.push_str(&format!("<td>{}</td>", escape_html(value)));
-                html.push_str("<td>");
-                html.push_str(&render_version_tags(&records));
-                html.push_str("</td>");
-                html.push_str("<td>");
-                html.push_str(&render_sources(&records));
-                html.push_str("</td>");
-                html.push_str("</tr>");
             }
         }
     }
@@ -894,5 +917,48 @@ mod tests {
         };
 
         assert!(error.to_string().contains("at least 1"));
+    }
+
+    #[test]
+    fn groups_results_by_distribution_release_and_package() {
+        let html = render_results_table(&[
+            RenderRecord {
+                distribution: "debian".to_string(),
+                release: "trixie".to_string(),
+                package_name: "linux-image-amd64".to_string(),
+                version: "6.1.0-1".to_string(),
+                architecture: "amd64".to_string(),
+                value: "y".to_string(),
+                source: None,
+                config_url: "data/debian/linux-image-amd64/6.1.0-1/amd64/config".to_string(),
+            },
+            RenderRecord {
+                distribution: "debian".to_string(),
+                release: "trixie".to_string(),
+                package_name: "linux-image-cloud-amd64".to_string(),
+                version: "6.1.0-1".to_string(),
+                architecture: "amd64".to_string(),
+                value: "y".to_string(),
+                source: None,
+                config_url: "data/debian/linux-image-cloud-amd64/6.1.0-1/amd64/config".to_string(),
+            },
+            RenderRecord {
+                distribution: "debian".to_string(),
+                release: "bookworm".to_string(),
+                package_name: "linux-image-amd64".to_string(),
+                version: "5.10.0-1".to_string(),
+                architecture: "amd64".to_string(),
+                value: "m".to_string(),
+                source: None,
+                config_url: "data/debian/linux-image-amd64/5.10.0-1/amd64/config".to_string(),
+            },
+        ]);
+
+        assert!(html.contains(r#"<td rowspan="3" class="group-cell">debian</td>"#));
+        assert!(html.contains(r#"<td rowspan="1" class="group-cell">bookworm</td>"#));
+        assert!(html.contains(r#"<td rowspan="2" class="group-cell">trixie</td>"#));
+        assert!(html.contains(
+            r#"<td rowspan="1" class="group-cell package-cell">linux-image-cloud-amd64</td>"#
+        ));
     }
 }
