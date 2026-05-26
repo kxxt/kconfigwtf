@@ -636,14 +636,14 @@ fn render_results_table(records: &[RenderRecord]) -> String {
                     html.push_str("<tr>");
                     if !wrote_distribution {
                         html.push_str(&format!(
-                            r#"<td rowspan="{distribution_rowspan}" class="group-cell">{}</td>"#,
+                            r#"<td rowspan="{distribution_rowspan}" class="group-cell group-cell-distribution"><span class="sticky-group-label">{}</span></td>"#,
                             escape_html(distribution)
                         ));
                         wrote_distribution = true;
                     }
                     if !wrote_release {
                         html.push_str(&format!(
-                            r#"<td rowspan="{release_rowspan}" class="group-cell">{}</td>"#,
+                            r#"<td rowspan="{release_rowspan}" class="group-cell group-cell-release"><span class="sticky-group-label">{}</span></td>"#,
                             escape_html(release)
                         ));
                         wrote_release = true;
@@ -954,9 +954,15 @@ mod tests {
             },
         ]);
 
-        assert!(html.contains(r#"<td rowspan="3" class="group-cell">debian</td>"#));
-        assert!(html.contains(r#"<td rowspan="1" class="group-cell">bookworm</td>"#));
-        assert!(html.contains(r#"<td rowspan="2" class="group-cell">trixie</td>"#));
+        assert!(html.contains(
+            r#"<td rowspan="3" class="group-cell group-cell-distribution"><span class="sticky-group-label">debian</span></td>"#
+        ));
+        assert!(html.contains(
+            r#"<td rowspan="1" class="group-cell group-cell-release"><span class="sticky-group-label">bookworm</span></td>"#
+        ));
+        assert!(html.contains(
+            r#"<td rowspan="2" class="group-cell group-cell-release"><span class="sticky-group-label">trixie</span></td>"#
+        ));
         assert!(html.contains(
             r#"<td rowspan="1" class="group-cell package-cell">linux-image-cloud-amd64</td>"#
         ));

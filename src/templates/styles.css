@@ -111,16 +111,19 @@ button:hover {
   background: var(--accent-hover);
 }
 
-.results,
+.results {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: visible;
+}
+
 .config-viewer {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
-  overflow: hidden;
-}
-
-.config-viewer {
   margin-top: 18px;
+  overflow: hidden;
 }
 
 #config-body {
@@ -146,7 +149,7 @@ button:hover {
 }
 
 .table-wrap {
-  overflow-x: auto;
+  overflow: visible;
 }
 
 table {
@@ -182,6 +185,20 @@ tr:last-child td {
 .group-cell {
   background: #fafbfc;
   font-weight: 700;
+}
+
+.group-cell-distribution,
+.group-cell-release {
+  position: relative;
+}
+
+.sticky-group-label {
+  position: sticky;
+  top: 12px;
+  z-index: 1;
+  display: inline-block;
+  max-width: 12rem;
+  overflow-wrap: anywhere;
 }
 
 .package-cell {
