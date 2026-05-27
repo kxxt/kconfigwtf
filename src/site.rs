@@ -26,7 +26,6 @@ const MAX_ARCHITECTURES_PER_TAG: usize = 4;
 pub struct SiteManifest {
     pub schema_version: u32,
     pub generated_at: DateTime<Utc>,
-    pub indexes: Vec<String>,
     pub configs: Vec<String>,
 }
 
@@ -535,10 +534,6 @@ fn build_manifest(package_indexes: &[LoadedPackageIndex]) -> SiteManifest {
     SiteManifest {
         schema_version: 1,
         generated_at: Utc::now(),
-        indexes: package_indexes
-            .iter()
-            .map(|package_index| package_index.url.clone())
-            .collect(),
         configs: configs.into_iter().collect(),
     }
 }
@@ -775,6 +770,13 @@ fn copy_data_dir(source: &Path, destination: &Path, progress: Option<&ProgressBa
             fs::create_dir_all(&target)
                 .with_context(|| format!("creating directory {}", target.display()))?;
         } else if entry.file_type().is_file() {
+            if entry
+                .file_name()
+                .to_str()
+                .is_some_and(is_package_index_file_name)
+            {
+                continue;
+            }
             if let Some(parent) = target.parent() {
                 fs::create_dir_all(parent)
                     .with_context(|| format!("creating directory {}", parent.display()))?;
@@ -796,7 +798,12 @@ fn count_files_in_tree(root: &Path) -> Result<u64> {
 
     for entry in WalkDir::new(root) {
         let entry = entry.with_context(|| format!("walking {}", root.display()))?;
-        if entry.file_type().is_file() {
+        if entry.file_type().is_file()
+            && !entry
+                .file_name()
+                .to_str()
+                .is_some_and(is_package_index_file_name)
+        {
             count += 1;
         }
     }
@@ -863,7 +870,8 @@ mod tests {
         .expect("parse manifest");
         assert_eq!(manifest.configs, vec!["BPF", "EXT4_FS"]);
         assert!(
-            site.path()
+            !site
+                .path()
                 .join("data/debian/linux-image-amd64/index.json")
                 .exists()
         );

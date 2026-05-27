@@ -16,7 +16,6 @@ use tar::{Builder, Header};
 
 #[derive(serde::Deserialize)]
 struct TestManifest {
-    indexes: Vec<String>,
     configs: Vec<String>,
 }
 
@@ -70,11 +69,12 @@ fn site_command_generates_static_site_from_data_directory() {
     let manifest: TestManifest =
         serde_json::from_str(&fs::read_to_string(site_dir.join("indexes.json")).expect("manifest"))
             .expect("parse manifest");
-    assert_eq!(
-        manifest.indexes,
-        vec!["data/debian/linux-image-amd64/index.json"]
-    );
     assert_eq!(manifest.configs, vec!["BPF", "EXT4_FS"]);
+    assert!(
+        !site_dir
+            .join("data/debian/linux-image-amd64/index.json")
+            .exists()
+    );
     assert!(
         site_dir
             .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
