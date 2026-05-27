@@ -357,14 +357,17 @@ fn kernel_version_prefix_len(segments: &[&str]) -> usize {
     }
 
     let mut len = 1;
-    while len < segments.len()
-        && segments[len]
-            .chars()
-            .all(|character| character.is_ascii_digit())
-    {
+    while len < segments.len() && is_kernel_version_suffix_segment(segments[len]) {
         len += 1;
     }
     len
+}
+
+fn is_kernel_version_suffix_segment(segment: &str) -> bool {
+    segment.chars().all(|character| character.is_ascii_digit())
+        || segment
+            .strip_prefix("ok")
+            .is_some_and(|suffix| !suffix.is_empty() && suffix.chars().all(|c| c.is_ascii_digit()))
 }
 
 fn starts_with_digit(segment: &str) -> bool {
@@ -660,6 +663,14 @@ Filename: meta.deb
         assert_eq!(
             normalize_apt_kernel_package_name(
                 "linux-modules-6.14.0-29-generic",
+                "linux-modules-",
+                &Architecture::Amd64,
+            ),
+            "linux-image-<VERSION>-generic"
+        );
+        assert_eq!(
+            normalize_apt_kernel_package_name(
+                "linux-modules-5.15.0-ok3-generic",
                 "linux-modules-",
                 &Architecture::Amd64,
             ),
