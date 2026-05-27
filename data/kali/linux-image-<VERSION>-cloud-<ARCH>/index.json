@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-22T15:01:25.952704275Z",
+  "generated_at": "2026-05-27T14:49:20.122314009Z",
   "distribution": "kali",
   "package_name": "linux-image-<VERSION>-cloud-<ARCH>",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "amd64"
