@@ -234,6 +234,7 @@ fn write_config_pages(
         return result;
     }
 
+    #[allow(clippy::redundant_closure_call)]
     let result = (|| -> Result<()> {
         let next = AtomicUsize::new(0);
         thread::scope(|scope| -> Result<()> {
@@ -605,10 +606,11 @@ fn render_results_table(records: &[RenderRecord]) -> String {
         return r#"<tr><td colspan="6" class="empty">No indexed kernel config contains this entry.</td></tr>"#.to_string();
     }
 
-    let mut distributions: BTreeMap<
-        &str,
-        BTreeMap<&str, BTreeMap<&str, BTreeMap<&str, Vec<&RenderRecord>>>>,
-    > = BTreeMap::new();
+    type ValueGroups<'a> = BTreeMap<&'a str, Vec<&'a RenderRecord>>;
+    type PackageGroups<'a> = BTreeMap<&'a str, ValueGroups<'a>>;
+    type ReleaseGroups<'a> = BTreeMap<&'a str, PackageGroups<'a>>;
+
+    let mut distributions: BTreeMap<&str, ReleaseGroups<'_>> = BTreeMap::new();
     for record in records {
         distributions
             .entry(&record.distribution)
