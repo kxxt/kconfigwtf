@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T07:09:18.746986944Z",
+  "generated_at": "2026-05-27T15:03:18.761914391Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-<ARCH>-desktop",
   "releases": [
-    "unknown"
+    "beige"
   ],
   "architectures": [
     "amd64"
@@ -18500,7 +18500,6 @@
     "CONFIG_IMA_READ_POLICY": {},
     "CONFIG_IMA_SECURE_AND_OR_TRUSTED_BOOT": {},
     "CONFIG_IMA_SIG_TEMPLATE": {},
-    "CONFIG_IMA_TEMPLATE": {},
     "CONFIG_IMA_TRUSTED_KEYRING": {
       "built_in": [
         0,

@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T07:09:19.039376601Z",
+  "generated_at": "2026-05-27T15:03:19.148050264Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-<ARCH>-desktop-rolling",
   "releases": [
-    "unknown"
+    "beige"
   ],
   "architectures": [
     "amd64"
@@ -5227,7 +5227,6 @@
         3
       ]
     },
-    "CONFIG_BATTERY_ACT8945A": {},
     "CONFIG_BATTERY_AXP20X": {
       "module": [
         0,
@@ -7691,7 +7690,6 @@
         3
       ]
     },
-    "CONFIG_CAN_CTUCANFD_PLATFORM": {},
     "CONFIG_CAN_C_CAN": {
       "module": [
         3
@@ -7707,7 +7705,6 @@
         3
       ]
     },
-    "CONFIG_CAN_DEBUG_DEVICES": {},
     "CONFIG_CAN_DEV": {
       "module": [
         2,
@@ -7729,7 +7726,6 @@
         3
       ]
     },
-    "CONFIG_CAN_ESD_402_PCI": {},
     "CONFIG_CAN_ESD_USB": {
       "module": [
         3
@@ -7750,8 +7746,6 @@
         3
       ]
     },
-    "CONFIG_CAN_FLEXCAN": {},
-    "CONFIG_CAN_GRCAN": {},
     "CONFIG_CAN_GS_USB": {
       "module": [
         3
@@ -7773,8 +7767,6 @@
         3
       ]
     },
-    "CONFIG_CAN_ISOTP": {},
-    "CONFIG_CAN_J1939": {},
     "CONFIG_CAN_JANZ_ICAN3": {
       "module": [
         3
@@ -7810,7 +7802,6 @@
         3
       ]
     },
-    "CONFIG_CAN_MCP251XFD_SANITY": {},
     "CONFIG_CAN_M_CAN": {
       "module": [
         3
@@ -7842,7 +7833,6 @@
         3
       ]
     },
-    "CONFIG_CAN_PEAK_PCIEC": {},
     "CONFIG_CAN_PEAK_PCIEFD": {
       "module": [
         3
@@ -7858,7 +7848,6 @@
         3
       ]
     },
-    "CONFIG_CAN_PHYTIUM": {},
     "CONFIG_CAN_PLX_PCI": {
       "module": [
         3
@@ -7910,8 +7899,6 @@
         3
       ]
     },
-    "CONFIG_CAN_VCAN": {},
-    "CONFIG_CAN_VXCAN": {},
     "CONFIG_CARDBUS": {
       "built_in": [
         0,
@@ -13612,7 +13599,6 @@
     "CONFIG_DEBUG_SPINLOCK": {},
     "CONFIG_DEBUG_STACK_USAGE": {},
     "CONFIG_DEBUG_TEST_DRIVER_REMOVE": {},
-    "CONFIG_DEBUG_TIMEKEEPING": {},
     "CONFIG_DEBUG_TLBFLUSH": {},
     "CONFIG_DEBUG_VIRTUAL": {},
     "CONFIG_DEBUG_VM": {},
@@ -13683,7 +13669,6 @@
         3
       ]
     },
-    "CONFIG_DEFAULT_CODEL": {},
     "CONFIG_DEFAULT_CUBIC": {
       "built_in": [
         0,
@@ -13692,14 +13677,12 @@
         3
       ]
     },
-    "CONFIG_DEFAULT_FQ": {},
     "CONFIG_DEFAULT_FQ_CODEL": {
       "built_in": [
         2,
         3
       ]
     },
-    "CONFIG_DEFAULT_FQ_PIE": {},
     "CONFIG_DEFAULT_HOSTNAME": {
       "other": [
         [
@@ -13792,7 +13775,6 @@
         ]
       ]
     },
-    "CONFIG_DEFAULT_PFIFO_FAST": {},
     "CONFIG_DEFAULT_RENO": {},
     "CONFIG_DEFAULT_SECURITY_APPARMOR": {
       "built_in": [
@@ -13806,7 +13788,6 @@
     "CONFIG_DEFAULT_SECURITY_SELINUX": {},
     "CONFIG_DEFAULT_SECURITY_SMACK": {},
     "CONFIG_DEFAULT_SECURITY_TOMOYO": {},
-    "CONFIG_DEFAULT_SFQ": {},
     "CONFIG_DEFAULT_TCP_CONG": {
       "other": [
         [
@@ -14717,7 +14698,6 @@
         3
       ]
     },
-    "CONFIG_DPM_WATCHDOG": {},
     "CONFIG_DPOT_DAC": {
       "module": [
         1,
@@ -22516,7 +22496,6 @@
         3
       ]
     },
-    "CONFIG_GPIO_ADP5585": {},
     "CONFIG_GPIO_AGGREGATOR": {
       "module": [
         0,
@@ -25831,7 +25810,6 @@
         3
       ]
     },
-    "CONFIG_HID_UNIVERSAL_PIDFF": {},
     "CONFIG_HID_VIEWSONIC": {
       "module": [
         0,
@@ -27480,7 +27458,6 @@
         3
       ]
     },
-    "CONFIG_IDPF_SINGLEQ": {},
     "CONFIG_IE6XX_WDT": {
       "module": [
         0,
@@ -29614,7 +29591,6 @@
         3
       ]
     },
-    "CONFIG_INTEL_ATOMISP2_PM": {},
     "CONFIG_INTEL_BXTWC_PMIC_TMU": {
       "module": [
         0,
@@ -34136,7 +34112,6 @@
         3
       ]
     },
-    "CONFIG_LEDS_CHT_WCOVE": {},
     "CONFIG_LEDS_CLASS": {
       "built_in": [
         0,
@@ -34315,7 +34290,6 @@
     },
     "CONFIG_LEDS_LP8860": {},
     "CONFIG_LEDS_LT3593": {},
-    "CONFIG_LEDS_MAX5970": {},
     "CONFIG_LEDS_MAX77693": {},
     "CONFIG_LEDS_MAX8997": {
       "module": [
@@ -36333,7 +36307,6 @@
         3
       ]
     },
-    "CONFIG_MD_LINEAR": {},
     "CONFIG_MD_RAID0": {
       "module": [
         0,
@@ -39330,8 +39303,6 @@
         3
       ]
     },
-    "CONFIG_MODULE_COMPRESS_GZIP": {},
-    "CONFIG_MODULE_COMPRESS_XZ": {},
     "CONFIG_MODULE_COMPRESS_ZSTD": {
       "built_in": [
         3
@@ -42971,7 +42942,6 @@
         3
       ]
     },
-    "CONFIG_NET_EMATCH_CANID": {},
     "CONFIG_NET_EMATCH_CMP": {
       "module": [
         0,
@@ -48934,7 +48904,6 @@
         3
       ]
     },
-    "CONFIG_PINCTRL_AS3722": {},
     "CONFIG_PINCTRL_AW9523": {
       "module": [
         3
@@ -49522,8 +49491,6 @@
         ]
       ]
     },
-    "CONFIG_PM_TEST_SUSPEND": {},
-    "CONFIG_PM_TRACE_RTC": {},
     "CONFIG_PM_USERSPACE_AUTOSLEEP": {},
     "CONFIG_PM_WAKELOCKS": {
       "built_in": [
@@ -49655,7 +49622,6 @@
         3
       ]
     },
-    "CONFIG_POWER_RESET_AS3722": {},
     "CONFIG_POWER_RESET_ATC260X": {
       "module": [
         0,
@@ -50325,8 +50291,6 @@
         3
       ]
     },
-    "CONFIG_PWM_ADP5585": {},
-    "CONFIG_PWM_ATMEL_HLCDC_PWM": {},
     "CONFIG_PWM_ATMEL_TCB": {},
     "CONFIG_PWM_CLK": {
       "module": [
@@ -51686,7 +51650,6 @@
         3
       ]
     },
-    "CONFIG_REGULATOR_ACT8945A": {},
     "CONFIG_REGULATOR_AD5398": {
       "module": [
         0,
@@ -51719,7 +51682,6 @@
         3
       ]
     },
-    "CONFIG_REGULATOR_AS3722": {},
     "CONFIG_REGULATOR_ATC260X": {
       "module": [
         0,
@@ -51933,9 +51895,7 @@
       ]
     },
     "CONFIG_REGULATOR_MAX20411": {},
-    "CONFIG_REGULATOR_MAX5970": {},
     "CONFIG_REGULATOR_MAX77503": {},
-    "CONFIG_REGULATOR_MAX77541": {},
     "CONFIG_REGULATOR_MAX77693": {
       "module": [
         0,
@@ -53358,7 +53318,6 @@
         3
       ]
     },
-    "CONFIG_RTC_DRV_AS3722": {},
     "CONFIG_RTC_DRV_BQ32K": {
       "module": [
         0,
@@ -58104,8 +58063,6 @@
         3
       ]
     },
-    "CONFIG_SENSORS_PECI_CPUTEMP": {},
-    "CONFIG_SENSORS_PECI_DIMMTEMP": {},
     "CONFIG_SENSORS_PHYTIUM": {
       "module": [
         1,
@@ -59802,7 +59759,6 @@
         3
       ]
     },
-    "CONFIG_SLUB_DEBUG_ON": {},
     "CONFIG_SLUB_STATS": {},
     "CONFIG_SLUB_TINY": {},
     "CONFIG_SMARTJOYPLUS_FF": {
@@ -63334,7 +63290,6 @@
         3
       ]
     },
-    "CONFIG_SND_SOC_NAU8325": {},
     "CONFIG_SND_SOC_NAU8540": {
       "module": [
         0,
@@ -73722,7 +73677,6 @@
       ]
     },
     "CONFIG_VFIO_DEBUGFS": {},
-    "CONFIG_VFIO_DEVICE_CDEV": {},
     "CONFIG_VFIO_GROUP": {
       "built_in": [
         0,

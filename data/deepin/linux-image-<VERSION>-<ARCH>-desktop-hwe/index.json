@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T07:09:18.813474086Z",
+  "generated_at": "2026-05-27T15:03:18.903081172Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-<ARCH>-desktop-hwe",
   "releases": [
-    "unknown"
+    "beige"
   ],
   "architectures": [
     "amd64"
@@ -2960,7 +2960,6 @@
         6
       ]
     },
-    "CONFIG_AMD_MEM_ENCRYPT_ACTIVE_BY_DEFAULT": {},
     "CONFIG_AMD_NB": {
       "built_in": [
         0,
@@ -4822,29 +4821,21 @@
         6
       ]
     },
-    "CONFIG_ARMCHINA_NPU_ARCH_V1": {},
-    "CONFIG_ARMCHINA_NPU_ARCH_V2": {},
     "CONFIG_ARMCHINA_NPU_ARCH_V3": {
       "built_in": [
         6
       ]
     },
-    "CONFIG_ARMCHINA_NPU_ARCH_V3_1": {},
-    "CONFIG_ARMCHINA_NPU_SOC_DEFAULT": {},
-    "CONFIG_ARMCHINA_NPU_SOC_R329": {},
-    "CONFIG_ARMCHINA_NPU_SOC_SKY1": {},
     "CONFIG_ARMV7M_SYSTICK": {},
     "CONFIG_ARM_CCN": {},
     "CONFIG_ARM_CMN": {},
     "CONFIG_ARM_CORESIGHT_PMU_ARCH_SYSTEM_PMU": {},
-    "CONFIG_ARM_DMA350": {},
     "CONFIG_ARM_DMC620_PMU": {},
     "CONFIG_ARM_EXYNOS_BUS_DEVFREQ": {},
     "CONFIG_ARM_IMX_BUS_DEVFREQ": {},
     "CONFIG_ARM_INTEGRATOR_LM": {},
     "CONFIG_ARM_MEDIATEK_CCI_DEVFREQ": {},
     "CONFIG_ARM_SCMI_PROTOCOL": {},
-    "CONFIG_ARM_SCMI_SUPPORT_DT_ACPI": {},
     "CONFIG_ARM_SCPI_PROTOCOL": {},
     "CONFIG_ARM_SMMU": {},
     "CONFIG_ARM_SMMU_V3_PMU": {},
@@ -8818,7 +8809,6 @@
       ]
     },
     "CONFIG_BOOTPARAM_HARDLOCKUP_PANIC": {},
-    "CONFIG_BOOTPARAM_HOTPLUG_CPU0": {},
     "CONFIG_BOOTPARAM_HUNG_TASK_PANIC": {},
     "CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC": {},
     "CONFIG_BOOTTIME_TRACING": {},
@@ -8955,7 +8945,6 @@
         6
       ]
     },
-    "CONFIG_BPF_PRELOAD": {},
     "CONFIG_BPF_STREAM_PARSER": {
       "built_in": [
         3,
@@ -10525,7 +10514,6 @@
         6
       ]
     },
-    "CONFIG_CAN_DEBUG_DEVICES": {},
     "CONFIG_CAN_DEV": {
       "module": [
         0,
@@ -10686,7 +10674,6 @@
         6
       ]
     },
-    "CONFIG_CAN_MCP251XFD_SANITY": {},
     "CONFIG_CAN_M_CAN": {
       "module": [
         0,
@@ -10763,7 +10750,6 @@
         6
       ]
     },
-    "CONFIG_CAN_PHYTIUM": {},
     "CONFIG_CAN_PLX_PCI": {
       "module": [
         0,
@@ -11277,7 +11263,6 @@
         6
       ]
     },
-    "CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3": {},
     "CONFIG_CC_OPTIMIZE_FOR_SIZE": {},
     "CONFIG_CC_VERSION_TEXT": {
       "other": [
@@ -12623,7 +12608,6 @@
         6
       ]
     },
-    "CONFIG_CIO2_BRIDGE": {},
     "CONFIG_CIO_DAC": {
       "module": [
         0,
@@ -15082,7 +15066,6 @@
         6
       ]
     },
-    "CONFIG_CONTEXT_TRACKING_USER_FORCE": {},
     "CONFIG_CONTIG_ALLOC": {
       "built_in": [
         0,
@@ -15382,7 +15365,6 @@
         6
       ]
     },
-    "CONFIG_CPU_INSPECT": {},
     "CONFIG_CPU_ISOLATION": {
       "built_in": [
         0,
@@ -16732,7 +16714,6 @@
     "CONFIG_CRYPTO_DEV_HISI_SEC": {},
     "CONFIG_CRYPTO_DEV_HISI_SEC2": {},
     "CONFIG_CRYPTO_DEV_HISI_ZIP": {},
-    "CONFIG_CRYPTO_DEV_IAA_CRYPTO": {},
     "CONFIG_CRYPTO_DEV_IMGTEC_HASH": {},
     "CONFIG_CRYPTO_DEV_JH7110": {},
     "CONFIG_CRYPTO_DEV_KEEMBAY_OCS_AES_SM4": {},
@@ -16880,7 +16861,6 @@
         6
       ]
     },
-    "CONFIG_CRYPTO_DEV_QAT_ERROR_INJECTION": {},
     "CONFIG_CRYPTO_DEV_QCE": {},
     "CONFIG_CRYPTO_DEV_QCOM_RNG": {},
     "CONFIG_CRYPTO_DEV_S5P": {},
@@ -18763,7 +18743,6 @@
     "CONFIG_DEBUG_FS_ALLOW_NONE": {},
     "CONFIG_DEBUG_FS_DISALLOW_MOUNT": {},
     "CONFIG_DEBUG_GPIO": {},
-    "CONFIG_DEBUG_HOTPLUG_CPU0": {},
     "CONFIG_DEBUG_INFO": {
       "built_in": [
         0,
@@ -18791,7 +18770,6 @@
         6
       ]
     },
-    "CONFIG_DEBUG_INFO_COMPRESSED": {},
     "CONFIG_DEBUG_INFO_COMPRESSED_NONE": {
       "built_in": [
         1,
@@ -19015,8 +18993,6 @@
         6
       ]
     },
-    "CONFIG_DEEPIN_KABI_RESERVE": {},
-    "CONFIG_DEFAULT_CODEL": {},
     "CONFIG_DEFAULT_CUBIC": {
       "built_in": [
         0,
@@ -19028,13 +19004,11 @@
         6
       ]
     },
-    "CONFIG_DEFAULT_FQ": {},
     "CONFIG_DEFAULT_FQ_CODEL": {
       "built_in": [
         6
       ]
     },
-    "CONFIG_DEFAULT_FQ_PIE": {},
     "CONFIG_DEFAULT_HOSTNAME": {
       "other": [
         [
@@ -19171,7 +19145,6 @@
         ]
       ]
     },
-    "CONFIG_DEFAULT_PFIFO_FAST": {},
     "CONFIG_DEFAULT_RENO": {},
     "CONFIG_DEFAULT_SECURITY_APPARMOR": {
       "built_in": [
@@ -19188,7 +19161,6 @@
     "CONFIG_DEFAULT_SECURITY_SELINUX": {},
     "CONFIG_DEFAULT_SECURITY_SMACK": {},
     "CONFIG_DEFAULT_SECURITY_TOMOYO": {},
-    "CONFIG_DEFAULT_SFQ": {},
     "CONFIG_DEFAULT_TCP_CONG": {
       "other": [
         [
@@ -19682,7 +19654,6 @@
       ]
     },
     "CONFIG_DLM_DEBUG": {},
-    "CONFIG_DLM_DEPRECATED_API": {},
     "CONFIG_DLN2_ADC": {
       "module": [
         0,
@@ -19866,7 +19837,6 @@
         6
       ]
     },
-    "CONFIG_DMA_PERNUMA_CMA": {},
     "CONFIG_DMA_SA11X0": {},
     "CONFIG_DMA_SHARED_BUFFER": {
       "built_in": [
@@ -19879,7 +19849,6 @@
         6
       ]
     },
-    "CONFIG_DMA_SHARED_BUFFER_TEST_EXPORTER": {},
     "CONFIG_DMA_SUN6I": {},
     "CONFIG_DMA_VIRTUAL_CHANNELS": {
       "built_in": [
@@ -20686,7 +20655,6 @@
         6
       ]
     },
-    "CONFIG_DRM_CIX_EDP_PANEL": {},
     "CONFIG_DRM_DEBUG_DP_MST_TOPOLOGY_REFS": {
       "built_in": [
         6
@@ -20967,8 +20935,6 @@
         6
       ]
     },
-    "CONFIG_DRM_I915_DEBUG": {},
-    "CONFIG_DRM_I915_DEBUG_GEM": {},
     "CONFIG_DRM_I915_DEBUG_GUC": {},
     "CONFIG_DRM_I915_DEBUG_MMIO": {},
     "CONFIG_DRM_I915_DEBUG_RUNTIME_PM": {},
@@ -21372,7 +21338,6 @@
     },
     "CONFIG_DRM_LOGICVC": {},
     "CONFIG_DRM_LOONGSON": {},
-    "CONFIG_DRM_MGA": {},
     "CONFIG_DRM_MGAG200": {
       "module": [
         0,
@@ -21545,7 +21510,6 @@
         6
       ]
     },
-    "CONFIG_DRM_R128": {},
     "CONFIG_DRM_RADEON": {
       "module": [
         0,
@@ -21562,7 +21526,6 @@
         6
       ]
     },
-    "CONFIG_DRM_SAVAGE": {},
     "CONFIG_DRM_SCHED": {
       "module": [
         0,
@@ -21580,7 +21543,6 @@
         6
       ]
     },
-    "CONFIG_DRM_SIS": {},
     "CONFIG_DRM_SMI": {
       "module": [
         6
@@ -21612,7 +21574,6 @@
       ]
     },
     "CONFIG_DRM_SUN4I": {},
-    "CONFIG_DRM_TDFX": {},
     "CONFIG_DRM_TTM": {
       "module": [
         0,
@@ -21670,7 +21631,6 @@
         6
       ]
     },
-    "CONFIG_DRM_VIA": {},
     "CONFIG_DRM_VIRTIO_GPU": {
       "module": [
         0,
@@ -23956,7 +23916,6 @@
         6
       ]
     },
-    "CONFIG_DWC_PCIE_PMU": {},
     "CONFIG_DWC_XLGMAC": {
       "module": [
         0,
@@ -25060,7 +25019,6 @@
         6
       ]
     },
-    "CONFIG_EMBEDDED": {},
     "CONFIG_EM_TIMER_STI": {},
     "CONFIG_ENABLE_DEVFREQ": {
       "built_in": [
@@ -27864,10 +27822,6 @@
         6
       ]
     },
-    "CONFIG_FORCE_NR_CPUS": {},
-    "CONFIG_FORCE_TASKS_RCU": {},
-    "CONFIG_FORCE_TASKS_RUDE_RCU": {},
-    "CONFIG_FORCE_TASKS_TRACE_RCU": {},
     "CONFIG_FORTIFY_SOURCE": {
       "built_in": [
         0,
@@ -27984,7 +27938,6 @@
         6
       ]
     },
-    "CONFIG_FPGA_M10_BMC_SEC_UPDATE": {},
     "CONFIG_FPGA_MGR_ALTERA_CVP": {
       "module": [
         0,
@@ -28304,7 +28257,6 @@
         6
       ]
     },
-    "CONFIG_FS_VERITY_DEBUG": {},
     "CONFIG_FTL": {
       "module": [
         0,
@@ -33553,7 +33505,6 @@
         6
       ]
     },
-    "CONFIG_HID_MCP2200": {},
     "CONFIG_HID_MCP2221": {
       "module": [
         0,
@@ -34252,7 +34203,6 @@
         6
       ]
     },
-    "CONFIG_HID_UNIVERSAL_PIDFF": {},
     "CONFIG_HID_VIEWSONIC": {
       "module": [
         0,
@@ -36366,7 +36316,6 @@
     },
     "CONFIG_I2C_UNIPHIER": {},
     "CONFIG_I2C_UNIPHIER_F": {},
-    "CONFIG_I2C_V2_PLATFORM": {},
     "CONFIG_I2C_VERSATILE": {},
     "CONFIG_I2C_VIA": {
       "module": [
@@ -40089,7 +40038,6 @@
         6
       ]
     },
-    "CONFIG_INTEL_PLR_TPMI": {},
     "CONFIG_INTEL_PMC_CORE": {
       "built_in": [
         0
@@ -44874,7 +44822,6 @@
         6
       ]
     },
-    "CONFIG_KEY_NOTIFICATIONS": {},
     "CONFIG_KFENCE": {},
     "CONFIG_KGDB": {
       "built_in": [
@@ -46999,7 +46946,6 @@
         ]
       ]
     },
-    "CONFIG_LOCALVERSION_AUTO": {},
     "CONFIG_LOCKD": {
       "module": [
         0,
@@ -48019,7 +47965,6 @@
         6
       ]
     },
-    "CONFIG_MALDERLAKE": {},
     "CONFIG_MALI_BASE_MODULES": {
       "built_in": [
         6
@@ -48030,9 +47975,6 @@
         6
       ]
     },
-    "CONFIG_MAMD_CPU_V2": {},
-    "CONFIG_MAMD_CPU_V3": {},
-    "CONFIG_MAMD_CPU_V4": {},
     "CONFIG_MANAGER_SBS": {
       "module": [
         0,
@@ -48044,7 +47986,6 @@
         6
       ]
     },
-    "CONFIG_MANA_INFINIBAND": {},
     "CONFIG_MANTIS_CORE": {
       "module": [
         0,
@@ -48314,7 +48255,6 @@
         6
       ]
     },
-    "CONFIG_MAX77541_ADC": {},
     "CONFIG_MAX77620_WATCHDOG": {},
     "CONFIG_MAX8925_POWER": {
       "module": [
@@ -48398,10 +48338,6 @@
         6
       ]
     },
-    "CONFIG_MBARCELONA": {},
-    "CONFIG_MBOBCAT": {},
-    "CONFIG_MBROADWELL": {},
-    "CONFIG_MBULLDOZER": {},
     "CONFIG_MC3230": {
       "module": [
         0,
@@ -48413,8 +48349,6 @@
         6
       ]
     },
-    "CONFIG_MCANNONLAKE": {},
-    "CONFIG_MCASCADELAKE": {},
     "CONFIG_MCB": {
       "module": [
         0,
@@ -48451,7 +48385,6 @@
     "CONFIG_MCF_EDMA": {},
     "CONFIG_MCHP_CLK_MPFS": {},
     "CONFIG_MCHP_EIC": {},
-    "CONFIG_MCOOPERLAKE": {},
     "CONFIG_MCORE2": {},
     "CONFIG_MCP320X": {
       "module": [
@@ -49872,7 +49805,6 @@
         ]
       ]
     },
-    "CONFIG_MEXCAVATOR": {},
     "CONFIG_MFD_88PM800": {
       "module": [
         0,
@@ -51092,7 +51024,6 @@
         6
       ]
     },
-    "CONFIG_MGBEVF_OPTM_WITH_LARGE": {},
     "CONFIG_MGBE_MSIX_COUNT": {
       "other": [
         [
@@ -51101,10 +51032,6 @@
         ]
       ]
     },
-    "CONFIG_MGBE_OPTM_WITH_LPAGE": {},
-    "CONFIG_MGOLDMONT": {},
-    "CONFIG_MGOLDMONTPLUS": {},
-    "CONFIG_MHASWELL": {},
     "CONFIG_MHI_BUS": {
       "module": [
         0,
@@ -51163,7 +51090,6 @@
         6
       ]
     },
-    "CONFIG_MICELAKE": {},
     "CONFIG_MICREL_KS8995MA": {
       "module": [
         0,
@@ -51295,9 +51221,6 @@
         6
       ]
     },
-    "CONFIG_MINTEL_CPU_V2": {},
-    "CONFIG_MINTEL_CPU_V3": {},
-    "CONFIG_MINTEL_CPU_V4": {},
     "CONFIG_MIPI_I3C_HCI": {},
     "CONFIG_MISC_ALCOR_PCI": {
       "module": [
@@ -51540,11 +51463,7 @@
         6
       ]
     },
-    "CONFIG_MIVYBRIDGE": {},
-    "CONFIG_MJAGUAR": {},
-    "CONFIG_MK10": {},
     "CONFIG_MK8": {},
-    "CONFIG_MK8SSE3": {},
     "CONFIG_MKISS": {
       "module": [
         0,
@@ -51706,7 +51625,6 @@
         6
       ]
     },
-    "CONFIG_MLX5_EN_MACSEC": {},
     "CONFIG_MLX5_EN_RXNFC": {
       "built_in": [
         0,
@@ -52541,9 +52459,6 @@
         6
       ]
     },
-    "CONFIG_MNATIVE_AMD": {},
-    "CONFIG_MNATIVE_INTEL": {},
-    "CONFIG_MNEHALEM": {},
     "CONFIG_MODIFY_LDT_SYSCALL": {
       "built_in": [
         0,
@@ -52771,7 +52686,6 @@
         6
       ]
     },
-    "CONFIG_MODULE_SIG_SM3": {},
     "CONFIG_MODULE_SRCVERSION_ALL": {
       "built_in": [
         0,
@@ -53220,7 +53134,6 @@
       ]
     },
     "CONFIG_MPC5200_WDT": {},
-    "CONFIG_MPILEDRIVER": {},
     "CONFIG_MPILIB": {
       "built_in": [
         0,
@@ -53381,7 +53294,6 @@
         6
       ]
     },
-    "CONFIG_MROCKETLAKE": {},
     "CONFIG_MRP": {
       "module": [
         0,
@@ -53442,8 +53354,6 @@
         6
       ]
     },
-    "CONFIG_MSANDYBRIDGE": {},
-    "CONFIG_MSAPPHIRERAPIDS": {},
     "CONFIG_MSC313E_TIMER": {},
     "CONFIG_MSC313E_WATCHDOG": {},
     "CONFIG_MSCC_OCELOT_SWITCH_LIB": {
@@ -53484,7 +53394,6 @@
         6
       ]
     },
-    "CONFIG_MSILVERMONT": {},
     "CONFIG_MSI_EC": {
       "module": [
         6
@@ -53512,8 +53421,6 @@
         6
       ]
     },
-    "CONFIG_MSKYLAKE": {},
-    "CONFIG_MSKYLAKEX": {},
     "CONFIG_MSPRO_BLOCK": {
       "module": [
         0,
@@ -53527,7 +53434,6 @@
     },
     "CONFIG_MSTAR_MSC313_CPUPLL": {},
     "CONFIG_MSTAR_MSC313_MPLL": {},
-    "CONFIG_MSTEAMROLLER": {},
     "CONFIG_MST_IRQ": {},
     "CONFIG_MS_BLOCK": {
       "module": [
@@ -54677,7 +54583,6 @@
         6
       ]
     },
-    "CONFIG_MTD_PHYTIUM_LBC": {},
     "CONFIG_MTD_PLATRAM": {
       "module": [
         0,
@@ -55022,7 +54927,6 @@
         ]
       ]
     },
-    "CONFIG_MTIGERLAKE": {},
     "CONFIG_MTK_ADSP_MBOX": {},
     "CONFIG_MTK_CMDQ": {},
     "CONFIG_MTK_CMDQ_MBOX": {},
@@ -55237,7 +55141,6 @@
         6
       ]
     },
-    "CONFIG_MWESTMERE": {},
     "CONFIG_MWIFIEX": {
       "module": [
         0,
@@ -55326,7 +55229,6 @@
         6
       ]
     },
-    "CONFIG_MXGBEM_OPTM_WITH_LARGE": {},
     "CONFIG_MXGBEVF": {
       "module": [
         6
@@ -55342,7 +55244,6 @@
         6
       ]
     },
-    "CONFIG_MXGBEVF_OPTM_WITH_LARGE": {},
     "CONFIG_MXGBE_DCB": {
       "built_in": [
         6
@@ -55366,7 +55267,6 @@
         ]
       ]
     },
-    "CONFIG_MXGBE_OPTM_WITH_LARGE": {},
     "CONFIG_MXM_WMI": {
       "module": [
         0,
@@ -55402,9 +55302,6 @@
         6
       ]
     },
-    "CONFIG_MZEN": {},
-    "CONFIG_MZEN2": {},
-    "CONFIG_MZEN3": {},
     "CONFIG_NAMESPACES": {
       "built_in": [
         0,
@@ -64967,7 +64864,6 @@
     "CONFIG_PCIE_SPEAR13XX": {},
     "CONFIG_PCIE_TEGRA194_EP": {},
     "CONFIG_PCIE_TEGRA194_HOST": {},
-    "CONFIG_PCIE_ULTRARISC": {},
     "CONFIG_PCIE_VISCONTI_HOST": {},
     "CONFIG_PCIE_XILINX_CPM": {},
     "CONFIG_PCIE_XILINX_NWL": {},
@@ -65059,7 +64955,6 @@
       ]
     },
     "CONFIG_PCI_ENDPOINT_TEST": {},
-    "CONFIG_PCI_EPF_MHI": {},
     "CONFIG_PCI_EPF_NTB": {
       "module": [
         3,
@@ -65603,7 +65498,6 @@
         6
       ]
     },
-    "CONFIG_PDS_VDPA": {},
     "CONFIG_PDS_VFIO_PCI": {
       "module": [
         6
@@ -67613,7 +67507,6 @@
         6
       ]
     },
-    "CONFIG_PRINT_QUOTA_WARNING": {},
     "CONFIG_PRISM2_USB": {
       "module": [
         0,
@@ -67715,8 +67608,6 @@
         6
       ]
     },
-    "CONFIG_PROC_MEM_FORCE_PTRACE": {},
-    "CONFIG_PROC_MEM_NO_FORCE": {},
     "CONFIG_PROC_PAGE_MONITOR": {
       "built_in": [
         0,
@@ -67852,7 +67743,6 @@
         6
       ]
     },
-    "CONFIG_PSTORE_842_COMPRESS": {},
     "CONFIG_PSTORE_BLK": {},
     "CONFIG_PSTORE_COMPRESS": {
       "built_in": [
@@ -67917,9 +67807,6 @@
       ]
     },
     "CONFIG_PSTORE_FTRACE": {},
-    "CONFIG_PSTORE_LZ4HC_COMPRESS": {},
-    "CONFIG_PSTORE_LZ4_COMPRESS": {},
-    "CONFIG_PSTORE_LZO_COMPRESS": {},
     "CONFIG_PSTORE_PMSG": {},
     "CONFIG_PSTORE_RAM": {
       "module": [
@@ -67932,7 +67819,6 @@
         6
       ]
     },
-    "CONFIG_PSTORE_ZSTD_COMPRESS": {},
     "CONFIG_PTDUMP_CORE": {
       "built_in": [
         0,
@@ -69341,7 +69227,6 @@
         ]
       ]
     },
-    "CONFIG_RCU_DOUBLE_CHECK_CB_TIME": {},
     "CONFIG_RCU_EQS_DEBUG": {},
     "CONFIG_RCU_EXPERT": {
       "built_in": [
@@ -69380,7 +69265,6 @@
         ]
       ]
     },
-    "CONFIG_RCU_EXP_KTHREAD": {},
     "CONFIG_RCU_FANOUT": {
       "other": [
         [
@@ -69423,8 +69307,6 @@
         6
       ]
     },
-    "CONFIG_RCU_NOCB_CPU_CB_BOOST": {},
-    "CONFIG_RCU_NOCB_CPU_DEFAULT_ALL": {},
     "CONFIG_RCU_REF_SCALE_TEST": {},
     "CONFIG_RCU_SCALE_TEST": {},
     "CONFIG_RCU_STALL_COMMON": {
@@ -70266,7 +70148,6 @@
       ]
     },
     "CONFIG_REGULATOR_MAX20411": {},
-    "CONFIG_REGULATOR_MAX77541": {},
     "CONFIG_REGULATOR_MAX77620": {},
     "CONFIG_REGULATOR_MAX77650": {},
     "CONFIG_REGULATOR_MAX77686": {},
@@ -71214,7 +71095,6 @@
     "CONFIG_RESET_MESON_AUDIO_ARB": {},
     "CONFIG_RESET_NPCM": {},
     "CONFIG_RESET_NUVOTON_MA35D1": {},
-    "CONFIG_RESET_PHYTIUM": {},
     "CONFIG_RESET_PISTACHIO": {},
     "CONFIG_RESET_QCOM_AOSS": {},
     "CONFIG_RESET_QCOM_PDC": {},
@@ -74592,7 +74472,6 @@
         6
       ]
     },
-    "CONFIG_SB105X": {},
     "CONFIG_SBC_EPX_C3_WATCHDOG": {
       "module": [
         0,
@@ -76024,7 +75903,6 @@
     },
     "CONFIG_SCSI_UFS_EXYNOS": {},
     "CONFIG_SCSI_UFS_HISI": {},
-    "CONFIG_SCSI_UFS_HPB": {},
     "CONFIG_SCSI_UFS_HWMON": {},
     "CONFIG_SCSI_UFS_RENESAS": {},
     "CONFIG_SCSI_UFS_SPRD": {},
@@ -76086,7 +75964,6 @@
         6
       ]
     },
-    "CONFIG_SDEI_WATCHDOG": {},
     "CONFIG_SDIO_UART": {
       "module": [
         0,
@@ -76276,7 +76153,6 @@
         6
       ]
     },
-    "CONFIG_SECURITY_ELFVERIFY": {},
     "CONFIG_SECURITY_HOOKMANAGER": {
       "built_in": [
         0
@@ -76418,7 +76294,6 @@
         6
       ]
     },
-    "CONFIG_SECURITY_SELINUX_DISABLE": {},
     "CONFIG_SECURITY_SELINUX_SID2STR_CACHE_SIZE": {
       "other": [
         [
@@ -77149,7 +77024,6 @@
       ]
     },
     "CONFIG_SENSORS_BT1_PVT": {},
-    "CONFIG_SENSORS_COREPVT_ULTRARISC": {},
     "CONFIG_SENSORS_CORETEMP": {
       "module": [
         0,
@@ -80902,7 +80776,6 @@
     "CONFIG_SKY2_DEBUG": {},
     "CONFIG_SL28CPLD_INTC": {},
     "CONFIG_SL28CPLD_WATCHDOG": {},
-    "CONFIG_SLAB": {},
     "CONFIG_SLAB_DEPRECATED": {},
     "CONFIG_SLAB_FREELIST_HARDENED": {
       "built_in": [
@@ -81033,7 +80906,6 @@
         6
       ]
     },
-    "CONFIG_SLOB": {},
     "CONFIG_SLS": {},
     "CONFIG_SLUB": {
       "built_in": [
@@ -81152,7 +81024,6 @@
         6
       ]
     },
-    "CONFIG_SMMU_BYPASS_DEV": {},
     "CONFIG_SMP": {
       "built_in": [
         0,
@@ -89578,7 +89449,6 @@
     },
     "CONFIG_SPI_PHYTIUM_PCI": {},
     "CONFIG_SPI_PHYTIUM_PLAT": {},
-    "CONFIG_SPI_PHYTIUM_PLAT_V2": {},
     "CONFIG_SPI_PIC32": {},
     "CONFIG_SPI_PIC32_SQI": {},
     "CONFIG_SPI_PXA2XX": {
@@ -89842,7 +89712,6 @@
         5
       ]
     },
-    "CONFIG_SQUASHFS_DECOMP_MULTI": {},
     "CONFIG_SQUASHFS_DECOMP_MULTI_PERCPU": {
       "built_in": [
         2,
@@ -90633,7 +90502,6 @@
         5
       ]
     },
-    "CONFIG_SUNRPC_DISABLE_INSECURE_ENCTYPES": {},
     "CONFIG_SUNRPC_GSS": {
       "module": [
         0,
@@ -91123,7 +90991,6 @@
         6
       ]
     },
-    "CONFIG_SYSFS_DEPRECATED": {},
     "CONFIG_SYSFS_SYSCALL": {
       "built_in": [
         0,
@@ -91540,7 +91407,6 @@
         6
       ]
     },
-    "CONFIG_TASKS_TRACE_RCU_READ_MB": {},
     "CONFIG_TASK_DELAY_ACCT": {
       "built_in": [
         0,
@@ -92088,7 +91954,6 @@
         6
       ]
     },
-    "CONFIG_TDX_GUEST_DRIVER": {},
     "CONFIG_TEE": {
       "module": [
         0,
@@ -92231,10 +92096,8 @@
     "CONFIG_TEST_REF_TRACKER": {},
     "CONFIG_TEST_RHASHTABLE": {},
     "CONFIG_TEST_SCANF": {},
-    "CONFIG_TEST_SIPHASH": {},
     "CONFIG_TEST_STATIC_KEYS": {},
     "CONFIG_TEST_STRING_HELPERS": {},
-    "CONFIG_TEST_STRSCPY": {},
     "CONFIG_TEST_SYSCTL": {},
     "CONFIG_TEST_UDELAY": {},
     "CONFIG_TEST_USER_COPY": {},
@@ -92308,7 +92171,6 @@
     },
     "CONFIG_THERMAL_DEFAULT_GOV_BANG_BANG": {},
     "CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE": {},
-    "CONFIG_THERMAL_DEFAULT_GOV_POWER_ALLOCATOR": {},
     "CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE": {
       "built_in": [
         0,
@@ -92687,7 +92549,6 @@
     },
     "CONFIG_TIMERLAT_TRACER": {},
     "CONFIG_TIMER_IMX_SYS_CTR": {},
-    "CONFIG_TIMER_SKY1_GPT": {},
     "CONFIG_TIME_NS": {
       "built_in": [
         0,
@@ -94693,8 +94554,6 @@
         6
       ]
     },
-    "CONFIG_TRILIN_DP_HDCP_VALIDATION": {},
-    "CONFIG_TRIM_UNUSED_KSYMS": {},
     "CONFIG_TRUSTED_KEYS": {
       "built_in": [
         0,
@@ -94762,7 +94621,6 @@
         6
       ]
     },
-    "CONFIG_TSNEP_SELFTESTS": {},
     "CONFIG_TSYS01": {
       "module": [
         0,
@@ -94850,7 +94708,6 @@
         ]
       ]
     },
-    "CONFIG_TT_SCHED": {},
     "CONFIG_TULIP": {
       "module": [
         0,
@@ -95062,7 +94919,6 @@
         6
       ]
     },
-    "CONFIG_TYPEC_PHYTIUM_RS": {},
     "CONFIG_TYPEC_QCOM_PMIC": {},
     "CONFIG_TYPEC_RT1711H": {
       "module": [
@@ -96662,7 +96518,6 @@
       ]
     },
     "CONFIG_USB_DWC2_DEBUG": {},
-    "CONFIG_USB_DWC2_DUAL_ROLE": {},
     "CONFIG_USB_DWC2_HOST": {
       "built_in": [
         0,
@@ -96685,7 +96540,6 @@
         6
       ]
     },
-    "CONFIG_USB_DWC2_PERIPHERAL": {},
     "CONFIG_USB_DWC2_TRACK_MISSED_SOFS": {},
     "CONFIG_USB_DWC3": {
       "module": [
@@ -98964,7 +98818,6 @@
     },
     "CONFIG_USB_OHCI_HCD_S3C2410": {},
     "CONFIG_USB_OHCI_HCD_SPEAR": {},
-    "CONFIG_USB_OHCI_HCD_SSB": {},
     "CONFIG_USB_OHCI_LITTLE_ENDIAN": {
       "built_in": [
         0,
@@ -99034,8 +98887,6 @@
     },
     "CONFIG_USB_PHYTIUM": {},
     "CONFIG_USB_PHYTIUM_PCI": {},
-    "CONFIG_USB_PHYTIUM_PCI_V2": {},
-    "CONFIG_USB_PHYTIUM_V2": {},
     "CONFIG_USB_PRINTER": {
       "module": [
         0,
@@ -100406,7 +100257,6 @@
         6
       ]
     },
-    "CONFIG_USB_ZERO_HNPTEST": {},
     "CONFIG_USELIB": {
       "built_in": [
         0,
@@ -100825,7 +100675,6 @@
         6
       ]
     },
-    "CONFIG_VFIO_DEVICE_CDEV": {},
     "CONFIG_VFIO_GROUP": {
       "built_in": [
         1,
@@ -101487,7 +101336,6 @@
         0
       ]
     },
-    "CONFIG_VIDEO_ATOMISP": {},
     "CONFIG_VIDEO_AU0828": {
       "module": [
         0,
@@ -102317,7 +102165,6 @@
         6
       ]
     },
-    "CONFIG_VIDEO_LINLON_FTRACE": {},
     "CONFIG_VIDEO_LINLON_PRINT_FILE": {
       "built_in": [
         6
@@ -105940,7 +105787,6 @@
         5
       ]
     },
-    "CONFIG_X86_DECODER_SELFTEST": {},
     "CONFIG_X86_DIRECT_GBPAGES": {
       "built_in": [
         0,
@@ -106000,7 +105846,6 @@
         6
       ]
     },
-    "CONFIG_X86_HYGON_LMC_SSE2_ON": {},
     "CONFIG_X86_INTEL_LPSS": {
       "built_in": [
         0,
@@ -107853,7 +107698,6 @@
         5
       ]
     },
-    "CONFIG_Z3FOLD_DEPRECATED": {},
     "CONFIG_ZBUD": {
       "built_in": [
         0,
@@ -108291,7 +108135,6 @@
       ]
     },
     "CONFIG_ZSWAP_ZPOOL_DEFAULT_Z3FOLD": {},
-    "CONFIG_ZSWAP_ZPOOL_DEFAULT_Z3FOLD_DEPRECATED": {},
     "CONFIG_ZSWAP_ZPOOL_DEFAULT_ZBUD": {
       "built_in": [
         0,

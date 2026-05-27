@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T07:09:19.174681296Z",
+  "generated_at": "2026-05-27T15:03:19.300984498Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-<ARCH>-unsigned",
   "releases": [
-    "unknown"
+    "beige"
   ],
   "architectures": [
     "amd64"
