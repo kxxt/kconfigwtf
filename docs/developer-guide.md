@@ -536,29 +536,33 @@ build the same static site content.
 Coverage is uploaded to Codecov from GitHub Actions with tokenless OIDC auth
 instead of being stored as a workflow artifact.
 
-Cloudflare Workers deployment is configured in
-[.github/workflows/cloudflare-workers.yml](./.github/workflows/cloudflare-workers.yml).
-The deploy workflow builds the static site from the checked-in `data/` tree and
-deploys `.ci/public` directly with `wrangler deploy <directory>` on pushes to
-`main` or `master`. It can also be triggered manually.
+GitHub Pages branch deployment is configured in
+[.github/workflows/gh-pages.yml](./.github/workflows/gh-pages.yml). The deploy
+workflow builds the static site from the checked-in `data/` tree, initializes a
+fresh Git repository inside `.ci/public`, and force-pushes that output to the
+`gh-pages` branch on pushes to `main` or `master`. It can also be triggered
+manually.
 
 Repository setup required:
 
-- Create a Worker named `kconfigwtf`, or adjust `CLOUDFLARE_WORKER_NAME` in
-  the workflow.
-- Add `CLOUDFLARE_API_TOKEN` to GitHub Actions secrets.
-- Add `CLOUDFLARE_ACCOUNT_ID` to GitHub Actions secrets.
+- Configure GitHub Pages in the repository settings to serve from the
+  `gh-pages` branch.
 
-The Cloudflare Workers build itself runs:
+The GitHub Pages build itself runs:
 
 ```sh
 cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf
 ```
 
-The deploy step uses:
+The publish step uses:
 
 ```sh
-wrangler deploy .ci/public --name=kconfigwtf --compatibility-date=2026-05-25
+cd .ci/public
+git init
+git checkout -B gh-pages
+git add --all
+git commit -m "Deploy <sha>"
+git push --force origin gh-pages
 ```
 
 ## Architecture
@@ -674,9 +678,9 @@ an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
 indexes, copies the data tree into the site output, writes `indexes.json`, and
-generates `CONFIG_/<ENTRY>/index.html` result pages. The manifest contains both
-the package index URLs and a sorted list of available Kconfig names for
-autocomplete, avoiding a browser-side full index scan before search.
+generates `CONFIG_/<ENTRY>/index.html` result pages. The manifest contains a
+sorted list of available Kconfig names for autocomplete, avoiding a
+browser-side full index scan before search.
 
 ## Test
 
