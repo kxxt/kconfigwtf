@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T14:58:39.831052832Z",
+  "generated_at": "2026-05-27T15:31:22.771000762Z",
   "distribution": "aoscos",
   "package_name": "linux-kernel-<VERSION>",
   "releases": [
-    "unknown"
+    "stable"
   ],
   "architectures": [
     "amd64"
