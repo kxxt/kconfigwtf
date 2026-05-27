@@ -11,6 +11,7 @@ use flate2::read::GzDecoder;
 use futures_util::StreamExt;
 use tempfile::NamedTempFile;
 
+use crate::http::log_request_url;
 use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_release_label};
@@ -460,6 +461,7 @@ fn read_u64_le(bytes: &[u8], offset: usize) -> Result<u64> {
 }
 
 async fn download_to_temp(client: &reqwest::Client, url: &str) -> Result<NamedTempFile> {
+    log_request_url(url);
     let response = client
         .get(url)
         .send()

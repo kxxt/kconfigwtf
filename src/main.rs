@@ -20,6 +20,7 @@ use kconfigwtf::debian::{
 use kconfigwtf::fedora::{
     FedoraIndexer, FedoraIndexerConfig, FedoraMetadataLocation, FedoraPackageBase, FedoraRepoFeed,
 };
+use kconfigwtf::http::log_request_url;
 use kconfigwtf::index::{
     Architecture, DEFAULT_MAX_INDEX_BYTES, Distribution, write_packages_to_data_dir,
 };
@@ -1607,6 +1608,7 @@ async fn load_android_discovery(args: &AndroidArgs) -> Result<String> {
             .with_context(|| format!("reading Android GKI discovery page {}", path.display()));
     }
 
+    log_request_url(&args.discovery_url);
     let response = reqwest::get(&args.discovery_url)
         .await
         .with_context(|| {
@@ -2041,6 +2043,7 @@ async fn rpm_config_from_args(
 }
 
 async fn resolve_rpm_mirror_list(mirror_list_url: &str) -> Result<String> {
+    log_request_url(mirror_list_url);
     let response = reqwest::get(mirror_list_url)
         .await
         .with_context(|| format!("fetching RPM mirror list from {mirror_list_url}"))?;

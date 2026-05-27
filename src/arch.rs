@@ -8,6 +8,7 @@ use flate2::read::GzDecoder;
 use liblzma::read::XzDecoder;
 use tar::Archive;
 
+use crate::http::log_request_url;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, rolling_release_label};
 
@@ -115,6 +116,7 @@ impl ArchIndexer {
     async fn load_database(&self, location: &ArchDatabaseLocation) -> Result<(String, Vec<u8>)> {
         match location {
             ArchDatabaseLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -146,6 +148,7 @@ impl ArchIndexer {
         match base {
             ArchPackageBase::Url(base_url) => {
                 let url = join_url(base_url, filename);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)

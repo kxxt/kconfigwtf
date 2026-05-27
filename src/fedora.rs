@@ -7,6 +7,7 @@ use flate2::read::GzDecoder;
 use quick_xml::Reader;
 use quick_xml::events::{BytesStart, Event};
 
+use crate::http::log_request_url;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_rpm_release_label};
 
@@ -89,6 +90,7 @@ impl FedoraIndexer {
     async fn load_metadata(&self, location: &FedoraMetadataLocation) -> Result<Vec<u8>> {
         match location {
             FedoraMetadataLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -117,6 +119,7 @@ impl FedoraIndexer {
         match base {
             FedoraPackageBase::Url(base_url) => {
                 let url = join_url(base_url, href);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)

@@ -4,6 +4,7 @@ pub mod arch;
 pub mod chromeos;
 pub mod debian;
 pub mod fedora;
+pub mod http;
 pub mod ikconfig;
 pub mod index;
 pub mod indexer;

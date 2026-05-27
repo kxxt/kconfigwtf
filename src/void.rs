@@ -7,6 +7,7 @@ use reqwest::StatusCode;
 use serde::Deserialize;
 use tokio::fs;
 
+use crate::http::log_request_url;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
@@ -82,6 +83,7 @@ impl VoidIndexer {
         match base {
             VoidPackageBase::Url(base_url) => {
                 let url = join_srcpkgs_url(base_url, package_name, relative_path);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)
@@ -123,6 +125,7 @@ impl VoidIndexer {
             .user_agent("kconfigwtf/0.1")
             .build()
             .expect("construct reqwest client");
+        log_request_url(DEFAULT_VOID_GITHUB_API_TREE_URL);
         let response = client
             .get(DEFAULT_VOID_GITHUB_API_TREE_URL)
             .send()

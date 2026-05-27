@@ -9,6 +9,7 @@ use flate2::read::GzDecoder;
 use liblzma::read::XzDecoder;
 use tar::Archive;
 
+use crate::http::log_request_url;
 use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_apt_release_label};
@@ -95,6 +96,7 @@ impl DebianIndexer {
     async fn load_package_index(&self, location: &PackageIndexLocation) -> Result<Vec<u8>> {
         match location {
             PackageIndexLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -123,6 +125,7 @@ impl DebianIndexer {
         match base {
             DebianPackageBase::Url(base_url) => {
                 let url = join_url(base_url, filename);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)

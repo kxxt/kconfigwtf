@@ -8,6 +8,7 @@ use serde::Deserialize;
 use tar::Archive;
 use zstd::stream::read::Decoder as ZstdDecoder;
 
+use crate::http::log_request_url;
 use crate::ikconfig::looks_like_kernel_config;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_openwrt_release_label};
@@ -93,6 +94,7 @@ impl OpenWrtIndexer {
         match &self.config.targets {
             OpenWrtTargetsLocation::Url(root) => {
                 let url = target_listing_url(root, path);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)
@@ -118,6 +120,7 @@ impl OpenWrtIndexer {
         match &self.config.targets {
             OpenWrtTargetsLocation::Url(root) => {
                 let url = target_artifact_url(root, target, filename);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)
@@ -189,6 +192,7 @@ impl OpenWrtIndexer {
                 "openwrt-imagebuilder-{owrt_version}-{normalized}.Linux-x86_64.tar.{suffix}"
             );
             let url = target_artifact_url(root, target, &ib_filename);
+            log_request_url(&url);
 
             let response = match self
                 .client

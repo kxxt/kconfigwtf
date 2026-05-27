@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use flate2::read::MultiGzDecoder;
 use tar::Archive;
 
+use crate::http::log_request_url;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_alpine_release_label};
 
@@ -89,6 +90,7 @@ impl AlpineIndexer {
     async fn load_index(&self, location: &ApkIndexLocation) -> Result<(String, Vec<u8>)> {
         match location {
             ApkIndexLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -120,6 +122,7 @@ impl AlpineIndexer {
         match base {
             ApkPackageBase::Url(base_url) => {
                 let url = join_url(base_url, filename);
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)

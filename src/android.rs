@@ -4,6 +4,7 @@ use anyhow::{Context, Result, bail};
 use async_trait::async_trait;
 use serde::Deserialize;
 
+use crate::http::log_request_url;
 use crate::ikconfig::looks_like_html;
 pub use crate::ikconfig::{extract_ikconfig_from_image, looks_like_kernel_config};
 use crate::index::{Architecture, Distribution};
@@ -80,6 +81,7 @@ impl AndroidGkiIndexer {
     async fn load_release_builds(&self) -> Result<String> {
         match &self.config.release_builds {
             AndroidReleaseBuildsLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -254,6 +256,7 @@ impl AndroidGkiIndexer {
     }
 
     async fn download_ci_bytes(&self, url: &str) -> Result<Vec<u8>> {
+        log_request_url(url);
         let response = self
             .client
             .get(url)

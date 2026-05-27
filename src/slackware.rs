@@ -7,6 +7,7 @@ use flate2::read::MultiGzDecoder;
 use liblzma::read::XzDecoder;
 use tar::Archive;
 
+use crate::http::log_request_url;
 use crate::index::{Architecture, Distribution};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
@@ -58,6 +59,7 @@ impl SlackwareIndexer {
     ) -> Result<(String, String)> {
         match location {
             SlackwareIndexLocation::Url(url) => {
+                log_request_url(url);
                 let response = self
                     .client
                     .get(url)
@@ -96,6 +98,7 @@ impl SlackwareIndexer {
                     location.trim_start_matches('/'),
                     filename
                 );
+                log_request_url(&url);
                 let response = self
                     .client
                     .get(&url)
