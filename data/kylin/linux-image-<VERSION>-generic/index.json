@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T07:08:12.509588786Z",
+  "generated_at": "2026-05-28T04:41:25.429856092Z",
   "distribution": "kylin",
   "package_name": "linux-image-<VERSION>-generic",
   "releases": [
-    "unknown"
+    "10.1"
   ],
   "architectures": [
     "amd64"
