@@ -548,8 +548,13 @@ The generated site consists of:
 - `app.js`
 - `styles.css`
 - `indexes.json`
-- `data/`, copied from the indexed data directory
 - `CONFIG_/<ENTRY>/index.html`, one generated result page per Kconfig entry
+
+The generated pages do not copy raw kernel config files into the published
+output. Instead, architecture buttons and the config viewer link to
+`https://raw.githubusercontent.com/kxxt/kconfigwtf/<commit>/data/...` so the
+site stays small and the raw config URLs remain pinned to the exact repository
+commit that built the site.
 
 Because the site uses `fetch`, serve it with any static file
 server instead of opening `index.html` directly from disk:
@@ -722,10 +727,11 @@ Architectures include `amd64`, `arm64`, `armhf`, `i386`,
 an `Other(String)` enum variant.
 
 The static site generator scans `data/**/index.json`, validates those package
-indexes, copies the data tree into the site output, writes `indexes.json`, and
-generates `CONFIG_/<ENTRY>/index.html` result pages. The manifest contains a
-sorted list of available Kconfig names for autocomplete, avoiding a
-browser-side full index scan before search.
+indexes, writes `indexes.json`, and generates `CONFIG_/<ENTRY>/index.html`
+result pages. Raw config links are emitted as pinned GitHub raw URLs for the
+current repository commit instead of copying `data/**/config` into the site
+output. The manifest contains a sorted list of available Kconfig names for
+autocomplete, avoiding a browser-side full index scan before search.
 
 ## Test
 

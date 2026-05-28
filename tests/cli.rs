@@ -12,6 +12,7 @@ use kconfigwtf::indexer::KernelConfigPackage;
 use liblzma::write::XzEncoder;
 use predicates::prelude::*;
 use rpm::{BuildConfig, CompressionType, FileOptions, PackageBuilder};
+use std::process::Command as ProcessCommand;
 use tar::{Builder, Header};
 
 #[derive(serde::Deserialize)]
@@ -25,6 +26,18 @@ fn assert_config_missing(index: &PackageIndex, config_name: &str) {
         occurrences.is_empty(),
         "{config_name} should be tracked as missing-by-default"
     );
+}
+
+fn current_git_commit() -> String {
+    let output = ProcessCommand::new("git")
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .expect("run git rev-parse HEAD");
+    assert!(output.status.success(), "git rev-parse HEAD should succeed");
+    String::from_utf8(output.stdout)
+        .expect("git commit should be utf-8")
+        .trim()
+        .to_string()
 }
 
 #[test]
@@ -75,11 +88,7 @@ fn site_command_generates_static_site_from_data_directory() {
             .join("data/debian/linux-image-amd64/index.json")
             .exists()
     );
-    assert!(
-        site_dir
-            .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
-            .exists()
-    );
+    assert!(!site_dir.join("data").exists());
     let html = fs::read_to_string(site_dir.join("index.html")).expect("read html");
     assert!(html.contains("kconfigwtf test"));
     assert!(html.contains(r#"list="config-options""#));
@@ -90,6 +99,7 @@ fn site_command_generates_static_site_from_data_directory() {
 
     let bpf_page =
         fs::read_to_string(site_dir.join("CONFIG_/BPF/index.html")).expect("read bpf page");
+    let commit = current_git_commit();
     assert!(bpf_page.contains("CONFIG_BPF"));
     assert!(bpf_page.contains("cateee.net"));
     assert!(bpf_page.contains("web-lkddb"));
@@ -100,7 +110,9 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(bpf_page.contains("arch-button"));
     assert!(
         bpf_page.contains(
-            r#"data-config-url="../../data/debian/linux-image-amd64/6.1.0-1/amd64/config""#
+            &format!(
+                r#"data-config-url="https://raw.githubusercontent.com/kxxt/kconfigwtf/{commit}/data/debian/linux-image-amd64/6.1.0-1/amd64/config""#
+            )
         )
     );
 

@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::io::{self, IsTerminal};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::thread;
 
@@ -18,9 +19,11 @@ use crate::index::{
 };
 
 const MANIFEST_FILE_NAME: &str = "indexes.json";
-const DATA_OUTPUT_DIR: &str = "data";
+const DATA_REPOSITORY_DIR: &str = "data";
 const CONFIG_OUTPUT_DIR: &str = "CONFIG_";
 const MAX_ARCHITECTURES_PER_TAG: usize = 4;
+const DEFAULT_GITHUB_REPOSITORY: &str = "kxxt/kconfigwtf";
+const GITHUB_RAW_HOST: &str = "https://raw.githubusercontent.com";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SiteManifest {
@@ -75,6 +78,7 @@ impl SiteGenerator {
         let progress = SiteBuildProgress::new();
         fs::create_dir_all(output_dir)
             .with_context(|| format!("creating site output directory {}", output_dir.display()))?;
+        let config_url_base = github_raw_data_url_base()?;
 
         let discovery_progress = progress.spinner("discovering package indexes")?;
         let package_index_paths =
@@ -94,18 +98,6 @@ impl SiteGenerator {
             "loaded {} package indexes",
             package_index_paths.len()
         ));
-
-        let copy_file_count = count_files_in_tree(data_dir)?;
-        let copy_progress = progress.bar(
-            copy_file_count,
-            format!("copying {copy_file_count} data files"),
-        )?;
-        copy_data_dir(
-            data_dir,
-            &output_dir.join(DATA_OUTPUT_DIR),
-            Some(&copy_progress),
-        )?;
-        copy_progress.finish_with_message(format!("copied {copy_file_count} data files"));
 
         let manifest_progress = progress.spinner("building manifest")?;
         let manifest = build_manifest(&loaded_indexes);
@@ -137,6 +129,7 @@ impl SiteGenerator {
             &loaded_indexes,
             output_dir,
             &self.title,
+            &config_url_base,
             self.parallelism,
             &progress,
         )?;
@@ -216,6 +209,7 @@ fn write_config_pages(
     loaded_indexes: &[LoadedPackageIndex],
     output_dir: &Path,
     title: &str,
+    config_url_base: &str,
     parallelism: usize,
     progress: &SiteBuildProgress,
 ) -> Result<()> {
@@ -230,7 +224,7 @@ fn write_config_pages(
             let worker = progress.worker(0);
             for config in configs {
                 worker.start(config);
-                write_config_page(config, loaded_indexes, output_dir, title)?;
+                write_config_page(config, loaded_indexes, output_dir, title, config_url_base)?;
                 worker.finish_item(config);
             }
             Ok(())
@@ -256,7 +250,13 @@ fn write_config_pages(
 
                         let config = &configs[index];
                         worker.start(config);
-                        write_config_page(config, loaded_indexes, output_dir, title)?;
+                        write_config_page(
+                            config,
+                            loaded_indexes,
+                            output_dir,
+                            title,
+                            config_url_base,
+                        )?;
                         worker.finish_item(config);
                     }
 
@@ -284,9 +284,10 @@ fn write_config_page(
     loaded_indexes: &[LoadedPackageIndex],
     output_dir: &Path,
     title: &str,
+    config_url_base: &str,
 ) -> Result<()> {
     let config_name = normalize_config_name(config);
-    let records = records_for_config(&config_name, loaded_indexes, "../../");
+    let records = records_for_config(&config_name, loaded_indexes, config_url_base);
     let page_dir = output_dir.join(CONFIG_OUTPUT_DIR).join(config);
     fs::create_dir_all(&page_dir)
         .with_context(|| format!("creating config page directory {}", page_dir.display()))?;
@@ -519,7 +520,7 @@ fn load_package_indexes(
             })?;
             let result = Ok(LoadedPackageIndex {
                 url: format!(
-                    "{DATA_OUTPUT_DIR}/{}",
+                    "{DATA_REPOSITORY_DIR}/{}",
                     relative.to_string_lossy().replace('\\', "/")
                 ),
                 index: read_package_index(index_path)?,
@@ -554,7 +555,7 @@ fn build_manifest(package_indexes: &[LoadedPackageIndex]) -> SiteManifest {
 fn records_for_config(
     config_name: &str,
     package_indexes: &[LoadedPackageIndex],
-    asset_prefix: &str,
+    config_url_base: &str,
 ) -> Vec<RenderRecord> {
     let mut records = Vec::new();
 
@@ -585,7 +586,10 @@ fn records_for_config(
                 architecture: kernel.architecture.to_string(),
                 value,
                 source: kernel.source.clone(),
-                config_url: format!("{asset_prefix}{index_base}/{}", kernel.config_path),
+                config_url: raw_github_url(
+                    config_url_base,
+                    &format!("{index_base}/{}", kernel.config_path),
+                ),
             });
         }
     }
@@ -761,67 +765,100 @@ fn render_sources(records: &[&RenderRecord]) -> String {
     }
 }
 
-fn copy_data_dir(source: &Path, destination: &Path, progress: Option<&ProgressBar>) -> Result<()> {
-    fs::create_dir_all(destination)
-        .with_context(|| format!("creating data output directory {}", destination.display()))?;
+fn github_raw_data_url_base() -> Result<String> {
+    let repository = std::env::var("KCONFIGWTF_GITHUB_REPOSITORY")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| DEFAULT_GITHUB_REPOSITORY.to_string());
+    let commit = match std::env::var("KCONFIGWTF_GIT_COMMIT")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+    {
+        Some(commit) => commit,
+        None => discover_git_commit()?,
+    };
+    let commit = commit.trim().to_string();
 
-    for entry in WalkDir::new(source) {
-        let entry = entry.with_context(|| format!("walking {}", source.display()))?;
-        let relative = entry.path().strip_prefix(source).with_context(|| {
-            format!(
-                "data path {} is not under {}",
-                entry.path().display(),
-                source.display()
-            )
-        })?;
-        if relative.as_os_str().is_empty() {
-            continue;
-        }
-
-        let target = destination.join(relative);
-        if entry.file_type().is_dir() {
-            fs::create_dir_all(&target)
-                .with_context(|| format!("creating directory {}", target.display()))?;
-        } else if entry.file_type().is_file() {
-            if entry
-                .file_name()
-                .to_str()
-                .is_some_and(is_package_index_file_name)
-            {
-                continue;
-            }
-            if let Some(parent) = target.parent() {
-                fs::create_dir_all(parent)
-                    .with_context(|| format!("creating directory {}", parent.display()))?;
-            }
-            fs::copy(entry.path(), &target).with_context(|| {
-                format!("copying {} to {}", entry.path().display(), target.display())
-            })?;
-            if let Some(progress) = progress {
-                progress.inc(1);
-            }
-        }
+    if repository.split('/').count() != 2 {
+        bail!("invalid GitHub repository {repository:?}");
+    }
+    if !is_full_git_commit_hash(&commit) {
+        bail!(
+            "unable to determine an exact git commit for raw GitHub URLs; set KCONFIGWTF_GIT_COMMIT or build from a git checkout"
+        );
     }
 
-    Ok(())
+    Ok(format!("{GITHUB_RAW_HOST}/{repository}/{commit}"))
 }
 
-fn count_files_in_tree(root: &Path) -> Result<u64> {
-    let mut count = 0u64;
-
-    for entry in WalkDir::new(root) {
-        let entry = entry.with_context(|| format!("walking {}", root.display()))?;
-        if entry.file_type().is_file()
-            && !entry
-                .file_name()
-                .to_str()
-                .is_some_and(is_package_index_file_name)
-        {
-            count += 1;
-        }
+fn discover_git_commit() -> Result<String> {
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .with_context(|| format!("running git rev-parse HEAD in {}", repo_root.display()))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        bail!(
+            "running git rev-parse HEAD in {} failed: {}",
+            repo_root.display(),
+            stderr.trim()
+        );
     }
 
-    Ok(count)
+    let commit = String::from_utf8(output.stdout).context("git rev-parse HEAD was not utf-8")?;
+    Ok(commit.trim().to_string())
+}
+
+fn is_full_git_commit_hash(commit: &str) -> bool {
+    commit.len() == 40 && commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn raw_github_url(base: &str, path: &str) -> String {
+    format!("{base}/{}", encode_url_path(path))
+}
+
+fn encode_url_path(path: &str) -> String {
+    path.split('/')
+        .map(encode_url_segment)
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn encode_url_segment(segment: &str) -> String {
+    let mut encoded = String::with_capacity(segment.len());
+    for byte in segment.bytes() {
+        if matches!(
+            byte,
+            b'A'..=b'Z'
+                | b'a'..=b'z'
+                | b'0'..=b'9'
+                | b'-'
+                | b'.'
+                | b'_'
+                | b'~'
+                | b'!'
+                | b'$'
+                | b'&'
+                | b'\''
+                | b'('
+                | b')'
+                | b'*'
+                | b'+'
+                | b','
+                | b';'
+                | b'='
+                | b':'
+                | b'@'
+        ) {
+            encoded.push(byte as char);
+        } else {
+            encoded.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    encoded
 }
 
 fn escape_html(input: &str) -> String {
@@ -888,21 +925,20 @@ mod tests {
                 .join("data/debian/linux-image-amd64/index.json")
                 .exists()
         );
-        assert!(
-            site.path()
-                .join("data/debian/linux-image-amd64/6.1.0-1/amd64/config")
-                .exists()
-        );
+        assert!(!site.path().join("data").exists());
 
         let bpf_page =
             fs::read_to_string(site.path().join("CONFIG_/BPF/index.html")).expect("read page");
+        let commit = discover_git_commit().expect("discover git commit");
         assert!(bpf_page.contains("CONFIG_BPF"));
         assert!(bpf_page.contains("cateee.net"));
         assert!(bpf_page.contains("web-lkddb"));
         assert!(bpf_page.contains("kernelconfig.io"));
         assert!(bpf_page.contains(r#"target="_blank""#));
         assert!(bpf_page.contains(
-            "data-config-url=\"../../data/debian/linux-image-amd64/6.1.0-1/amd64/config\""
+            &format!(
+                "data-config-url=\"https://raw.githubusercontent.com/kxxt/kconfigwtf/{commit}/data/debian/linux-image-amd64/6.1.0-1/amd64/config\""
+            )
         ));
     }
 
@@ -956,7 +992,7 @@ mod tests {
                 architecture: "amd64".to_string(),
                 value: "y".to_string(),
                 source: None,
-                config_url: "data/debian/linux-image-amd64/6.1.0-1/amd64/config".to_string(),
+                config_url: "https://raw.githubusercontent.com/kxxt/kconfigwtf/0123456789abcdef0123456789abcdef01234567/data/debian/linux-image-amd64/6.1.0-1/amd64/config".to_string(),
             },
             RenderRecord {
                 distribution: "debian".to_string(),
@@ -966,7 +1002,7 @@ mod tests {
                 architecture: "amd64".to_string(),
                 value: "y".to_string(),
                 source: None,
-                config_url: "data/debian/linux-image-cloud-amd64/6.1.0-1/amd64/config".to_string(),
+                config_url: "https://raw.githubusercontent.com/kxxt/kconfigwtf/0123456789abcdef0123456789abcdef01234567/data/debian/linux-image-cloud-amd64/6.1.0-1/amd64/config".to_string(),
             },
             RenderRecord {
                 distribution: "debian".to_string(),
@@ -976,7 +1012,7 @@ mod tests {
                 architecture: "amd64".to_string(),
                 value: "m".to_string(),
                 source: None,
-                config_url: "data/debian/linux-image-amd64/5.10.0-1/amd64/config".to_string(),
+                config_url: "https://raw.githubusercontent.com/kxxt/kconfigwtf/0123456789abcdef0123456789abcdef01234567/data/debian/linux-image-amd64/5.10.0-1/amd64/config".to_string(),
             },
         ]);
 
@@ -992,5 +1028,18 @@ mod tests {
         assert!(html.contains(
             r#"<td rowspan="1" class="group-cell package-cell">linux-image-cloud-amd64</td>"#
         ));
+    }
+
+    #[test]
+    fn raw_github_urls_encode_placeholder_segments() {
+        let url = raw_github_url(
+            "https://raw.githubusercontent.com/kxxt/kconfigwtf/0123456789abcdef0123456789abcdef01234567",
+            "data/debian/linux-image-<VERSION>-<ARCH>/6.1.0-1/amd64/config",
+        );
+
+        assert_eq!(
+            url,
+            "https://raw.githubusercontent.com/kxxt/kconfigwtf/0123456789abcdef0123456789abcdef01234567/data/debian/linux-image-%3CVERSION%3E-%3CARCH%3E/6.1.0-1/amd64/config"
+        );
     }
 }

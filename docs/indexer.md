@@ -11,10 +11,10 @@ index format and static site generator.
 4. `write_packages_to_data_dir` writes raw configs to
    `data/<DISTRO>/<PACKAGE>/<VERSION>/<ARCH>/config`.
 5. The same data writer builds `data/<DISTRO>/<PACKAGE>/index.json`.
-6. The site generator scans `data/**/index.json`, copies the data tree, writes a
-   static-site manifest containing the complete Kconfig name list for
-   autocomplete, and generates one `CONFIG_/<ENTRY>/index.html` result page per
-   Kconfig entry.
+6. The site generator scans `data/**/index.json`, writes a static-site
+   manifest containing the complete Kconfig name list for autocomplete, emits
+   pinned GitHub raw URLs for `data/**/config`, and generates one
+   `CONFIG_/<ENTRY>/index.html` result page per Kconfig entry.
 
 ## Distribution Backend Contract
 
