@@ -79,29 +79,29 @@ cargo run -- index ubuntu \
 # ports
 cargo run -- index ubuntu   --suite noble-updates  \
  --component main   \
- --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x \
+ --arch amd64 --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x \
  --max-packages 25   --data-dir data \
  --mirror http://ports.ubuntu.com/ubuntu-ports/
 
 cargo run -- index kali \
   --suite kali-rolling \
   --component main \
-  --arch amd64 \
-  --max-packages 5 \
+  --arch amd64 --arch arm64 --arch armhf \
+  --max-packages 15 \
   --data-dir data
 
 cargo run -- index proxmox \
   --suite bookworm \
   --component pve-no-subscription \
   --arch amd64 \
-  --max-packages 5 \
+  --max-packages 15 \
   --data-dir data
 
 cargo run -- index deepin \
   --suite beige \
   --component main \
-  --arch amd64 \
-  --max-packages 5 \
+  --arch amd64 --arch arm64 --arch riscv64 --arch loong64 \
+  --max-packages 15 \
   --data-dir data
 
 cargo run -- index kylin \
@@ -114,15 +114,15 @@ cargo run -- index kylin \
 cargo run -- index openkylin \
   --suite nile.bedrock \
   --component main \
-  --arch amd64 \
-  --max-packages 5 \
+  --arch amd64 --arch arm64 --arch riscv64 --arch loong64 \
+  --max-packages 15 \
   --data-dir data
 
 cargo run -- index aosc \
   --suite stable \
   --component main \
-  --arch amd64 \
-  --max-packages 5 \
+  --arch amd64 --arch arm64 --arch riscv64 --arch loongarch64 --arch loongson3 --arch ppc64el\
+  --max-packages 15 \
   --data-dir data
 ```
 
@@ -171,8 +171,14 @@ The same RPM backend also supports RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
 openAnolis, openEuler, openSUSE, Oracle Linux, Amazon Linux, and Azure Linux:
 
 ```sh
-cargo run -- index centos --release 10-stream --max-packages 5 --data-dir data
-cargo run -- index centos --release 6 --max-packages 5 --data-dir data
+cargo run -- index centos --release 10-stream --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+cargo run -- index centos --release 8 --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64 --arch ppc64le
+cargo run -- index centos --release 7 --max-packages 15 --data-dir data \
+  --arch x86_64
+cargo run -- index centos --release 6 --max-packages 15 --data-dir data \
+  --arch i386 --arch x86_64
 cargo run -- index almalinux --release 10 --max-packages 5 --data-dir data
 cargo run -- index rocky --release 10 --max-packages 5 --data-dir data
 cargo run -- index openanolis --release 23.1 --max-packages 5 --data-dir data
