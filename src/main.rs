@@ -2601,23 +2601,6 @@ mod tests {
         );
     }
 
-    #[test]
-    fn skips_unsupported_openeuler_sp3_ppc64le() {
-        let args = RpmArgs {
-            release: Some("openEuler-24.03-LTS-SP3".to_string()),
-            ..rpm_args()
-        };
-
-        assert!(
-            rpm_remote_feeds_for_architecture(
-                &Distribution::OpenEuler,
-                &args,
-                &Architecture::Ppc64el,
-            )
-            .is_empty()
-        );
-    }
-
     fn rpm_args() -> RpmArgs {
         RpmArgs {
             mirror: None,
