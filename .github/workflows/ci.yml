@@ -71,7 +71,7 @@ jobs:
           test -f .ci/public/app.js
           test -f .ci/public/styles.css
           test -f .ci/public/indexes.json
-          test -d .ci/public/data
+          test -f .ci/public/CNAME
       - name: Pack site artifact
         run: |
           mkdir -p .ci/artifact
