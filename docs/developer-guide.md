@@ -548,6 +548,7 @@ The generated site consists of:
 - `app.js`
 - `styles.css`
 - `indexes.json`
+- `CNAME`, containing `kconfigwtf.kxxt.dev`
 - `CONFIG_/<ENTRY>/index.html`, one generated result page per Kconfig entry
 
 The generated pages do not copy raw kernel config files into the published

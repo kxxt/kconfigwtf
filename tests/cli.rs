@@ -79,6 +79,10 @@ fn site_command_generates_static_site_from_data_directory() {
     assert!(site_dir.join("app.js").exists());
     assert!(site_dir.join("styles.css").exists());
     assert!(site_dir.join("indexes.json").exists());
+    assert_eq!(
+        fs::read_to_string(site_dir.join("CNAME")).expect("read CNAME"),
+        "kconfigwtf.kxxt.dev\n"
+    );
     let manifest: TestManifest =
         serde_json::from_str(&fs::read_to_string(site_dir.join("indexes.json")).expect("manifest"))
             .expect("parse manifest");

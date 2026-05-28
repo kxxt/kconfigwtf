@@ -19,6 +19,8 @@ use crate::index::{
 };
 
 const MANIFEST_FILE_NAME: &str = "indexes.json";
+const CNAME_FILE_NAME: &str = "CNAME";
+const SITE_CNAME: &str = "kconfigwtf.kxxt.dev";
 const DATA_REPOSITORY_DIR: &str = "data";
 const CONFIG_OUTPUT_DIR: &str = "CONFIG_";
 const MAX_ARCHITECTURES_PER_TAG: usize = 4;
@@ -151,6 +153,11 @@ impl SiteGenerator {
             format!("writing {}", output_dir.join(MANIFEST_FILE_NAME).display())
         })?;
         write_manifest_progress.finish_with_message("wrote site manifest".to_string());
+
+        let cname_progress = progress.spinner("writing CNAME")?;
+        fs::write(output_dir.join(CNAME_FILE_NAME), format!("{SITE_CNAME}\n"))
+            .with_context(|| format!("writing {}", output_dir.join(CNAME_FILE_NAME).display()))?;
+        cname_progress.finish_with_message("wrote CNAME".to_string());
 
         Ok(())
     }
@@ -912,6 +919,10 @@ mod tests {
         assert!(site.path().join("app.js").exists());
         assert!(site.path().join("styles.css").exists());
         assert!(site.path().join("indexes.json").exists());
+        assert_eq!(
+            fs::read_to_string(site.path().join("CNAME")).expect("read CNAME"),
+            "kconfigwtf.kxxt.dev\n"
+        );
         assert!(site.path().join("CONFIG_/BPF/index.html").exists());
         assert!(site.path().join("CONFIG_/EXT4_FS/index.html").exists());
         let manifest: SiteManifest = serde_json::from_str(
