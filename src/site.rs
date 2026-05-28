@@ -124,6 +124,8 @@ impl SiteGenerator {
                 manifest_file: MANIFEST_FILE_NAME,
                 result_title: "Enter a config entry",
                 result_count: "",
+                lkddb_url: None,
+                kernelconfig_url: None,
                 table_body: r#"<tr><td colspan="6" class="empty">No lookup has been run yet.</td></tr>"#,
                 config_viewer_hidden: true,
             },
@@ -168,6 +170,8 @@ struct PageRender<'a> {
     manifest_file: &'a str,
     result_title: &'a str,
     result_count: &'a str,
+    lkddb_url: Option<&'a str>,
+    kernelconfig_url: Option<&'a str>,
     table_body: &'a str,
     config_viewer_hidden: bool,
 }
@@ -184,6 +188,8 @@ fn write_page(path: PathBuf, page: PageRender<'_>) -> Result<()> {
             manifest_file => page.manifest_file,
             result_title => page.result_title,
             result_count => page.result_count,
+            lkddb_url => page.lkddb_url,
+            kernelconfig_url => page.kernelconfig_url,
             table_body => page.table_body,
             config_viewer_hidden => page.config_viewer_hidden,
         })
@@ -292,6 +298,11 @@ fn write_config_page(
         if records.len() == 1 { "" } else { "es" }
     );
     let table_body = render_results_table(&records);
+    let lkddb_url = format!(
+        "https://cateee.net/lkddb/web-lkddb/{}.html",
+        config_name.strip_prefix("CONFIG_").unwrap_or(&config_name)
+    );
+    let kernelconfig_url = format!("https://www.kernelconfig.io/{config_name}");
 
     write_page(
         page_dir.join("index.html"),
@@ -302,6 +313,8 @@ fn write_config_page(
             manifest_file: MANIFEST_FILE_NAME,
             result_title: &config_name,
             result_count: &result_count,
+            lkddb_url: Some(&lkddb_url),
+            kernelconfig_url: Some(&kernelconfig_url),
             table_body: &table_body,
             config_viewer_hidden: true,
         },
@@ -884,6 +897,10 @@ mod tests {
         let bpf_page =
             fs::read_to_string(site.path().join("CONFIG_/BPF/index.html")).expect("read page");
         assert!(bpf_page.contains("CONFIG_BPF"));
+        assert!(bpf_page.contains("cateee.net"));
+        assert!(bpf_page.contains("web-lkddb"));
+        assert!(bpf_page.contains("kernelconfig.io"));
+        assert!(bpf_page.contains(r#"target="_blank""#));
         assert!(bpf_page.contains(
             "data-config-url=\"../../data/debian/linux-image-amd64/6.1.0-1/amd64/config\""
         ));

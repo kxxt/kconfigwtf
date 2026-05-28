@@ -91,6 +91,10 @@ fn site_command_generates_static_site_from_data_directory() {
     let bpf_page =
         fs::read_to_string(site_dir.join("CONFIG_/BPF/index.html")).expect("read bpf page");
     assert!(bpf_page.contains("CONFIG_BPF"));
+    assert!(bpf_page.contains("cateee.net"));
+    assert!(bpf_page.contains("web-lkddb"));
+    assert!(bpf_page.contains("kernelconfig.io"));
+    assert!(bpf_page.contains(r#"target="_blank""#));
     assert!(bpf_page.contains(r#"rowspan="1""#));
     assert!(bpf_page.contains("kernel-tag"));
     assert!(bpf_page.contains("arch-button"));

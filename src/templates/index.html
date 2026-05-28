@@ -38,7 +38,19 @@
 
       <section class="results" aria-live="polite">
         <div class="result-header">
-          <h2 id="result-title">{{ result_title }}</h2>
+          <div class="result-heading">
+            <h2 id="result-title">{{ result_title }}</h2>
+            {% if lkddb_url or kernelconfig_url %}
+            <div class="result-links">
+              {% if lkddb_url %}
+              <a href="{{ lkddb_url }}" target="_blank" rel="noopener">lkddb</a>
+              {% endif %}
+              {% if kernelconfig_url %}
+              <a href="{{ kernelconfig_url }}" target="_blank" rel="noopener">kernelconfig.io</a>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
           <span id="result-count">{{ result_count }}</span>
         </div>
         <div class="table-wrap">

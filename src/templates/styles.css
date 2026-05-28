@@ -142,6 +142,25 @@ button:hover {
   border-bottom: 1px solid var(--line);
 }
 
+.result-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.result-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 0.875rem;
+}
+
+.result-links a {
+  font-weight: 600;
+}
+
 #result-count {
   color: var(--muted);
   font-size: 0.875rem;
@@ -334,5 +353,14 @@ a {
 
   button {
     width: 100%;
+  }
+
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #result-count {
+    white-space: normal;
   }
 }
