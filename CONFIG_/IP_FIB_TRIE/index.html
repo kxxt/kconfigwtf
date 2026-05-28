@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CONFIG_IP_FIB_TRIE - kconfigwtf</title>
+    <link rel="stylesheet" href="..&#x2f;..&#x2f;styles.css">
+    <script defer src="..&#x2f;..&#x2f;app.js" data-index-manifest="..&#x2f;..&#x2f;indexes.json"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="lookup">
+        <div>
+          <h1>kconfigwtf</h1>
+          <p class="lede">Find Linux kernel package configs by Kconfig entry.</p>
+          <p class="site-links">
+            <a href="https://github.com/kxxt/kconfigwtf">github.com/kxxt/kconfigwtf</a>
+          </p>
+        </div>
+        <form id="search-form" class="search" role="search">
+          <label for="config-input">Kernel config</label>
+          <div class="search-row">
+            <input
+              id="config-input"
+              name="config"
+              type="search"
+              list="config-options"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="BPF"
+              required
+            >
+            <datalist id="config-options"></datalist>
+            <button type="submit">Search</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="results" aria-live="polite">
+        <div class="result-header">
+          <div class="result-heading">
+            <h2 id="result-title">CONFIG_IP_FIB_TRIE</h2>
+            
+            <div class="result-links">
+              
+              <a href="https:&#x2f;&#x2f;cateee.net&#x2f;lkddb&#x2f;web-lkddb&#x2f;IP_FIB_TRIE.html" target="_blank" rel="noopener">lkddb</a>
+              
+              
+              <a href="https:&#x2f;&#x2f;www.kernelconfig.io&#x2f;CONFIG_IP_FIB_TRIE" target="_blank" rel="noopener">kernelconfig.io</a>
+              
+            </div>
+            
+          </div>
+          <span id="result-count">2 matches</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Distribution</th>
+                <th>Release</th>
+                <th>Package</th>
+                <th>Value</th>
+                <th>Versions / architectures</th>
+                <th>Sources</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+              <tr><td rowspan="2" class="group-cell group-cell-distribution"><span class="sticky-group-label">centos</span></td><td rowspan="1" class="group-cell group-cell-release"><span class="sticky-group-label">6</span></td><td rowspan="1" class="group-cell package-cell">kernel</td><td>-</td><td><div class="tag-list"><div class="kernel-tag" title="0:2.6.32-754.el6: amd64"><span class="tag-version">0:2.6.32-754.el6</span><span class="tag-architectures"><button type="button" class="arch-button" data-config-url="https://raw.githubusercontent.com/kxxt/kconfigwtf/a83ede49fe23adeba05327099a24d2f3fe8b966f/data/centos/kernel/0:2.6.32-754.el6/amd64/config" data-config-title="kernel 0:2.6.32-754.el6 amd64">amd64</button></span></div></div></td><td><a href="https://vault.centos.org/6.10/os/x86_64/Packages/kernel-2.6.32-754.el6.x86_64.rpm#/boot/config-2.6.32-754.el6.x86_64">package</a></td></tr><tr><td rowspan="1" class="group-cell group-cell-release"><span class="sticky-group-label">7</span></td><td rowspan="1" class="group-cell package-cell">kernel</td><td>-</td><td><div class="tag-list"><div class="kernel-tag" title="0:3.10.0-1160.el7: amd64"><span class="tag-version">0:3.10.0-1160.el7</span><span class="tag-architectures"><button type="button" class="arch-button" data-config-url="https://raw.githubusercontent.com/kxxt/kconfigwtf/a83ede49fe23adeba05327099a24d2f3fe8b966f/data/centos/kernel/0:3.10.0-1160.el7/amd64/config" data-config-title="kernel 0:3.10.0-1160.el7 amd64">amd64</button></span></div></div></td><td><a href="https://vault.centos.org/7.9.2009/os/x86_64/Packages/kernel-3.10.0-1160.el7.x86_64.rpm#/boot/config-3.10.0-1160.el7.x86_64">package</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="config-viewer" id="config-viewer" hidden>
+        <div class="result-header">
+          <h2 id="config-title">Config</h2>
+          <a id="config-link" href="#" target="_blank" rel="noopener">raw</a>
+        </div>
+        <pre id="config-body"></pre>
+      </section>
+    </main>
+  </body>
+</html>
