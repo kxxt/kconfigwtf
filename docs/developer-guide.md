@@ -224,7 +224,8 @@ cargo run -- index oraclelinux --release 7 --max-packages 15 --data-dir data \
   --arch x86_64
 cargo run -- index amazonlinux --release al2023 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64
-cargo run -- index azurelinux --release 3.0 --max-packages 15 --data-dir data
+cargo run -- index azurelinux --release 3.0 --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64
 ```
 
 CentOS Stream releases use `mirror.stream.centos.org`. Archived CentOS
