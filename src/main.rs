@@ -2153,7 +2153,7 @@ fn default_rpm_release(distribution: &Distribution) -> &'static str {
 fn default_rpm_repository(distribution: &Distribution, release: &str) -> &'static str {
     match distribution {
         Distribution::CentOS if is_legacy_centos_release(release) => "os",
-        Distribution::OpenAnolis if release.starts_with("8") => "BaseOS",
+        Distribution::OpenAnolis if release.starts_with("8") => "kernel-5.10",
         Distribution::OpenAnolis => "os",
         Distribution::OpenEuler => "OS",
         Distribution::OpenSUSE => "oss",
@@ -2177,7 +2177,17 @@ fn default_rpm_package_name(distribution: &Distribution, args: &RpmArgs) -> &'st
                 "kernel-core"
             }
         }
-        Distribution::OpenAnolis => "kernel",
+        Distribution::OpenAnolis => {
+            let release = args
+                .release
+                .as_deref()
+                .unwrap_or(default_rpm_release(distribution));
+            if release.starts_with("8") {
+                "kernel-core"
+            } else {
+                "kernel"
+            }
+        }
         Distribution::OpenEuler => "kernel",
         Distribution::OpenSUSE => "kernel-default",
         Distribution::OracleLinux => "kernel-core",
@@ -2408,7 +2418,7 @@ mod tests {
     #[test]
     fn builds_openanolis_and_opensuse_custom_release_repo_roots() {
         let anolis8 = RpmArgs {
-            release: Some("8".to_string()),
+            release: Some("8.10".to_string()),
             ..rpm_args()
         };
         let leap = RpmArgs {
@@ -2418,11 +2428,11 @@ mod tests {
 
         assert_eq!(
             rpm_repo_root(&Distribution::OpenAnolis, &anolis8, &Architecture::Amd64),
-            "https://mirrors.openanolis.cn/anolis/8/BaseOS/x86_64/os"
+            "https://mirrors.openanolis.cn/anolis/8.10/kernel-5.10/x86_64/os"
         );
         assert_eq!(
             default_rpm_package_name(&Distribution::OpenAnolis, &anolis8),
-            "kernel"
+            "kernel-core"
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &leap, &Architecture::Amd64),

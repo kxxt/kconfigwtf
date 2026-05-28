@@ -189,7 +189,12 @@ cargo run -- index rocky --release 9 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
 cargo run -- index rocky --release 8 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64
-cargo run -- index openanolis --release 23.1 --max-packages 5 --data-dir data
+cargo run -- index openanolis --release 23.4 --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64 --arch loongarch64
+cargo run -- index openanolis --release 8.10 --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64 --arch loongarch64
+cargo run -- index openanolis --release 7.9 --max-packages 15 --data-dir data \
+  --arch x86_64 --arch aarch64
 cargo run -- index openeuler --release openEuler-24.03-LTS --max-packages 5 --data-dir data
 cargo run -- index opensuse --release tumbleweed --max-packages 5 --data-dir data
 cargo run -- index oraclelinux --release 9 --max-packages 5 --data-dir data
