@@ -2160,7 +2160,7 @@ fn rpm_repo_root(
         Distribution::OpenAnolis => format!("{mirror}/{release}/{repository}/{arch}/os"),
         Distribution::OpenEuler => format!("{mirror}/{release}/{repository}/{arch}"),
         Distribution::OpenSUSE if release == "tumbleweed" => {
-            format!("{mirror}/tumbleweed/repo/{repository}")
+            opensuse_tumbleweed_repo_root(mirror, &repository, architecture)
         }
         Distribution::OpenSUSE => format!("{mirror}/distribution/leap/{release}/repo/{repository}"),
         Distribution::OracleLinux => {
@@ -2173,6 +2173,32 @@ fn rpm_repo_root(
             format!("{mirror}/{release}/{repository}/base/{arch}")
         }
         _ => format!("{mirror}/{release}/{repository}/{arch}/os"),
+    }
+}
+
+fn opensuse_tumbleweed_repo_root(
+    mirror: &str,
+    repository: &str,
+    architecture: &Architecture,
+) -> String {
+    match architecture {
+        Architecture::Amd64 => format!("{mirror}/tumbleweed/repo/{repository}"),
+        Architecture::Arm64 => {
+            format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/aarch64")
+        }
+        Architecture::Armhf => {
+            format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/armv7hl")
+        }
+        Architecture::I386 => format!("{mirror}/ports/i586/tumbleweed/repo/{repository}"),
+        Architecture::Riscv64 => format!("{mirror}/ports/riscv/tumbleweed/repo/{repository}"),
+        Architecture::Ppc64el => format!("{mirror}/ports/ppc/tumbleweed/repo/{repository}"),
+        Architecture::S390x => {
+            format!("{mirror}/ports/zsystems/tumbleweed/repo/{repository}")
+        }
+        Architecture::Other(value) if value == "armv6hl" => {
+            format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/armv6hl")
+        }
+        _ => format!("{mirror}/tumbleweed/repo/{repository}"),
     }
 }
 
@@ -2360,6 +2386,38 @@ mod tests {
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Amd64),
             "https://download.opensuse.org/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Arm64),
+            "https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/aarch64"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Armhf),
+            "https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/armv7hl"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::I386),
+            "https://download.opensuse.org/ports/i586/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Riscv64),
+            "https://download.opensuse.org/ports/riscv/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Ppc64el),
+            "https://download.opensuse.org/ports/ppc/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::S390x),
+            "https://download.opensuse.org/ports/zsystems/tumbleweed/repo/oss"
+        );
+        assert_eq!(
+            rpm_repo_root(
+                &Distribution::OpenSUSE,
+                &args,
+                &Architecture::Other("armv6hl".to_string()),
+            ),
+            "https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/armv6hl"
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OracleLinux, &args, &Architecture::Amd64),

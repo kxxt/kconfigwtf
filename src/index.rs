@@ -206,7 +206,7 @@ impl FromStr for Architecture {
             "amd64" | "x86_64" => Self::Amd64,
             "arm64" | "aarch64" => Self::Arm64,
             "armhf" | "armv7" | "armv7h" => Self::Armhf,
-            "i386" | "x86" => Self::I386,
+            "i386" | "i586" | "x86" => Self::I386,
             "ppc64el" | "ppc64le" => Self::Ppc64el,
             "riscv64" => Self::Riscv64,
             "s390x" => Self::S390x,
@@ -1120,6 +1120,14 @@ mod tests {
         assert_eq!(
             "ppc64le".parse::<Architecture>().expect("parse ppc64le"),
             Architecture::Ppc64el
+        );
+    }
+
+    #[test]
+    fn parses_i586_as_i386_architecture() {
+        assert_eq!(
+            "i586".parse::<Architecture>().expect("parse i586"),
+            Architecture::I386
         );
     }
 
