@@ -195,7 +195,22 @@ cargo run -- index openanolis --release 8.10 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64 --arch loongarch64
 cargo run -- index openanolis --release 7.9 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64
-cargo run -- index openeuler --release openEuler-24.03-LTS --max-packages 5 --data-dir data
+cargo run -- index openeuler --release openEuler-24.03-LTS \
+ --max-packages 15 --data-dir data \
+ --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64 --arch ppc64le
+cargo run -- index openeuler --release openEuler-24.03-LTS-SP3 \
+ --max-packages 15 --data-dir data \
+ --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64 --arch ppc64le
+cargo run -- index openeuler --release openEuler-24.03-LTS-SP3 \
+ --max-packages 15 --data-dir data \
+ --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64
+cargo run -- index openeuler --release openEuler-24.03-LTS-SP3 \
+ --max-packages 15 --data-dir data \
+ --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64
+cargo run -- index openeuler --release openEuler-22.03-LTS-SP3 \
+ --max-packages 15 --data-dir data  --arch x86_64 --arch aarch64 
+cargo run -- index openeuler --release openEuler-20.03-LTS-SP3 \
+ --max-packages 15 --data-dir data  --arch x86_64 --arch aarch64 
 cargo run -- index opensuse --release tumbleweed --max-packages 5 --data-dir data
 cargo run -- index oraclelinux --release 9 --max-packages 5 --data-dir data
 cargo run -- index amazonlinux --release al2023 --max-packages 5 --data-dir data

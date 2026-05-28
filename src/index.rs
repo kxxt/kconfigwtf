@@ -207,7 +207,7 @@ impl FromStr for Architecture {
             "arm64" | "aarch64" => Self::Arm64,
             "armhf" | "armv7" | "armv7h" => Self::Armhf,
             "i386" | "x86" => Self::I386,
-            "ppc64el" => Self::Ppc64el,
+            "ppc64el" | "ppc64le" => Self::Ppc64el,
             "riscv64" => Self::Riscv64,
             "s390x" => Self::S390x,
             other => Self::Other(other.to_string()),
@@ -1114,6 +1114,14 @@ pub fn parse_enabled_kernel_config(config_text: &str) -> BTreeMap<String, Config
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_ppc64le_as_ppc64el_architecture() {
+        assert_eq!(
+            "ppc64le".parse::<Architecture>().expect("parse ppc64le"),
+            Architecture::Ppc64el
+        );
+    }
 
     #[test]
     fn parses_config_values_and_missing_entries() {

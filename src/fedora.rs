@@ -28,6 +28,7 @@ pub enum FedoraPackageBase {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FedoraRepoFeed {
     pub architecture: Architecture,
+    pub package_architecture: Option<Architecture>,
     pub repomd: FedoraMetadataLocation,
     pub package_base: FedoraPackageBase,
 }
@@ -56,6 +57,7 @@ impl FedoraIndexerConfig {
                 let repo_root = fedora_repo_root(&mirror, release, &architecture);
                 FedoraRepoFeed {
                     architecture,
+                    package_architecture: None,
                     repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
                     package_base: FedoraPackageBase::Url(repo_root),
                 }
@@ -163,7 +165,11 @@ impl KernelConfigIndexer for FedoraIndexer {
             let candidates = select_kernel_packages(
                 &parse_primary_metadata(&primary_text)?,
                 &self.config.package_names,
-                Some(feed.architecture.clone()),
+                Some(
+                    feed.package_architecture
+                        .clone()
+                        .unwrap_or_else(|| feed.architecture.clone()),
+                ),
                 self.config.max_packages,
             );
             selected_package_count += candidates.len();
@@ -181,7 +187,7 @@ impl KernelConfigIndexer for FedoraIndexer {
                         release: self.config.release.clone(),
                         package_name: candidate.name.clone(),
                         package_version: candidate.version.clone(),
-                        architecture: candidate.architecture.clone(),
+                        architecture: feed.architecture.clone(),
                         source: Some(format!("{source}#{config_path}")),
                         config_text,
                     });

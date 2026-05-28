@@ -1943,6 +1943,7 @@ fn fedora_config_from_args(args: &FedoraArgs) -> Result<FedoraIndexerConfig> {
             release: normalize_rpm_release_label(&Distribution::Fedora, &args.release),
             feeds: vec![FedoraRepoFeed {
                 architecture,
+                package_architecture: None,
                 repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
                 package_base: FedoraPackageBase::Path(rpm_root.clone()),
             }],
@@ -1998,6 +1999,7 @@ async fn rpm_config_from_args(
             ),
             feeds: vec![FedoraRepoFeed {
                 architecture,
+                package_architecture: None,
                 repomd: FedoraMetadataLocation::Path(repomd_file.clone()),
                 package_base: FedoraPackageBase::Path(rpm_root.clone()),
             }],
@@ -2008,17 +2010,21 @@ async fn rpm_config_from_args(
     } else {
         let mut feeds = Vec::new();
         for architecture in &args.architectures {
-            let repo_root = rpm_repo_root(&distribution, args, architecture);
-            let repo_root = if matches!(distribution, Distribution::AmazonLinux) {
-                resolve_rpm_mirror_list(&repo_root).await?
-            } else {
-                repo_root
-            };
-            feeds.push(FedoraRepoFeed {
-                architecture: architecture.clone(),
-                repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
-                package_base: FedoraPackageBase::Url(repo_root),
-            });
+            for (feed_architecture, package_architecture, repo_root) in
+                rpm_remote_feeds_for_architecture(&distribution, args, architecture)
+            {
+                let repo_root = if matches!(distribution, Distribution::AmazonLinux) {
+                    resolve_rpm_mirror_list(&repo_root).await?
+                } else {
+                    repo_root
+                };
+                feeds.push(FedoraRepoFeed {
+                    architecture: feed_architecture,
+                    package_architecture,
+                    repomd: FedoraMetadataLocation::Url(format!("{repo_root}/repodata/repomd.xml")),
+                    package_base: FedoraPackageBase::Url(repo_root),
+                });
+            }
         }
 
         FedoraIndexerConfig {
@@ -2040,6 +2046,65 @@ async fn rpm_config_from_args(
     config.package_names = package_names;
     config.max_packages = args.max_packages;
     Ok(config)
+}
+
+fn rpm_remote_feeds_for_architecture(
+    distribution: &Distribution,
+    args: &RpmArgs,
+    architecture: &Architecture,
+) -> Vec<(Architecture, Option<Architecture>, String)> {
+    if let Some(riscv_feeds) = openeuler_riscv_variant_feeds(distribution, args, architecture) {
+        return riscv_feeds;
+    }
+
+    vec![(
+        architecture.clone(),
+        None,
+        rpm_repo_root(distribution, args, architecture),
+    )]
+}
+
+fn openeuler_riscv_variant_feeds(
+    distribution: &Distribution,
+    args: &RpmArgs,
+    architecture: &Architecture,
+) -> Option<Vec<(Architecture, Option<Architecture>, String)>> {
+    if !matches!(distribution, Distribution::OpenEuler)
+        || !matches!(architecture, Architecture::Riscv64)
+    {
+        return None;
+    }
+
+    let release = args
+        .release
+        .as_deref()
+        .unwrap_or(default_rpm_release(distribution));
+    if release != "openEuler-24.03-LTS-SP3" {
+        return None;
+    }
+
+    let mirror = args
+        .mirror
+        .clone()
+        .unwrap_or_else(|| default_rpm_mirror(distribution, args).to_string());
+    let repository = args
+        .repository
+        .clone()
+        .unwrap_or_else(|| default_rpm_repository(distribution, release).to_string());
+    let mirror = mirror.trim_end_matches('/');
+
+    Some(vec![
+        (
+            Architecture::Riscv64,
+            Some(Architecture::Riscv64),
+            format!("{mirror}/{release}/{repository}/riscv64/rva20/riscv64"),
+        ),
+        (
+            Architecture::Other("riscv64-rva23".to_string()),
+            Some(Architecture::Riscv64),
+            format!("{mirror}/{release}/{repository}/riscv64/rva23/riscv64"),
+        ),
+    ])
 }
 
 async fn resolve_rpm_mirror_list(mirror_list_url: &str) -> Result<String> {
@@ -2441,6 +2506,57 @@ mod tests {
         assert_eq!(
             default_rpm_package_name(&Distribution::OpenSUSE, &leap),
             "kernel-default"
+        );
+    }
+
+    #[test]
+    fn builds_openeuler_sp3_riscv_variant_feeds() {
+        let args = RpmArgs {
+            release: Some("openEuler-24.03-LTS-SP3".to_string()),
+            ..rpm_args()
+        };
+
+        let feeds = rpm_remote_feeds_for_architecture(
+            &Distribution::OpenEuler,
+            &args,
+            &Architecture::Riscv64,
+        );
+
+        assert_eq!(feeds.len(), 2);
+        assert_eq!(
+            feeds[0],
+            (
+                Architecture::Riscv64,
+                Some(Architecture::Riscv64),
+                "https://repo.openeuler.org/openEuler-24.03-LTS-SP3/OS/riscv64/rva20/riscv64"
+                    .to_string(),
+            )
+        );
+        assert_eq!(
+            feeds[1],
+            (
+                Architecture::Other("riscv64-rva23".to_string()),
+                Some(Architecture::Riscv64),
+                "https://repo.openeuler.org/openEuler-24.03-LTS-SP3/OS/riscv64/rva23/riscv64"
+                    .to_string(),
+            )
+        );
+    }
+
+    #[test]
+    fn skips_unsupported_openeuler_sp3_ppc64le() {
+        let args = RpmArgs {
+            release: Some("openEuler-24.03-LTS-SP3".to_string()),
+            ..rpm_args()
+        };
+
+        assert!(
+            rpm_remote_feeds_for_architecture(
+                &Distribution::OpenEuler,
+                &args,
+                &Architecture::Ppc64el,
+            )
+            .is_empty()
         );
     }
 
