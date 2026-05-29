@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-22T14:25:35.079095999Z",
+  "generated_at": "2026-05-29T01:45:24.991796377Z",
   "distribution": "archlinux",
   "package_name": "linux-hardened",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "amd64"

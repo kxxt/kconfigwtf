@@ -317,7 +317,14 @@ cargo run -- index arch \
   --distribution archlinux \
   --repository core \
   --arch x86_64 \
-  --max-packages 5 \
+  --max-packages 15 \
+  --data-dir data
+
+cargo run -- index arch \
+  --distribution archlinux \
+  --repository extra \
+  --arch x86_64 \
+  --max-packages 15 \
   --data-dir data
 ```
 
@@ -337,9 +344,14 @@ defaults and stores data under `archlinux`:
 
 ```sh
 cargo run -- index arch --distribution parabola --arch x86_64 --data-dir data
-cargo run -- index arch --distribution cachyos --arch x86_64_v4 --repository cachyos-znver4 --data-dir data
-cargo run -- index arch --arch riscv64 --data-dir data
-cargo run -- index eweos --repository main --arch x86_64 --data-dir data
+cargo run -- index arch --distribution cachyos --arch x86_64_v4 --repository cachyos-v4 --data-dir data
+cargo run -- index arch --distribution cachyos --arch x86_64_v3 --repository cachyos-v3 --data-dir data
+cargo run -- index arch --distribution cachyos --arch x86_64 --repository cachyos --data-dir data
+cargo run -- index arch --arch riscv64 --repository core --data-dir data
+cargo run -- index arch --arch riscv64 --repository extra --data-dir data
+cargo run -- index arch --arch riscv64 --repository unsupported --data-dir data
+cargo run -- index eweos --repository main --data-dir data \
+  --arch x86_64 --arch riscv64 --arch aarch64 --arch loongarch64
 ```
 
 Offline indexing is also supported for tests and mirror snapshots:

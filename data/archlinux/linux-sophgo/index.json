@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T15:56:37.553105361Z",
+  "generated_at": "2026-05-29T02:00:35.451807668Z",
   "distribution": "archlinux",
   "package_name": "linux-sophgo",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "riscv64"

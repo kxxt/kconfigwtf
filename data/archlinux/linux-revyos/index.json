@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T15:56:37.517100222Z",
+  "generated_at": "2026-05-29T02:00:35.389394051Z",
   "distribution": "archlinux",
   "package_name": "linux-revyos",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "riscv64"
