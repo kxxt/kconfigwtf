@@ -375,7 +375,13 @@ cargo run -- index alpine \
   --repository main \
   --repository community \
   --arch x86_64 \
-  --max-packages 5 \
+  --arch aarch64 \
+  --arch s390x \
+  --arch armv7 \
+  --arch armhf \
+  --arch ppc64le \
+  --arch x86 \
+  --max-packages 15 \
   --data-dir data
 ```
 
