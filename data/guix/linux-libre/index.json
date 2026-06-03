@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-23T15:27:31.257836383Z",
+  "generated_at": "2026-06-03T13:20:23.318770539Z",
   "distribution": "guix",
   "package_name": "linux-libre",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "amd64"
