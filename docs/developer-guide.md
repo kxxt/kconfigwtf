@@ -462,7 +462,7 @@ Index an OpenWrt target from a release target tree:
 
 ```sh
 cargo run -- index openwrt \
-  --targets-url https://downloads.openwrt.org/releases/25.12.0/targets \
+  --targets-url https://downloads.openwrt.org/releases/25.12.4/targets \
   --target x86/64 \
   --data-dir data
 ```
