@@ -983,7 +983,7 @@ fn uses_rpm_architecture_names(distribution: &Distribution) -> bool {
     )
 }
 
-fn kernel_architecture_segment<'a>(kernel_id: &'a str) -> Result<&'a str> {
+fn kernel_architecture_segment(kernel_id: &str) -> Result<&str> {
     kernel_id
         .rsplit_once('/')
         .map(|(_, architecture)| architecture)
@@ -1001,13 +1001,11 @@ fn stored_architecture(kernel_id: &str, kernel: &PackageKernel) -> Result<String
         .strip_suffix("/config")
         .and_then(|path| path.rsplit_once('/'))
         .map(|(_, architecture)| architecture)
-    {
-        if from_config_path != from_kernel_id {
+        && from_config_path != from_kernel_id {
             bail!(
                 "kernel {kernel_id} stores architecture {from_kernel_id} but config path uses {from_config_path}"
             );
         }
-    }
 
     Ok(from_kernel_id.to_string())
 }
