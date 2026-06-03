@@ -89,7 +89,10 @@ impl FedoraIndexer {
         }
     }
 
-    async fn load_metadata(&self, location: &FedoraMetadataLocation) -> Result<Vec<u8>> {
+    async fn load_metadata(
+        &self,
+        location: &FedoraMetadataLocation,
+    ) -> Result<(Option<String>, Vec<u8>)> {
         match location {
             FedoraMetadataLocation::Url(url) => {
                 log_request_url(url);
@@ -101,15 +104,20 @@ impl FedoraIndexer {
                     .with_context(|| format!("requesting Fedora metadata {url}"))?
                     .error_for_status()
                     .with_context(|| format!("Fedora metadata returned an error: {url}"))?;
-                response
+                let redirected_repo_root = repo_root_from_repomd_url(response.url().as_str());
+                let bytes = response
                     .bytes()
                     .await
                     .map(|bytes| bytes.to_vec())
-                    .with_context(|| format!("reading Fedora metadata {url}"))
+                    .with_context(|| format!("reading Fedora metadata {url}"))?;
+                Ok((redirected_repo_root, bytes))
             }
-            FedoraMetadataLocation::Path(path) => tokio::fs::read(path)
-                .await
-                .with_context(|| format!("reading Fedora metadata {}", path.display())),
+            FedoraMetadataLocation::Path(path) => {
+                let bytes = tokio::fs::read(path)
+                    .await
+                    .with_context(|| format!("reading Fedora metadata {}", path.display()))?;
+                Ok((None, bytes))
+            }
         }
     }
 
@@ -154,12 +162,14 @@ impl KernelConfigIndexer for FedoraIndexer {
         let mut selected_package_count = 0usize;
 
         for feed in &self.config.feeds {
-            let repomd = self.load_metadata(&feed.repomd).await?;
+            let (redirected_repo_root, repomd) = self.load_metadata(&feed.repomd).await?;
+            let package_base = redirected_repo_root
+                .map(FedoraPackageBase::Url)
+                .unwrap_or_else(|| feed.package_base.clone());
             let repomd_text = String::from_utf8(repomd).context("decoding Fedora repomd.xml")?;
             let primary_href = parse_primary_href(&repomd_text)?;
-            let (primary_source, primary_bytes) = self
-                .load_repo_file(&feed.package_base, &primary_href)
-                .await?;
+            let (primary_source, primary_bytes) =
+                self.load_repo_file(&package_base, &primary_href).await?;
             let primary_text = decode_repo_metadata(&primary_bytes, &primary_href)
                 .with_context(|| format!("decoding Fedora primary metadata {primary_source}"))?;
             let candidates = select_kernel_packages(
@@ -176,7 +186,7 @@ impl KernelConfigIndexer for FedoraIndexer {
 
             for candidate in candidates {
                 let (source, rpm_bytes) = self
-                    .load_repo_file(&feed.package_base, &candidate.location_href)
+                    .load_repo_file(&package_base, &candidate.location_href)
                     .await?;
                 let configs = extract_kernel_configs_from_rpm(&rpm_bytes)
                     .with_context(|| format!("extracting kernel config from {source}"))?;
@@ -481,6 +491,21 @@ fn kernel_config_path_priority(path: &str) -> u8 {
 
 fn fedora_repo_root(mirror: &str, release: &str, architecture: &Architecture) -> String {
     let arch = fedora_architecture_segment(architecture);
+    if matches!(architecture, Architecture::Riscv64) {
+        let mirror = fedora_riscv_mirror_root(mirror);
+        let release = fedora_riscv_release_segment(release);
+        if release == "rawhide" {
+            return format!("{mirror}/rawhide/latest/{arch}");
+        }
+        return format!("{mirror}/{release}/latest/{arch}");
+    }
+
+    let mirror = if matches!(architecture, Architecture::Ppc64el | Architecture::S390x) {
+        fedora_secondary_mirror_root(mirror)
+    } else {
+        mirror.to_string()
+    };
+
     if release == "rawhide" {
         format!("{mirror}/development/rawhide/Everything/{arch}/os")
     } else {
@@ -498,12 +523,46 @@ fn fedora_architecture_segment(architecture: &Architecture) -> &str {
     }
 }
 
+fn fedora_secondary_mirror_root(mirror: &str) -> String {
+    mirror
+        .strip_suffix("/fedora/linux")
+        .map(|base| format!("{}/fedora-secondary", canonical_fedora_alt_base(base)))
+        .unwrap_or_else(|| mirror.to_string())
+}
+
+fn fedora_riscv_mirror_root(mirror: &str) -> String {
+    mirror
+        .strip_suffix("/fedora/linux")
+        .map(|_| "https://fast-mirror.isrc.ac.cn/fedora.riscv.rocks".to_string())
+        .unwrap_or_else(|| mirror.to_string())
+}
+
+fn fedora_riscv_release_segment(release: &str) -> String {
+    if release == "rawhide" || release.starts_with('f') {
+        release.to_string()
+    } else {
+        format!("f{release}")
+    }
+}
+
+fn canonical_fedora_alt_base(base: &str) -> &str {
+    if base == "https://download.fedoraproject.org/pub" {
+        "https://dl.fedoraproject.org/pub"
+    } else {
+        base
+    }
+}
+
 fn join_url(base: &str, filename: &str) -> String {
     format!(
         "{}/{}",
         base.trim_end_matches('/'),
         filename.trim_start_matches('/')
     )
+}
+
+fn repo_root_from_repomd_url(url: &str) -> Option<String> {
+    url.strip_suffix("/repodata/repomd.xml").map(str::to_string)
 }
 
 #[cfg(test)]
@@ -520,6 +579,8 @@ mod tests {
         let amd64 = FedoraIndexerConfig::from_mirror(mirror, "42", [Architecture::Amd64]);
         let arm64 = FedoraIndexerConfig::from_mirror(mirror, "42", [Architecture::Arm64]);
         let ppc64el = FedoraIndexerConfig::from_mirror(mirror, "42", [Architecture::Ppc64el]);
+        let s390x = FedoraIndexerConfig::from_mirror(mirror, "42", [Architecture::S390x]);
+        let riscv64 = FedoraIndexerConfig::from_mirror(mirror, "37", [Architecture::Riscv64]);
 
         let amd64_repomd = match &amd64.feeds[0].repomd {
             FedoraMetadataLocation::Url(url) => url,
@@ -533,10 +594,69 @@ mod tests {
             FedoraMetadataLocation::Url(url) => url,
             FedoraMetadataLocation::Path(_) => panic!("expected URL repomd"),
         };
+        let s390x_repomd = match &s390x.feeds[0].repomd {
+            FedoraMetadataLocation::Url(url) => url,
+            FedoraMetadataLocation::Path(_) => panic!("expected URL repomd"),
+        };
+        let riscv64_repomd = match &riscv64.feeds[0].repomd {
+            FedoraMetadataLocation::Url(url) => url,
+            FedoraMetadataLocation::Path(_) => panic!("expected URL repomd"),
+        };
 
         assert!(amd64_repomd.contains("/Everything/x86_64/os/repodata/repomd.xml"));
         assert!(arm64_repomd.contains("/Everything/aarch64/os/repodata/repomd.xml"));
-        assert!(ppc64el_repomd.contains("/Everything/ppc64le/os/repodata/repomd.xml"));
+        assert_eq!(
+            ppc64el_repomd,
+            "https://example.invalid/releases/42/Everything/ppc64le/os/repodata/repomd.xml"
+        );
+        assert_eq!(
+            s390x_repomd,
+            "https://example.invalid/releases/42/Everything/s390x/os/repodata/repomd.xml"
+        );
+        assert_eq!(
+            riscv64_repomd,
+            "https://example.invalid/f37/latest/riscv64/repodata/repomd.xml"
+        );
+    }
+
+    #[test]
+    fn routes_default_secondary_and_riscv_fedora_mirrors_to_alternate_trees() {
+        let mirror = "https://download.fedoraproject.org/pub/fedora/linux";
+        let ppc64el = FedoraIndexerConfig::from_mirror(mirror, "rawhide", [Architecture::Ppc64el]);
+        let s390x = FedoraIndexerConfig::from_mirror(mirror, "rawhide", [Architecture::S390x]);
+        let riscv64 = FedoraIndexerConfig::from_mirror(mirror, "rawhide", [Architecture::Riscv64]);
+
+        assert_eq!(
+            feed_repomd_url(&ppc64el),
+            "https://dl.fedoraproject.org/pub/fedora-secondary/development/rawhide/Everything/ppc64le/os/repodata/repomd.xml"
+        );
+        assert_eq!(
+            feed_repomd_url(&s390x),
+            "https://dl.fedoraproject.org/pub/fedora-secondary/development/rawhide/Everything/s390x/os/repodata/repomd.xml"
+        );
+        assert_eq!(
+            feed_repomd_url(&riscv64),
+            "https://fast-mirror.isrc.ac.cn/fedora.riscv.rocks/rawhide/latest/riscv64/repodata/repomd.xml"
+        );
+    }
+
+    #[test]
+    fn accepts_prefixed_fedora_riscv_release_segments() {
+        let mirror = "http://fedora.riscv.rocks/repos";
+        let riscv64 =
+            FedoraIndexerConfig::from_mirror(mirror, "f41-build", [Architecture::Riscv64]);
+
+        assert_eq!(
+            feed_repomd_url(&riscv64),
+            "http://fedora.riscv.rocks/repos/f41-build/latest/riscv64/repodata/repomd.xml"
+        );
+    }
+
+    fn feed_repomd_url(config: &FedoraIndexerConfig) -> &str {
+        match &config.feeds[0].repomd {
+            FedoraMetadataLocation::Url(url) => url.as_str(),
+            FedoraMetadataLocation::Path(_) => panic!("expected URL repomd"),
+        }
     }
 
     #[test]
@@ -550,6 +670,17 @@ mod tests {
         .expect("primary href");
 
         assert_eq!(href, "repodata/primary.xml.zst");
+    }
+
+    #[test]
+    fn derives_repo_root_from_redirected_repomd_url() {
+        assert_eq!(
+            repo_root_from_repomd_url(
+                "https://mirror.example/fedora-secondary/development/rawhide/Everything/s390x/os/repodata/repomd.xml"
+            )
+            .as_deref(),
+            Some("https://mirror.example/fedora-secondary/development/rawhide/Everything/s390x/os")
+        );
     }
 
     #[test]

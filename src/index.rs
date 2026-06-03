@@ -612,10 +612,13 @@ impl PackageIndex {
         debug_assert_eq!(self.distribution, package.distribution);
         debug_assert_eq!(self.package_name, package.package_name);
 
-        let kernel = kernel_id(&package.package_version, &package.architecture);
+        let stored_architecture =
+            stored_architecture_for_package(&package.distribution, &package.architecture);
+        let kernel = kernel_id_with_architecture(&package.package_version, &stored_architecture);
         self.remove_kernel(&kernel);
 
-        let config_path = config_relative_path(&package.package_version, &package.architecture);
+        let config_path =
+            config_relative_path_with_architecture(&package.package_version, &stored_architecture);
         self.kernels.insert(
             kernel.clone(),
             PackageKernel {
@@ -624,7 +627,7 @@ impl PackageIndex {
                 architecture: package.architecture.clone(),
                 config_path,
                 source: package.source.clone(),
-                stored_architecture: Some(package.architecture.as_str().to_string()),
+                stored_architecture: Some(stored_architecture),
             },
         );
 
@@ -798,7 +801,9 @@ pub fn write_packages_to_data_dir(
 
         for package in packages {
             let version_segment = path_segment(&package.package_version, "version")?;
-            let architecture_segment = path_segment(package.architecture.as_str(), "architecture")?;
+            let stored_architecture =
+                stored_architecture_for_package(&package.distribution, &package.architecture);
+            let architecture_segment = path_segment(&stored_architecture, "architecture")?;
             let config_dir = package_dir.join(version_segment).join(architecture_segment);
             fs::create_dir_all(&config_dir)
                 .with_context(|| format!("creating config directory {}", config_dir.display()))?;
@@ -947,6 +952,35 @@ fn kernel_id_with_architecture(version: &str, architecture: &str) -> String {
 
 fn config_relative_path_with_architecture(version: &str, architecture: &str) -> String {
     format!("{version}/{architecture}/config")
+}
+
+fn stored_architecture_for_package(
+    distribution: &Distribution,
+    architecture: &Architecture,
+) -> String {
+    match (distribution, architecture) {
+        (distribution, Architecture::Ppc64el) if uses_rpm_architecture_names(distribution) => {
+            "ppc64le".to_string()
+        }
+        (_, architecture) => architecture.as_str().to_string(),
+    }
+}
+
+fn uses_rpm_architecture_names(distribution: &Distribution) -> bool {
+    matches!(
+        distribution,
+        Distribution::Fedora
+            | Distribution::Rhel
+            | Distribution::CentOS
+            | Distribution::AlmaLinux
+            | Distribution::Rocky
+            | Distribution::OpenAnolis
+            | Distribution::OpenEuler
+            | Distribution::OpenSUSE
+            | Distribution::OracleLinux
+            | Distribution::AmazonLinux
+            | Distribution::AzureLinux
+    )
 }
 
 fn kernel_architecture_segment<'a>(kernel_id: &'a str) -> Result<&'a str> {
@@ -1252,6 +1286,47 @@ NOT_A_CONFIG=y
     }
 
     #[test]
+    fn stores_rpm_ppc64le_architecture_spelling_in_index_paths() {
+        let package = KernelConfigPackage {
+            distribution: Distribution::Fedora,
+            release: "rawhide".to_string(),
+            package_name: "kernel-core".to_string(),
+            package_version: "0:7.1.0-0.rc6.40.fc45".to_string(),
+            architecture: Architecture::Ppc64el,
+            source: Some("https://example.invalid/kernel-core.ppc64le.rpm".to_string()),
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+
+        let index = PackageIndex::from_packages([package]);
+        let kernel = index
+            .kernels
+            .get("0:7.1.0-0.rc6.40.fc45/ppc64le")
+            .expect("ppc64le Fedora kernel");
+
+        assert_eq!(kernel.architecture, Architecture::Ppc64el);
+        assert_eq!(kernel.config_path, "0:7.1.0-0.rc6.40.fc45/ppc64le/config");
+        assert_eq!(kernel.stored_architecture.as_deref(), Some("ppc64le"));
+    }
+
+    #[test]
+    fn keeps_debian_ppc64el_architecture_spelling_in_index_paths() {
+        let package = KernelConfigPackage {
+            distribution: Distribution::Debian,
+            release: "trixie".to_string(),
+            package_name: "linux-image-powerpc64le".to_string(),
+            package_version: "6.1.0-1".to_string(),
+            architecture: Architecture::Ppc64el,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+
+        let index = PackageIndex::from_packages([package]);
+
+        assert!(index.kernels.contains_key("6.1.0-1/ppc64el"));
+        assert!(!index.kernels.contains_key("6.1.0-1/ppc64le"));
+    }
+
+    #[test]
     fn normalizes_user_supplied_config_names() {
         assert_eq!(normalize_config_name("bpf"), "CONFIG_BPF");
         assert_eq!(normalize_config_name(" config_ext4_fs "), "CONFIG_EXT4_FS");
@@ -1332,6 +1407,34 @@ NOT_A_CONFIG=y
         assert!(
             temp.path()
                 .join("debian/linux-image-amd64/index.json")
+                .exists()
+        );
+    }
+
+    #[test]
+    fn writes_rpm_ppc64le_config_files_with_rpm_architecture_spelling() {
+        let package = KernelConfigPackage {
+            distribution: Distribution::Fedora,
+            release: "rawhide".to_string(),
+            package_name: "kernel-core".to_string(),
+            package_version: "0:7.1.0-0.rc6.40.fc45".to_string(),
+            architecture: Architecture::Ppc64el,
+            source: None,
+            config_text: "CONFIG_BPF=y\n".to_string(),
+        };
+        let temp = tempfile::tempdir().expect("tempdir");
+
+        write_packages_to_data_dir([package], temp.path()).expect("write data");
+
+        assert!(
+            temp.path()
+                .join("fedora/kernel-core/0:7.1.0-0.rc6.40.fc45/ppc64le/config")
+                .exists()
+        );
+        assert!(
+            !temp
+                .path()
+                .join("fedora/kernel-core/0:7.1.0-0.rc6.40.fc45/ppc64el/config")
                 .exists()
         );
     }

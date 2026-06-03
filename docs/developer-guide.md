@@ -162,7 +162,7 @@ Index Fedora `kernel-core` packages from a mirror:
 ```sh
 cargo run -- index fedora \
   --release rawhide \
-  --arch x86_64 \
+  --arch x86_64 --arch aarch64 --arch riscv64 --arch s390x --arch ppc64le \
   --max-packages 5 \
   --data-dir data
 ```
