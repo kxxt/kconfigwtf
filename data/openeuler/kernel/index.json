@@ -12,9 +12,9 @@
   "architectures": [
     "amd64",
     "arm64",
+    "loongarch64",
     "ppc64el",
     "riscv64",
-    "loongarch64",
     "riscv64-rva23"
   ],
   "kernels": [
@@ -45,7 +45,7 @@
     {
       "version": "0:6.6.0-132.0.0.109.oe2403sp3",
       "release": 3,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.openeuler.org/openEuler-24.03-LTS-SP3/OS/loongarch64/Packages/kernel-6.6.0-132.0.0.109.oe2403sp3.loongarch64.rpm#/boot/config-6.6.0-132.0.0.109.oe2403sp3.loongarch64"
     },
     {
@@ -63,7 +63,7 @@
     {
       "version": "0:6.6.0-138.0.0.121.oe2403sp3",
       "release": 3,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.openeuler.org/openEuler-24.03-LTS-SP3/OS/riscv64/rva20/riscv64/Packages/kernel-6.6.0-138.0.0.121.oe2403sp3.riscv64.rpm#/boot/config-6.6.0-138.0.0.121.oe2403sp3.riscv64"
     },
     {
@@ -75,7 +75,7 @@
     {
       "version": "0:6.6.0-27.0.0.31.oe2403",
       "release": 2,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.openeuler.org/openEuler-24.03-LTS/OS/riscv64/Packages/kernel-6.6.0-27.0.0.31.oe2403.riscv64.rpm#/boot/config-6.6.0-27.0.0.31.oe2403.riscv64"
     },
     {
@@ -93,13 +93,13 @@
     {
       "version": "0:6.6.0-29.0.0.35.oe2403",
       "release": 2,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.openeuler.org/openEuler-24.03-LTS/OS/loongarch64/Packages/kernel-6.6.0-29.0.0.35.oe2403.loongarch64.rpm#/boot/config-6.6.0-29.0.0.35.oe2403.loongarch64"
     },
     {
       "version": "0:6.6.0-31.0.0.39.oe2403",
       "release": 2,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.openeuler.org/openEuler-24.03-LTS/OS/ppc64le/Packages/kernel-6.6.0-31.0.0.39.oe2403.ppc64le.rpm#/boot/config-6.6.0-31.0.0.39.oe2403.ppc64le"
     }
   ],

@@ -9,9 +9,9 @@
   "architectures": [
     "amd64",
     "arm64",
+    "loongarch64",
     "ppc64el",
-    "riscv64",
-    "loongarch64"
+    "riscv64"
   ],
   "kernels": [
     {
@@ -29,19 +29,19 @@
     {
       "version": "6.18.0-0.7",
       "release": 0,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-rc-6.18.0_6.18.0-0.7_loongarch64.deb#./boot/vmlinuz-6.18.0-aosc-rc-4k"
     },
     {
       "version": "6.18.0-0.7",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-rc-6.18.0_6.18.0-0.7_ppc64el.deb#./boot/vmlinux-6.18.0-aosc-rc"
     },
     {
       "version": "6.18.0-0.7",
       "release": 0,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-rc-6.18.0_6.18.0-0.7_riscv64.deb#./boot/vmlinux-6.18.0-aosc-rc"
     }
   ],

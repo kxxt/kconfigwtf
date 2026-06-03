@@ -9,8 +9,8 @@
   "architectures": [
     "amd64",
     "arm64",
-    "riscv64",
-    "loongarch64"
+    "loongarch64",
+    "riscv64"
   ],
   "kernels": [
     {
@@ -28,13 +28,13 @@
     {
       "version": "6.18.32-1",
       "release": 0,
-      "architecture": 3,
+      "architecture": 2,
       "source": "https://os-repo.ewe.moe/eweos/main/os/loongarch64/linux-lts-devel-6.18.32-1-loongarch64.pkg.tar.zst#usr/src/linux-lts/.config"
     },
     {
       "version": "6.18.32-1",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://os-repo.ewe.moe/eweos/main/os/riscv64/linux-lts-devel-6.18.32-1-riscv64.pkg.tar.zst#usr/src/linux-lts/.config"
     }
   ],

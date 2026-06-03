@@ -9,9 +9,9 @@
   "architectures": [
     "amd64",
     "arm64",
+    "loongarch64",
     "ppc64el",
-    "riscv64",
-    "loongarch64"
+    "riscv64"
   ],
   "kernels": [
     {
@@ -29,19 +29,19 @@
     {
       "version": "6.18.16-3",
       "release": 0,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.16_6.18.16-3_loongarch64.deb#./boot/vmlinuz-6.18.16-aosc-main-4k"
     },
     {
       "version": "6.18.16-3",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.16_6.18.16-3_ppc64el.deb#./boot/vmlinux-6.18.16-aosc-main"
     },
     {
       "version": "6.18.16-3",
       "release": 0,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.16_6.18.16-3_riscv64.deb#./boot/vmlinuz-6.18.16-aosc-main.efi"
     },
     {
@@ -59,19 +59,19 @@
     {
       "version": "6.18.25-1",
       "release": 0,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.25_6.18.25-1_loongarch64.deb#./boot/vmlinuz-6.18.25-aosc-main-4k"
     },
     {
       "version": "6.18.25-1",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.25_6.18.25-1_ppc64el.deb#./boot/vmlinux-6.18.25-aosc-main"
     },
     {
       "version": "6.18.25-1",
       "release": 0,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.25_6.18.25-1_riscv64.deb#./boot/vmlinuz-6.18.25-aosc-main.efi"
     },
     {
@@ -89,19 +89,19 @@
     {
       "version": "6.18.27-1",
       "release": 0,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.27_6.18.27-1_loongarch64.deb#./boot/vmlinuz-6.18.27-aosc-main-4k"
     },
     {
       "version": "6.18.27-1",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.27_6.18.27-1_ppc64el.deb#./boot/vmlinux-6.18.27-aosc-main"
     },
     {
       "version": "6.18.27-1",
       "release": 0,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.27_6.18.27-1_riscv64.deb#./boot/vmlinuz-6.18.27-aosc-main.efi"
     },
     {
@@ -119,19 +119,19 @@
     {
       "version": "6.18.32-1",
       "release": 0,
-      "architecture": 4,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.32_6.18.32-1_loongarch64.deb#./boot/vmlinuz-6.18.32-aosc-main-4k"
     },
     {
       "version": "6.18.32-1",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.32_6.18.32-1_ppc64el.deb#./boot/vmlinux-6.18.32-aosc-main"
     },
     {
       "version": "6.18.32-1",
       "release": 0,
-      "architecture": 3,
+      "architecture": 4,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-6.18.32_6.18.32-1_riscv64.deb#./boot/vmlinuz-6.18.32-aosc-main.efi"
     }
   ],

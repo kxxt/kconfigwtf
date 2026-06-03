@@ -1,17 +1,17 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-24T14:02:37.917321283Z",
+  "generated_at": "2026-06-03T13:50:08.572893105Z",
   "distribution": "void",
   "package_name": "linux-asahi",
   "releases": [
-    "unknown"
+    "rolling"
   ],
   "architectures": [
     "arm64"
   ],
   "kernels": [
     {
-      "version": "7.0.9+2_1",
+      "version": "7.0.10+2_1",
       "release": 0,
       "architecture": 0,
       "source": "https://raw.githubusercontent.com/void-linux/void-packages/master/srcpkgs/linux-asahi/files/arm64-dotconfig"
@@ -20663,7 +20663,6 @@
     "CONFIG_VIDEO_DW9719": {},
     "CONFIG_VIDEO_DW9768": {},
     "CONFIG_VIDEO_DW9807_VCM": {},
-    "CONFIG_VIDEO_DW_MIPI_CSI2RX": {},
     "CONFIG_VIDEO_EM28XX": {
       "module": [
         0

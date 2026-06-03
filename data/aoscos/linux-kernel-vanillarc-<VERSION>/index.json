@@ -8,9 +8,9 @@
   ],
   "architectures": [
     "amd64",
+    "loongarch64",
     "ppc64el",
-    "riscv64",
-    "loongarch64"
+    "riscv64"
   ],
   "kernels": [
     {
@@ -22,19 +22,19 @@
     {
       "version": "7.0.0-0.2",
       "release": 0,
-      "architecture": 3,
+      "architecture": 1,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-vanillarc-7.0.0_7.0.0-0.2_loongarch64.deb#./boot/vmlinuz-7.0.0-aosc-vanillarc-4k"
     },
     {
       "version": "7.0.0-0.2",
       "release": 0,
-      "architecture": 1,
+      "architecture": 2,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-vanillarc-7.0.0_7.0.0-0.2_ppc64el.deb#./boot/vmlinux-7.0.0-aosc-vanillarc"
     },
     {
       "version": "7.0.0-0.2",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://repo.aosc.io/debs/pool/stable/main/l/linux-kernel-vanillarc-7.0.0_7.0.0-0.2_riscv64.deb#./boot/vmlinuz-7.0.0-aosc-vanillarc.efi"
     }
   ],

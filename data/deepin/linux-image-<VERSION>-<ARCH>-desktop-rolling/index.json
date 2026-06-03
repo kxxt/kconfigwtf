@@ -9,14 +9,14 @@
   "architectures": [
     "amd64",
     "arm64",
-    "riscv64",
-    "loong64"
+    "loong64",
+    "riscv64"
   ],
   "kernels": [
     {
       "version": "23.01.01.04",
       "release": 0,
-      "architecture": 2,
+      "architecture": 3,
       "source": "https://community-packages.deepin.com/beige/pool/main/l/linux-upstream/linux-image-6.12.1-riscv64-desktop-rolling_23.01.01.04_riscv64.deb#./boot/config-6.12.1-riscv64-desktop-rolling"
     },
     {
@@ -34,7 +34,7 @@
     {
       "version": "23.01.01.17",
       "release": 0,
-      "architecture": 3,
+      "architecture": 2,
       "source": "https://community-packages.deepin.com/beige/pool/main/l/linux-upstream/linux-image-6.12.1-loong64-desktop-rolling_23.01.01.17_loong64.deb#./boot/config-6.12.1-loong64-desktop-rolling"
     },
     {
@@ -52,7 +52,7 @@
     {
       "version": "23.01.01.18",
       "release": 0,
-      "architecture": 3,
+      "architecture": 2,
       "source": "https://community-packages.deepin.com/beige/pool/main/l/linux-upstream/linux-image-6.12.9-loong64-desktop-rolling_23.01.01.18_loong64.deb#./boot/config-6.12.9-loong64-desktop-rolling"
     },
     {
@@ -70,7 +70,7 @@
     {
       "version": "23.01.01.24",
       "release": 0,
-      "architecture": 3,
+      "architecture": 2,
       "source": "https://community-packages.deepin.com/beige/pool/main/l/linux-upstream/linux-image-6.12.20-loong64-desktop-rolling_23.01.01.24_loong64.deb#./boot/config-6.12.20-loong64-desktop-rolling"
     },
     {
@@ -88,7 +88,7 @@
     {
       "version": "25.01.01.14",
       "release": 0,
-      "architecture": 3,
+      "architecture": 2,
       "source": "https://community-packages.deepin.com/beige/pool/main/l/linux-upstream/linux-image-6.12.89-loong64-desktop-rolling_25.01.01.14_loong64.deb#./boot/config-6.12.89-loong64-desktop-rolling"
     }
   ],
