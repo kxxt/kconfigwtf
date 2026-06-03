@@ -590,7 +590,10 @@ fn records_for_config(
                 release: kernel.release.clone(),
                 package_name: package_index.index.package_name.clone(),
                 version: kernel.version.clone(),
-                architecture: kernel.architecture.to_string(),
+                architecture: kernel
+                    .stored_architecture
+                    .clone()
+                    .unwrap_or_else(|| kernel.architecture.to_string()),
                 value,
                 source: kernel.source.clone(),
                 config_url: raw_github_url(

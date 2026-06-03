@@ -306,6 +306,8 @@ pub struct PackageKernel {
     pub config_path: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
+    #[serde(skip)]
+    pub stored_architecture: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -362,7 +364,7 @@ struct CompactPackageIndex {
     pub distribution: Distribution,
     pub package_name: String,
     pub releases: Vec<String>,
-    pub architectures: Vec<Architecture>,
+    pub architectures: Vec<String>,
     pub kernels: Vec<CompactPackageKernel>,
     pub entries: BTreeMap<String, CompactConfigEntry>,
 }
@@ -410,9 +412,9 @@ impl CompactPackageIndex {
             .collect::<Vec<_>>();
         let architectures = index
             .kernels
-            .values()
-            .map(|kernel| kernel.architecture.clone())
-            .collect::<BTreeSet<_>>()
+            .iter()
+            .map(|(kernel_id, kernel)| stored_architecture(kernel_id, kernel))
+            .collect::<Result<BTreeSet<_>>>()?
             .into_iter()
             .collect::<Vec<_>>();
         let release_indexes = releases
@@ -436,18 +438,19 @@ impl CompactPackageIndex {
 
         let kernels = index
             .kernels
-            .values()
-            .map(|kernel| {
+            .iter()
+            .map(|(kernel_id, kernel)| {
                 let release = *release_indexes.get(&kernel.release).ok_or_else(|| {
                     anyhow::anyhow!("missing release index for {}", kernel.release)
                 })?;
+                let stored_architecture = stored_architecture(kernel_id, kernel)?;
                 let architecture =
                     *architecture_indexes
-                        .get(&kernel.architecture)
+                        .get(&stored_architecture)
                         .ok_or_else(|| {
                             anyhow::anyhow!(
                                 "missing architecture index for {}",
-                                kernel.architecture
+                                stored_architecture
                             )
                         })?;
                 Ok(CompactPackageKernel {
@@ -506,24 +509,31 @@ impl CompactPackageIndex {
                 .get(kernel.release)
                 .cloned()
                 .ok_or_else(|| anyhow::anyhow!("invalid release index {}", kernel.release))?;
-            let architecture = self
+            let stored_architecture = self
                 .architectures
                 .get(kernel.architecture)
                 .cloned()
                 .ok_or_else(|| {
                     anyhow::anyhow!("invalid architecture index {}", kernel.architecture)
                 })?;
+            let architecture = stored_architecture
+                .parse::<Architecture>()
+                .map_err(anyhow::Error::msg)?;
             let version = kernel.version;
-            let kernel_id = kernel_id(&version, &architecture);
+            let kernel_id = kernel_id_with_architecture(&version, &stored_architecture);
             kernel_ids.push(kernel_id.clone());
             kernels.insert(
                 kernel_id,
                 PackageKernel {
                     version: version.clone(),
                     release,
-                    architecture: architecture.clone(),
-                    config_path: config_relative_path(&version, &architecture),
+                    architecture,
+                    config_path: config_relative_path_with_architecture(
+                        &version,
+                        &stored_architecture,
+                    ),
                     source: kernel.source,
+                    stored_architecture: Some(stored_architecture),
                 },
             );
         }
@@ -614,6 +624,7 @@ impl PackageIndex {
                 architecture: package.architecture.clone(),
                 config_path,
                 source: package.source.clone(),
+                stored_architecture: Some(package.architecture.as_str().to_string()),
             },
         );
 
@@ -700,6 +711,12 @@ impl PackageIndex {
             kernels: index.kernels,
             entries,
         };
+        for (kernel_id, kernel) in &mut index.kernels {
+            kernel.stored_architecture = Some(
+                stored_architecture(kernel_id, kernel)
+                    .unwrap_or_else(|_| kernel.architecture.as_str().to_string()),
+            );
+        }
         index.sort_entries();
         index
     }
@@ -917,11 +934,48 @@ pub fn write_package_index_to_dir(
 }
 
 pub fn kernel_id(version: &str, architecture: &Architecture) -> String {
-    format!("{version}/{}", architecture.as_str())
+    kernel_id_with_architecture(version, architecture.as_str())
 }
 
 pub fn config_relative_path(version: &str, architecture: &Architecture) -> String {
-    format!("{version}/{}/config", architecture.as_str())
+    config_relative_path_with_architecture(version, architecture.as_str())
+}
+
+fn kernel_id_with_architecture(version: &str, architecture: &str) -> String {
+    format!("{version}/{architecture}")
+}
+
+fn config_relative_path_with_architecture(version: &str, architecture: &str) -> String {
+    format!("{version}/{architecture}/config")
+}
+
+fn kernel_architecture_segment<'a>(kernel_id: &'a str) -> Result<&'a str> {
+    kernel_id
+        .rsplit_once('/')
+        .map(|(_, architecture)| architecture)
+        .ok_or_else(|| anyhow::anyhow!("kernel id {kernel_id} is missing an architecture segment"))
+}
+
+fn stored_architecture(kernel_id: &str, kernel: &PackageKernel) -> Result<String> {
+    if let Some(stored) = &kernel.stored_architecture {
+        return Ok(stored.clone());
+    }
+
+    let from_kernel_id = kernel_architecture_segment(kernel_id)?;
+    if let Some(from_config_path) = kernel
+        .config_path
+        .strip_suffix("/config")
+        .and_then(|path| path.rsplit_once('/'))
+        .map(|(_, architecture)| architecture)
+    {
+        if from_config_path != from_kernel_id {
+            bail!(
+                "kernel {kernel_id} stores architecture {from_kernel_id} but config path uses {from_config_path}"
+            );
+        }
+    }
+
+    Ok(from_kernel_id.to_string())
 }
 
 fn unknown_release_label() -> String {
@@ -1211,6 +1265,7 @@ NOT_A_CONFIG=y
             architecture: Architecture::Amd64,
             config_path: "6.1.0-1/amd64/config".to_string(),
             source: None,
+            stored_architecture: Some("amd64".to_string()),
         };
 
         let json = serde_json::to_string(&kernel).expect("serialize kernel");

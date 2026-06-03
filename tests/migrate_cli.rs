@@ -1,7 +1,7 @@
 use std::fs;
 
 use assert_cmd::Command;
-use kconfigwtf::index::{Architecture, Distribution, PackageIndex};
+use kconfigwtf::index::{Architecture, Distribution, PackageIndex, write_packages_to_data_dir};
 use kconfigwtf::indexer::KernelConfigPackage;
 use serde_json::Value;
 
@@ -210,4 +210,123 @@ fn migrate_command_rewrites_legacy_indexes_and_splits_by_release() {
     assert!(migrated["kernels"].is_array());
     assert!(migrated["entries"]["CONFIG_BOOKWORM_0"]["built_in"].is_array());
     assert!(migrated["entries"]["CONFIG_UNUSED"].is_object());
+}
+
+#[test]
+fn migrate_command_drops_unknown_release_kernels_and_config_files() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let package_dir = temp.path().join("debian/linux-image-amd64");
+    let known_package = KernelConfigPackage {
+        distribution: Distribution::Debian,
+        release: "trixie".to_string(),
+        package_name: "linux-image-amd64".to_string(),
+        package_version: "6.1.0-1".to_string(),
+        architecture: Architecture::Amd64,
+        source: None,
+        config_text: "CONFIG_KNOWN=y\n# CONFIG_UNKNOWN_ONLY is not set\n".to_string(),
+    };
+    let unknown_package = KernelConfigPackage {
+        distribution: Distribution::Debian,
+        release: "unknown".to_string(),
+        package_name: "linux-image-amd64".to_string(),
+        package_version: "6.0.0-0".to_string(),
+        architecture: Architecture::Amd64,
+        source: None,
+        config_text: "CONFIG_UNKNOWN_ONLY=y\n# CONFIG_KNOWN is not set\n".to_string(),
+    };
+    write_packages_to_data_dir([known_package, unknown_package], temp.path())
+        .expect("write package data");
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "migrate",
+            "--data-dir",
+            temp.path().to_str().expect("temp path"),
+        ])
+        .assert()
+        .success();
+
+    assert!(package_dir.join("index.json").exists());
+    assert!(package_dir.join("6.1.0-1/amd64/config").exists());
+    assert!(!package_dir.join("6.0.0-0/amd64/config").exists());
+    assert!(!package_dir.join("6.0.0-0/amd64").exists());
+    assert!(!package_dir.join("6.0.0-0").exists());
+
+    let migrated: PackageIndex = serde_json::from_str(
+        &fs::read_to_string(package_dir.join("index.json")).expect("read migrated package index"),
+    )
+    .expect("parse migrated package index");
+
+    assert_eq!(migrated.kernels.len(), 1);
+    assert!(migrated.kernels.contains_key("6.1.0-1/amd64"));
+    assert!(!migrated.kernels.contains_key("6.0.0-0/amd64"));
+    assert!(migrated.entries.contains_key("CONFIG_KNOWN"));
+    assert!(!migrated.entries.contains_key("CONFIG_UNKNOWN_ONLY"));
+}
+
+#[test]
+fn migrate_command_preserves_legacy_architecture_spellings() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let package_dir = temp.path().join("centos/kernel-core");
+    fs::create_dir_all(package_dir.join("6.1.0-1/ppc64le")).expect("create package dir");
+    fs::write(
+        package_dir.join("6.1.0-1/ppc64le/config"),
+        "CONFIG_PPC64LE=y\n# CONFIG_UNUSED is not set\n",
+    )
+    .expect("write config");
+    fs::write(
+        package_dir.join("index.json"),
+        r#"{
+          "schema_version": 5,
+          "generated_at": "2026-01-01T00:00:00Z",
+          "distribution": "centos",
+          "package_name": "kernel-core",
+          "kernels": {
+            "6.1.0-1/ppc64le": {
+              "version": "6.1.0-1",
+              "release": "9-stream",
+              "architecture": "ppc64le",
+              "config_path": "6.1.0-1/ppc64le/config"
+            }
+          },
+          "entries": {
+            "CONFIG_PPC64LE": [
+              {
+                "kernel": "6.1.0-1/ppc64le",
+                "value": "built_in"
+              }
+            ]
+          }
+        }"#,
+    )
+    .expect("write legacy package index");
+
+    for _ in 0..2 {
+        Command::cargo_bin("kconfigwtf")
+            .expect("binary")
+            .args([
+                "migrate",
+                "--data-dir",
+                temp.path().to_str().expect("temp path"),
+            ])
+            .assert()
+            .success();
+
+        let migrated_json = fs::read_to_string(package_dir.join("index.json"))
+            .expect("read migrated package index");
+        let migrated: Value =
+            serde_json::from_str(&migrated_json).expect("parse migrated package index");
+        assert_eq!(migrated["architectures"], Value::from(vec!["ppc64le"]));
+
+        let parsed: PackageIndex =
+            serde_json::from_str(&migrated_json).expect("parse migrated index as package index");
+        let kernel = parsed
+            .kernels
+            .get("6.1.0-1/ppc64le")
+            .expect("preserved kernel id");
+        assert_eq!(kernel.config_path, "6.1.0-1/ppc64le/config");
+        assert_eq!(kernel.architecture, Architecture::Ppc64el);
+        assert!(!parsed.kernels.contains_key("6.1.0-1/ppc64el"));
+    }
 }
