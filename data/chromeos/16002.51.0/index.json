@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-24T08:33:29.449429185Z",
+  "generated_at": "2026-06-03T13:22:47.327194239Z",
   "distribution": "chromeos",
   "package_name": "16002.51.0",
   "releases": [
-    "unknown"
+    "16002.51.0"
   ],
   "architectures": [
     "amd64"
@@ -14,7 +14,7 @@
       "version": "6.6.46-04024-g9e7e147b4900",
       "release": 0,
       "architecture": 0,
-      "source": "/tmp/chromeos-flex-latest.bin.zip#ROOT-A:/lib/modules/6.6.46-04024-g9e7e147b4900/kernel/kernel/configs.ko.gz"
+      "source": "https://dl.google.com/chromeos-flex/images/latest.bin.zip#ROOT-A:/lib/modules/6.6.46-04024-g9e7e147b4900/kernel/kernel/configs.ko.gz"
     }
   ],
   "entries": {
