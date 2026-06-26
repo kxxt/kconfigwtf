@@ -9,7 +9,7 @@ use async_trait::async_trait;
 use walkdir::WalkDir;
 
 use crate::ikconfig::extract_ikconfig_from_image;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{
     KernelConfigIndexer, KernelConfigPackage, normalize_nix_release_label, rolling_release_label,
 };
@@ -35,11 +35,20 @@ pub struct StorePackageIndexerConfig {
 #[derive(Debug, Clone)]
 pub struct StorePackageIndexer {
     config: StorePackageIndexerConfig,
+    existing: IndexedKernelSet,
 }
 
 impl StorePackageIndexer {
     pub fn new(config: StorePackageIndexerConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            existing: IndexedKernelSet::default(),
+        }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 }
 
@@ -60,14 +69,33 @@ pub fn release_for_store_manager(
 #[async_trait]
 impl KernelConfigIndexer for StorePackageIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
-        let package_names = self
-            .config
-            .packages
-            .iter()
-            .take(self.config.max_packages.unwrap_or(usize::MAX));
-
         let mut packages = Vec::new();
-        for package_name in package_names {
+        let mut selected_count = 0usize;
+        let mut attempted_count = 0usize;
+        let mut resolved_new_count = 0usize;
+        for package_name in &self.config.packages {
+            selected_count += 1;
+            if let Some(version) =
+                store_package_version_hint(&self.config.manager, package_name, &self.config.system)
+            {
+                if self.existing.contains(
+                    &self.config.distribution,
+                    package_name,
+                    &version,
+                    &self.config.architecture,
+                ) {
+                    continue;
+                }
+            }
+            if self
+                .config
+                .max_packages
+                .is_some_and(|max| attempted_count >= max)
+            {
+                break;
+            }
+            attempted_count += 1;
+
             let resolved = match resolve_store_package(
                 &self.config.manager,
                 package_name,
@@ -89,6 +117,22 @@ impl KernelConfigIndexer for StorePackageIndexer {
                 }
                 Err(error) => return Err(error),
             };
+            let package_version = resolved.version.clone().unwrap_or_else(|| {
+                resolved
+                    .store_paths
+                    .first()
+                    .and_then(|store_path| version_from_store_path(package_name, store_path))
+                    .unwrap_or_else(|| "unknown".to_string())
+            });
+            if self.existing.contains(
+                &self.config.distribution,
+                package_name,
+                &package_version,
+                &self.config.architecture,
+            ) {
+                continue;
+            }
+            resolved_new_count += 1;
 
             for store_path in resolved.store_paths {
                 let configs =
@@ -101,10 +145,7 @@ impl KernelConfigIndexer for StorePackageIndexer {
                         distribution: self.config.distribution.clone(),
                         release: self.config.release.clone(),
                         package_name: package_name.clone(),
-                        package_version: resolved.version.clone().unwrap_or_else(|| {
-                            version_from_store_path(package_name, &store_path)
-                                .unwrap_or_else(|| "unknown".to_string())
-                        }),
+                        package_version: package_version.clone(),
                         architecture: self.config.architecture.clone(),
                         source: Some(format!("{}#{config_path}", store_path.display())),
                         config_text,
@@ -113,11 +154,19 @@ impl KernelConfigIndexer for StorePackageIndexer {
             }
         }
 
+        if selected_count > 0 && resolved_new_count == 0 {
+            eprintln!(
+                "{} store indexer skipped {selected_count} already indexed package(s)",
+                self.config.distribution
+            );
+            return Ok(packages);
+        }
+
         if packages.is_empty() {
             bail!(
-                "{} store indexer did not find any kernel configs in {} package(s)",
+                "{} store indexer did not find any kernel configs in {} new package(s)",
                 self.config.distribution,
-                self.config.packages.len()
+                attempted_count
             );
         }
 
@@ -146,6 +195,21 @@ fn resolve_store_package(
     }
 }
 
+fn store_package_version_hint(
+    manager: &StorePackageManager,
+    package_name: &str,
+    system: &str,
+) -> Option<String> {
+    match manager {
+        StorePackageManager::Nix { command, flake_ref } => {
+            nix_package_version(command, flake_ref, package_name, system)
+                .ok()
+                .flatten()
+        }
+        StorePackageManager::Guix { .. } => None,
+    }
+}
+
 fn resolve_nix_package(
     command: &str,
     flake_ref: &str,
@@ -153,6 +217,9 @@ fn resolve_nix_package(
     system: &str,
 ) -> Result<ResolvedStorePackage> {
     let installable = format!("{flake_ref}#{package_name}");
+    let version = nix_package_version(command, flake_ref, package_name, system)
+        .ok()
+        .flatten();
     let mut build_args = vec![
         OsString::from("build"),
         OsString::from("--no-link"),
@@ -163,7 +230,22 @@ fn resolve_nix_package(
     ];
     let store_paths = parse_store_paths(&run_command(command, &build_args)?);
 
-    let mut eval_args = vec![
+    build_args.clear();
+
+    Ok(ResolvedStorePackage {
+        version,
+        store_paths,
+    })
+}
+
+fn nix_package_version(
+    command: &str,
+    flake_ref: &str,
+    package_name: &str,
+    system: &str,
+) -> Result<Option<String>> {
+    let installable = format!("{flake_ref}#{package_name}");
+    let eval_args = vec![
         OsString::from("eval"),
         OsString::from("--raw"),
         OsString::from("--system"),
@@ -174,14 +256,7 @@ fn resolve_nix_package(
         .ok()
         .map(|output| output.trim().to_string())
         .filter(|output| !output.is_empty());
-
-    build_args.clear();
-    eval_args.clear();
-
-    Ok(ResolvedStorePackage {
-        version,
-        store_paths,
-    })
+    Ok(version)
 }
 
 fn resolve_guix_package(

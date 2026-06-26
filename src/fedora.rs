@@ -8,7 +8,7 @@ use quick_xml::Reader;
 use quick_xml::events::{BytesStart, Event};
 
 use crate::http::log_request_url;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_rpm_release_label};
 
 const DEFAULT_PACKAGE_NAME: &str = "kernel-core";
@@ -79,6 +79,7 @@ impl FedoraIndexerConfig {
 pub struct FedoraIndexer {
     config: FedoraIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl FedoraIndexer {
@@ -86,7 +87,13 @@ impl FedoraIndexer {
         Self {
             config,
             client: reqwest::Client::new(),
+            existing: IndexedKernelSet::default(),
         }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn load_metadata(
@@ -160,6 +167,7 @@ impl KernelConfigIndexer for FedoraIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
         let mut selected_package_count = 0usize;
+        let mut attempted_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let (redirected_repo_root, repomd) = self.load_metadata(&feed.repomd).await?;
@@ -172,7 +180,7 @@ impl KernelConfigIndexer for FedoraIndexer {
                 self.load_repo_file(&package_base, &primary_href).await?;
             let primary_text = decode_repo_metadata(&primary_bytes, &primary_href)
                 .with_context(|| format!("decoding Fedora primary metadata {primary_source}"))?;
-            let candidates = select_kernel_packages(
+            let mut candidates = select_kernel_packages(
                 &parse_primary_metadata(&primary_text)?,
                 &self.config.package_names,
                 Some(
@@ -180,9 +188,21 @@ impl KernelConfigIndexer for FedoraIndexer {
                         .clone()
                         .unwrap_or_else(|| feed.architecture.clone()),
                 ),
-                self.config.max_packages,
+                None,
             );
             selected_package_count += candidates.len();
+            candidates.retain(|candidate| {
+                !self.existing.contains(
+                    &self.config.distribution,
+                    &candidate.name,
+                    &candidate.version,
+                    &feed.architecture,
+                )
+            });
+            if let Some(max) = self.config.max_packages {
+                candidates.truncate(max);
+            }
+            attempted_package_count += candidates.len();
 
             for candidate in candidates {
                 let (source, rpm_bytes) = self
@@ -212,9 +232,14 @@ impl KernelConfigIndexer for FedoraIndexer {
             );
         }
 
+        if attempted_package_count == 0 {
+            eprintln!("RPM indexer skipped {selected_package_count} already indexed package(s)");
+            return Ok(packages);
+        }
+
         if packages.is_empty() {
             bail!(
-                "RPM indexer selected {selected_package_count} package(s), but none contained a kernel config"
+                "RPM indexer selected {attempted_package_count} new package(s), but none contained a kernel config"
             );
         }
 

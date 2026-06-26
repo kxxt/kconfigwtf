@@ -10,7 +10,7 @@ use zstd::stream::read::Decoder as ZstdDecoder;
 
 use crate::http::log_request_url;
 use crate::ikconfig::looks_like_kernel_config;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_openwrt_release_label};
 
 pub const DEFAULT_TARGETS_URL: &str = "https://downloads.openwrt.org/snapshots/targets";
@@ -32,6 +32,7 @@ pub struct OpenWrtIndexerConfig {
 pub struct OpenWrtIndexer {
     config: OpenWrtIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl OpenWrtIndexer {
@@ -39,7 +40,13 @@ impl OpenWrtIndexer {
         Self {
             config,
             client: reqwest::Client::new(),
+            existing: IndexedKernelSet::default(),
         }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn discover_target_pairs(&self) -> Result<Vec<String>> {
@@ -236,11 +243,26 @@ impl KernelConfigIndexer for OpenWrtIndexer {
         }
 
         let mut packages = Vec::new();
+        let mut skipped_targets = 0usize;
         for target in targets {
             let (_profiles_source, profiles_text) =
                 self.load_target_artifact(&target, "profiles.json").await?;
             let profiles = parse_profiles_json(&profiles_text)
                 .with_context(|| format!("parsing OpenWrt profiles metadata for {target}"))?;
+            let release = normalize_openwrt_release_label(profiles.version_number.as_deref());
+            let package_name = normalized_target_name(&profiles.target);
+            let package_version = target_build_version(&profiles);
+            let architecture = architecture_from_arch_packages(&profiles.arch_packages);
+
+            if self.existing.contains(
+                &Distribution::OpenWrt,
+                &package_name,
+                &package_version,
+                &architecture,
+            ) {
+                skipped_targets += 1;
+                continue;
+            }
 
             let (config_source, config_text) = self.fetch_kernel_config(&target, &profiles).await?;
             if !looks_like_kernel_config(&config_text) {
@@ -251,13 +273,17 @@ impl KernelConfigIndexer for OpenWrtIndexer {
 
             packages.push(KernelConfigPackage {
                 distribution: Distribution::OpenWrt,
-                release: normalize_openwrt_release_label(profiles.version_number.as_deref()),
-                package_name: normalized_target_name(&profiles.target),
-                package_version: target_build_version(&profiles),
-                architecture: architecture_from_arch_packages(&profiles.arch_packages),
+                release,
+                package_name,
+                package_version,
+                architecture,
                 source: Some(config_source),
                 config_text,
             });
+        }
+
+        if packages.is_empty() && skipped_targets > 0 {
+            eprintln!("OpenWrt indexer skipped {skipped_targets} already indexed target(s)");
         }
 
         Ok(packages)

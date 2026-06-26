@@ -7,7 +7,7 @@ use serde::Deserialize;
 use crate::http::log_request_url;
 use crate::ikconfig::looks_like_html;
 pub use crate::ikconfig::{extract_ikconfig_from_image, looks_like_kernel_config};
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_release_label};
 
 const DEFAULT_TARGET: &str = "kernel_aarch64";
@@ -68,6 +68,7 @@ impl AndroidGkiIndexerConfig {
 pub struct AndroidGkiIndexer {
     config: AndroidGkiIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl AndroidGkiIndexer {
@@ -75,7 +76,13 @@ impl AndroidGkiIndexer {
         Self {
             config,
             client: reqwest::Client::new(),
+            existing: IndexedKernelSet::default(),
         }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn load_release_builds(&self) -> Result<String> {
@@ -278,13 +285,33 @@ impl KernelConfigIndexer for AndroidGkiIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let release_builds = self.load_release_builds().await?;
         let metadata = parse_release_builds(&release_builds)?;
-        let releases = select_releases(&metadata, self.config.max_builds);
+        let mut releases = select_releases(&metadata, None);
 
         if releases.is_empty() {
             bail!(
                 "Android GKI release metadata for {} did not contain any builds",
                 self.config.branch
             );
+        }
+
+        let selected_release_count = releases.len();
+        releases.retain(|release| {
+            !self.existing.contains(
+                &Distribution::Android,
+                &metadata.name,
+                &release.tag,
+                &self.config.architecture,
+            )
+        });
+        if let Some(max) = self.config.max_builds {
+            releases.truncate(max);
+        }
+        if releases.is_empty() {
+            eprintln!(
+                "Android GKI indexer for {} skipped {selected_release_count} already indexed build(s)",
+                self.config.branch
+            );
+            return Ok(Vec::new());
         }
 
         let mut packages = Vec::new();

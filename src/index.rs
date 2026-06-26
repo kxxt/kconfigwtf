@@ -326,6 +326,122 @@ pub struct PackageIndex {
     pub entries: BTreeMap<String, Vec<PackageConfigOccurrence>>,
 }
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct IndexedKernelSet {
+    kernels: BTreeSet<IndexedKernel>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct IndexedKernel {
+    distribution: Distribution,
+    package_name: String,
+    version: String,
+    architecture: String,
+}
+
+impl IndexedKernelSet {
+    pub fn from_data_dir(data_dir: impl AsRef<Path>) -> Result<Self> {
+        let data_dir = data_dir.as_ref();
+        if !data_dir.exists() {
+            return Ok(Self::default());
+        }
+
+        let mut indexed = Self::default();
+        for distribution_entry in fs::read_dir(data_dir)
+            .with_context(|| format!("reading data directory {}", data_dir.display()))?
+        {
+            let distribution_entry =
+                distribution_entry.with_context(|| format!("reading {}", data_dir.display()))?;
+            if !distribution_entry
+                .file_type()
+                .with_context(|| format!("reading {}", distribution_entry.path().display()))?
+                .is_dir()
+            {
+                continue;
+            }
+
+            for package_entry in fs::read_dir(distribution_entry.path()).with_context(|| {
+                format!(
+                    "reading distribution directory {}",
+                    distribution_entry.path().display()
+                )
+            })? {
+                let package_entry = package_entry
+                    .with_context(|| format!("reading {}", distribution_entry.path().display()))?;
+                if !package_entry
+                    .file_type()
+                    .with_context(|| format!("reading {}", package_entry.path().display()))?
+                    .is_dir()
+                {
+                    continue;
+                }
+
+                let mut index_paths = list_package_index_files(&package_entry.path())?;
+                if index_paths.is_empty() {
+                    continue;
+                }
+                index_paths.sort();
+
+                let first = index_paths.remove(0);
+                let mut package_index = read_package_index(&first).with_context(|| {
+                    format!("loading existing package index {}", first.display())
+                })?;
+                for index_path in index_paths {
+                    let shard = read_package_index(&index_path).with_context(|| {
+                        format!("loading package index shard {}", index_path.display())
+                    })?;
+                    package_index.merge(shard)?;
+                }
+                indexed.insert_index(&package_index)?;
+            }
+        }
+
+        Ok(indexed)
+    }
+
+    pub fn contains(
+        &self,
+        distribution: &Distribution,
+        package_name: &str,
+        version: &str,
+        architecture: &Architecture,
+    ) -> bool {
+        let architecture = stored_architecture_for_package(distribution, architecture);
+        self.contains_stored_architecture(distribution, package_name, version, &architecture)
+    }
+
+    pub fn contains_stored_architecture(
+        &self,
+        distribution: &Distribution,
+        package_name: &str,
+        version: &str,
+        architecture: &str,
+    ) -> bool {
+        self.kernels.contains(&IndexedKernel {
+            distribution: distribution.clone(),
+            package_name: package_name.to_string(),
+            version: version.to_string(),
+            architecture: architecture.to_string(),
+        })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.kernels.is_empty()
+    }
+
+    fn insert_index(&mut self, index: &PackageIndex) -> Result<()> {
+        for (kernel_id, kernel) in &index.kernels {
+            self.kernels.insert(IndexedKernel {
+                distribution: index.distribution.clone(),
+                package_name: index.package_name.clone(),
+                version: kernel.version.clone(),
+                architecture: stored_architecture(kernel_id, kernel)?,
+            });
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 struct LegacyPackageIndex {
     pub schema_version: u32,

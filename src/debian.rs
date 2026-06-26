@@ -11,7 +11,7 @@ use tar::Archive;
 
 use crate::http::log_request_url;
 use crate::ikconfig::extract_ikconfig_from_image;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, normalize_apt_release_label};
 
 const DEFAULT_PACKAGE_PREFIX: &str = "linux-image-";
@@ -83,6 +83,7 @@ impl DebianIndexerConfig {
 pub struct DebianIndexer {
     config: DebianIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl DebianIndexer {
@@ -90,7 +91,13 @@ impl DebianIndexer {
         Self {
             config,
             client: reqwest::Client::new(),
+            existing: IndexedKernelSet::default(),
         }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn load_package_index(&self, location: &PackageIndexLocation) -> Result<Vec<u8>> {
@@ -156,18 +163,36 @@ impl KernelConfigIndexer for DebianIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
         let mut selected_package_count = 0usize;
+        let mut attempted_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let package_index = self.load_package_index(&feed.packages).await?;
             let package_index_text = decode_package_index(&package_index, &feed.packages)?;
-            let candidates = select_kernel_packages(
+            let mut candidates = select_kernel_packages(
                 &parse_packages_index(&package_index_text),
                 &self.config.package_name_prefix,
                 &self.config.required_package_substrings,
                 &self.config.excluded_package_substrings,
-                self.config.max_packages,
+                None,
             );
             selected_package_count += candidates.len();
+            candidates.retain(|candidate| {
+                let package_name = normalize_apt_kernel_package_name(
+                    &candidate.name,
+                    &self.config.package_name_prefix,
+                    &feed.architecture,
+                );
+                !self.existing.contains(
+                    &self.config.distribution,
+                    &package_name,
+                    &candidate.version,
+                    &feed.architecture,
+                )
+            });
+            if let Some(max) = self.config.max_packages {
+                candidates.truncate(max);
+            }
+            attempted_package_count += candidates.len();
 
             for candidate in candidates {
                 let (source, deb_bytes) =
@@ -201,9 +226,17 @@ impl KernelConfigIndexer for DebianIndexer {
             );
         }
 
+        if attempted_package_count == 0 {
+            eprintln!(
+                "APT indexer for {} skipped {selected_package_count} already indexed package(s)",
+                self.config.distribution
+            );
+            return Ok(packages);
+        }
+
         if packages.is_empty() {
             bail!(
-                "APT indexer for {} selected {selected_package_count} package(s), but none contained a kernel config",
+                "APT indexer for {} selected {attempted_package_count} new package(s), but none contained a kernel config",
                 self.config.distribution
             );
         }

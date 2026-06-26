@@ -8,7 +8,7 @@ use serde::Deserialize;
 use tokio::fs;
 
 use crate::http::log_request_url;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage};
 
 pub const DEFAULT_VOID_GITHUB_API_TREE_URL: &str =
@@ -44,6 +44,7 @@ pub struct VoidIndexerConfig {
 pub struct VoidIndexer {
     config: VoidIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl VoidIndexer {
@@ -52,7 +53,16 @@ impl VoidIndexer {
             .user_agent("kconfigwtf/0.1")
             .build()
             .expect("construct reqwest client");
-        Self { config, client }
+        Self {
+            config,
+            client,
+            existing: IndexedKernelSet::default(),
+        }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn load_text(
@@ -217,6 +227,7 @@ impl KernelConfigIndexer for VoidIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
         let mut selected_count = 0usize;
+        let mut attempted_count = 0usize;
 
         for feed in &self.config.feeds {
             let mut candidates = feed
@@ -226,11 +237,9 @@ impl KernelConfigIndexer for VoidIndexer {
                 .cloned()
                 .collect::<Vec<_>>();
             candidates.sort();
-            if let Some(max) = self.config.max_packages {
-                candidates.truncate(max);
-            }
 
             selected_count += candidates.len();
+            let mut feed_attempted_count = 0usize;
 
             for package_name in candidates {
                 let (template_source, template_text) = self
@@ -241,6 +250,24 @@ impl KernelConfigIndexer for VoidIndexer {
                     parse_template(&template_text, &package_name).with_context(|| {
                         format!("parsing Void template for {package_name} from {template_source}")
                     })?;
+                let package_version = format!("{}_{}", template.version, template.revision);
+                if self.existing.contains(
+                    &feed.distribution,
+                    &template.package_name,
+                    &package_version,
+                    &feed.architecture,
+                ) {
+                    continue;
+                }
+                if self
+                    .config
+                    .max_packages
+                    .is_some_and(|max| feed_attempted_count >= max)
+                {
+                    break;
+                }
+                feed_attempted_count += 1;
+                attempted_count += 1;
 
                 let mut found_config = false;
                 for dotconfig_name in dotconfig_names_for_arch(&feed.architecture) {
@@ -260,7 +287,7 @@ impl KernelConfigIndexer for VoidIndexer {
                         distribution: feed.distribution.clone(),
                         release: self.config.release.clone(),
                         package_name: template.package_name.clone(),
-                        package_version: format!("{}_{}", template.version, template.revision),
+                        package_version: package_version.clone(),
                         architecture: feed.architecture.clone(),
                         source: Some(source),
                         config_text,
@@ -284,9 +311,14 @@ impl KernelConfigIndexer for VoidIndexer {
             );
         }
 
+        if attempted_count == 0 {
+            eprintln!("Void indexer skipped {selected_count} already indexed package(s)");
+            return Ok(packages);
+        }
+
         if packages.is_empty() {
             bail!(
-                "Void indexer selected {selected_count} package(s), but none had an architecture-specific dotconfig"
+                "Void indexer selected {attempted_count} new package(s), but none had an architecture-specific dotconfig"
             );
         }
 

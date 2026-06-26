@@ -195,6 +195,24 @@ fn debian_index_command_indexes_local_packages_file() {
     );
     assert_eq!(bpf[0].value, ConfigValue::BuiltIn);
     assert_config_missing(&index, "CONFIG_UNUSED");
+
+    fs::remove_file(&deb_path).expect("remove indexed deb");
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "debian",
+            "--packages-file",
+            packages_path.to_str().expect("packages path"),
+            "--deb-root",
+            deb_root.to_str().expect("deb root"),
+            "--arch",
+            "amd64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
 }
 
 #[test]
@@ -1532,6 +1550,24 @@ fn fedora_index_command_indexes_local_repo_metadata() {
         index.kernels["0:6.12.0-1.fc99/amd64"].architecture,
         Architecture::Amd64
     );
+
+    fs::remove_file(&rpm_path).expect("remove indexed rpm");
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "fedora",
+            "--repomd-file",
+            repomd_path.to_str().expect("repomd path"),
+            "--rpm-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "x86_64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ])
+        .assert()
+        .success();
 }
 
 #[test]

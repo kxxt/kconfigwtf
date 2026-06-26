@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use clap::{Args, Parser, Subcommand, ValueEnum};
@@ -22,7 +22,8 @@ use kconfigwtf::fedora::{
 };
 use kconfigwtf::http::log_request_url;
 use kconfigwtf::index::{
-    Architecture, DEFAULT_MAX_INDEX_BYTES, Distribution, write_packages_to_data_dir,
+    Architecture, DEFAULT_MAX_INDEX_BYTES, Distribution, IndexedKernelSet,
+    write_packages_to_data_dir,
 };
 use kconfigwtf::indexer::{
     normalize_alpine_release_label, normalize_apt_release_label, normalize_rpm_release_label,
@@ -1031,69 +1032,88 @@ fn migrate(args: MigrationArgs) -> Result<()> {
     Ok(())
 }
 
+fn existing_indexed_kernels(data_dir: &Path) -> Result<IndexedKernelSet> {
+    IndexedKernelSet::from_data_dir(data_dir)
+        .with_context(|| format!("reading existing indexes from {}", data_dir.display()))
+}
+
+fn write_indexed_packages(
+    packages: Vec<kconfigwtf::indexer::KernelConfigPackage>,
+    data_dir: &Path,
+) -> Result<()> {
+    if packages.is_empty() {
+        eprintln!("no new kernel packages to write");
+        return Ok(());
+    }
+
+    write_packages_to_data_dir(packages, data_dir)
+        .with_context(|| format!("writing data tree {}", data_dir.display()))?;
+    Ok(())
+}
+
 async fn index_android(args: AndroidArgs) -> Result<()> {
     let configs = android_configs_from_args(&args).await?;
+    let existing = existing_indexed_kernels(&args.data_dir)?;
     let mut packages = Vec::new();
     for config in configs {
-        let indexer = AndroidGkiIndexer::new(config);
+        let indexer = AndroidGkiIndexer::new(config).with_existing(existing.clone());
         packages.extend(indexer.index().await?);
     }
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_arch(args: ArchArgs) -> Result<()> {
     let config = arch_config_from_args(&args)?;
-    let indexer = ArchIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = ArchIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_eweos(args: EweOsArgs) -> Result<()> {
     let config = eweos_config_from_args(&args)?;
-    let indexer = ArchIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = ArchIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_alpine(args: AlpineArgs) -> Result<()> {
     let config = alpine_config_from_args(&args)?;
-    let indexer = AlpineIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = AlpineIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_debian(args: DebianArgs) -> Result<()> {
     let config = debian_config_from_args(&args)?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_fedora(args: FedoraArgs) -> Result<()> {
     let config = fedora_config_from_args(&args)?;
-    let indexer = FedoraIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = FedoraIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_rpm_distribution(distribution: Distribution, args: RpmArgs) -> Result<()> {
     let config = rpm_config_from_args(distribution, &args).await?;
-    let indexer = FedoraIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = FedoraIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1111,10 +1131,10 @@ async fn index_ubuntu(args: UbuntuArgs) -> Result<()> {
         excluded_package_substrings: &[],
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1132,10 +1152,10 @@ async fn index_kali(args: KaliArgs) -> Result<()> {
         excluded_package_substrings: &[],
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1155,10 +1175,10 @@ async fn index_proxmox(args: ProxmoxArgs) -> Result<()> {
         excluded_package_substrings: &excluded,
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1176,10 +1196,10 @@ async fn index_deepin(args: DeepinArgs) -> Result<()> {
         excluded_package_substrings: &[],
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1197,10 +1217,10 @@ async fn index_kylin(args: KylinArgs) -> Result<()> {
         excluded_package_substrings: &[],
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1218,10 +1238,10 @@ async fn index_openkylin(args: OpenKylinArgs) -> Result<()> {
         excluded_package_substrings: &[],
         max_packages: args.max_packages,
     })?;
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1281,10 +1301,10 @@ async fn index_aosc(args: AoscArgs) -> Result<()> {
         }
     };
 
-    let indexer = DebianIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = DebianIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1297,8 +1317,7 @@ async fn index_chromeos(args: ChromeOsArgs) -> Result<()> {
         architecture: args.architecture,
     });
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1315,14 +1334,15 @@ async fn index_openwrt(args: OpenWrtArgs) -> Result<()> {
         ),
     };
 
+    let existing = existing_indexed_kernels(&args.data_dir)?;
     let indexer = OpenWrtIndexer::new(OpenWrtIndexerConfig {
         targets,
         selected_targets: args.targets,
         max_targets: args.max_targets,
-    });
+    })
+    .with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1354,10 +1374,10 @@ async fn index_nixos(args: NixOsArgs) -> Result<()> {
         release: release_for_store_manager(&config.distribution, &config.manager),
         ..config
     };
-    let indexer = StorePackageIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = StorePackageIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1376,10 +1396,10 @@ async fn index_guix(args: GuixArgs) -> Result<()> {
         skip_failed_packages: false,
         release: rolling_release_label(),
     };
-    let indexer = StorePackageIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = StorePackageIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
@@ -1387,17 +1407,16 @@ async fn index_slackware(args: SlackwareArgs) -> Result<()> {
     let config = slackware_config_from_args(&args)?;
     let indexer = SlackwareIndexer::new(config);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 
 async fn index_void(args: VoidArgs) -> Result<()> {
     let config = void_config_from_args(&args).await?;
-    let indexer = VoidIndexer::new(config);
+    let existing = existing_indexed_kernels(&args.data_dir)?;
+    let indexer = VoidIndexer::new(config).with_existing(existing);
     let packages = indexer.index().await?;
-    write_packages_to_data_dir(packages, &args.data_dir)
-        .with_context(|| format!("writing data tree {}", args.data_dir.display()))?;
+    write_indexed_packages(packages, &args.data_dir)?;
     Ok(())
 }
 async fn void_config_from_args(args: &VoidArgs) -> Result<VoidIndexerConfig> {

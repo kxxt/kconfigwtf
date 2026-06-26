@@ -9,7 +9,7 @@ use liblzma::read::XzDecoder;
 use tar::Archive;
 
 use crate::http::log_request_url;
-use crate::index::{Architecture, Distribution};
+use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, rolling_release_label};
 
 const DEFAULT_PACKAGE_PREFIX: &str = "linux";
@@ -103,6 +103,7 @@ impl ArchIndexerConfig {
 pub struct ArchIndexer {
     config: ArchIndexerConfig,
     client: reqwest::Client,
+    existing: IndexedKernelSet,
 }
 
 impl ArchIndexer {
@@ -110,7 +111,13 @@ impl ArchIndexer {
         Self {
             config,
             client: reqwest::Client::new(),
+            existing: IndexedKernelSet::default(),
         }
+    }
+
+    pub fn with_existing(mut self, existing: IndexedKernelSet) -> Self {
+        self.existing = existing;
+        self
     }
 
     async fn load_database(&self, location: &ArchDatabaseLocation) -> Result<(String, Vec<u8>)> {
@@ -179,18 +186,31 @@ impl KernelConfigIndexer for ArchIndexer {
     async fn index(&self) -> Result<Vec<KernelConfigPackage>> {
         let mut packages = Vec::new();
         let mut selected_package_count = 0usize;
+        let mut attempted_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let (database_source, database_bytes) = self.load_database(&feed.database).await?;
-            let candidates = select_kernel_packages(
+            let mut candidates = select_kernel_packages(
                 &parse_sync_database(&database_bytes, &database_source)
                     .with_context(|| format!("parsing pacman sync database {database_source}"))?,
                 &self.config.package_name_prefix,
                 self.config.include_kernel_packages,
                 Some(feed.architecture.clone()),
-                self.config.max_packages,
+                None,
             );
             selected_package_count += candidates.len();
+            candidates.retain(|candidate| {
+                !self.existing.contains(
+                    &feed.distribution,
+                    &normalize_arch_kernel_package_name(&candidate.name),
+                    &candidate.version,
+                    &candidate.architecture,
+                )
+            });
+            if let Some(max) = self.config.max_packages {
+                candidates.truncate(max);
+            }
+            attempted_package_count += candidates.len();
 
             for candidate in candidates {
                 let (source, package_bytes) = self
@@ -221,9 +241,16 @@ impl KernelConfigIndexer for ArchIndexer {
             );
         }
 
+        if attempted_package_count == 0 {
+            eprintln!(
+                "Arch-family indexer skipped {selected_package_count} already indexed package(s)"
+            );
+            return Ok(packages);
+        }
+
         if packages.is_empty() {
             bail!(
-                "Arch-family indexer selected {selected_package_count} package(s), but none contained a kernel config"
+                "Arch-family indexer selected {attempted_package_count} new package(s), but none contained a kernel config"
             );
         }
 
