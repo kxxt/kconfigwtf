@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:45:44.261640377Z",
+  "generated_at": "2026-06-26T12:25:55.693448039Z",
   "distribution": "aoscos",
   "package_name": "linux-kernel-starfive-jh7110-<VERSION>",
   "releases": [

@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:45:43.957736584Z",
+  "generated_at": "2026-06-26T12:25:55.069943118Z",
   "distribution": "aoscos",
   "package_name": "linux-kernel-asahi-<VERSION>",
   "releases": [
