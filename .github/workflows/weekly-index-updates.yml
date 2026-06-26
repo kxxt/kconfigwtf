@@ -34,6 +34,24 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: weekly-index-release
+      - name: Build indexer binary
+        run: cargo build --release --locked
+      - name: Pack indexer binary
+        run: |
+          set -euo pipefail
+          mkdir -p .ci/bin
+          cp target/release/kconfigwtf .ci/bin/kconfigwtf
+      - name: Upload indexer binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: kconfigwtf-indexer
+          path: .ci/bin/kconfigwtf
+          if-no-files-found: error
+          retention-days: 1
       - name: Reset update branch to current base
         run: |
           set -euo pipefail
@@ -52,142 +70,145 @@ jobs:
           - distro: almalinux
             setup: ""
             command: >-
-              cargo run --locked -- index almalinux --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch x86_64_v2 --arch aarch64 --arch ppc64le --arch s390x
-              && cargo run --locked -- index almalinux --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
-              && cargo run --locked -- index almalinux --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+              ./.ci/bin/kconfigwtf index almalinux --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch x86_64_v2 --arch aarch64 --arch ppc64le --arch s390x
+              && ./.ci/bin/kconfigwtf index almalinux --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+              && ./.ci/bin/kconfigwtf index almalinux --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
           - distro: alpine
             setup: ""
             command: >-
-              cargo run --locked -- index alpine --release latest-stable --repository main --repository community --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch s390x --arch armv7 --arch armhf --arch ppc64le --arch x86
+              ./.ci/bin/kconfigwtf index alpine --release latest-stable --repository main --repository community --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch s390x --arch armv7 --arch armhf --arch ppc64le --arch x86
           - distro: amazonlinux
             setup: ""
             command: >-
-              cargo run --locked -- index amazonlinux --release al2023 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              ./.ci/bin/kconfigwtf index amazonlinux --release al2023 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
           - distro: android
             setup: ""
             command: >-
-              cargo run --locked -- index android --branch android16-6.12 --branch android15-6.6 --branch android14-6.1 --branch android14-5.15 --branch android13-5.15 --branch android13-5.10 --branch android12-5.10 --max-builds 5 --data-dir data
+              ./.ci/bin/kconfigwtf index android --branch android16-6.12 --branch android15-6.6 --branch android14-6.1 --branch android14-5.15 --branch android13-5.15 --branch android13-5.10 --branch android12-5.10 --max-builds 5 --data-dir data
           - distro: aoscos
             setup: ""
             command: >-
-              cargo run --locked -- index aosc --suite stable --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loongarch64 --arch loongson3 --arch ppc64el
+              ./.ci/bin/kconfigwtf index aosc --suite stable --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loongarch64 --arch loongson3 --arch ppc64el
           - distro: archlinux
             setup: ""
             command: >-
-              cargo run --locked -- index arch --distribution archlinux --repository core --max-packages 15 --data-dir data --arch x86_64
-              && cargo run --locked -- index arch --distribution archlinux --repository extra --max-packages 15 --data-dir data --arch x86_64
-              && cargo run --locked -- index arch --distribution archlinux --repository core --data-dir data --arch riscv64
-              && cargo run --locked -- index arch --distribution archlinux --repository extra --data-dir data --arch riscv64
-              && cargo run --locked -- index arch --distribution archlinux --repository unsupported --data-dir data --arch riscv64
+              ./.ci/bin/kconfigwtf index arch --distribution archlinux --repository core --max-packages 15 --data-dir data --arch x86_64
+              && ./.ci/bin/kconfigwtf index arch --distribution archlinux --repository extra --max-packages 15 --data-dir data --arch x86_64
+              && ./.ci/bin/kconfigwtf index arch --distribution archlinux --repository core --data-dir data --arch riscv64
+              && ./.ci/bin/kconfigwtf index arch --distribution archlinux --repository extra --data-dir data --arch riscv64
+              && ./.ci/bin/kconfigwtf index arch --distribution archlinux --repository unsupported --data-dir data --arch riscv64
           - distro: azurelinux
             setup: ""
             command: >-
-              cargo run --locked -- index azurelinux --release 3.0 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              ./.ci/bin/kconfigwtf index azurelinux --release 3.0 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
           - distro: cachyos
             setup: ""
             command: >-
-              cargo run --locked -- index arch --distribution cachyos --repository cachyos --max-packages 15 --data-dir data --arch x86_64
-              && cargo run --locked -- index arch --distribution cachyos --repository cachyos-v3 --max-packages 15 --data-dir data --arch x86_64_v3
-              && cargo run --locked -- index arch --distribution cachyos --repository cachyos-v4 --max-packages 15 --data-dir data --arch x86_64_v4
+              ./.ci/bin/kconfigwtf index arch --distribution cachyos --repository cachyos --max-packages 15 --data-dir data --arch x86_64
+              && ./.ci/bin/kconfigwtf index arch --distribution cachyos --repository cachyos-v3 --max-packages 15 --data-dir data --arch x86_64_v3
+              && ./.ci/bin/kconfigwtf index arch --distribution cachyos --repository cachyos-v4 --max-packages 15 --data-dir data --arch x86_64_v4
           - distro: centos
             setup: ""
             command: >-
-              cargo run --locked -- index centos --release 10-stream --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
-              && cargo run --locked -- index centos --release 9-stream --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+              ./.ci/bin/kconfigwtf index centos --release 10-stream --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+              && ./.ci/bin/kconfigwtf index centos --release 9-stream --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
           - distro: chromeos
             setup: ""
             command: >-
-              cargo run --locked -- index chromeos --arch amd64 --data-dir data
+              ./.ci/bin/kconfigwtf index chromeos --arch amd64 --data-dir data
           - distro: debian
             setup: ""
             command: >-
-              cargo run --locked -- index debian --suite stable --component main --max-packages 25 --data-dir data --arch amd64 --arch arm64 --arch armhf --arch i386 --arch ppc64el --arch s390x
+              ./.ci/bin/kconfigwtf index debian --suite stable --component main --max-packages 25 --data-dir data --arch amd64 --arch arm64 --arch armhf --arch i386 --arch ppc64el --arch s390x
           - distro: deepin
             setup: ""
             command: >-
-              cargo run --locked -- index deepin --suite beige --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loong64
+              ./.ci/bin/kconfigwtf index deepin --suite beige --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loong64
           - distro: eweos
             setup: ""
             command: >-
-              cargo run --locked -- index eweos --repository main --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch loongarch64
+              ./.ci/bin/kconfigwtf index eweos --repository main --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch loongarch64
           - distro: fedora
             setup: ""
             command: >-
-              cargo run --locked -- index fedora --release rawhide --max-packages 5 --data-dir data --arch x86_64 --arch aarch64 --arch riscv64 --arch s390x --arch ppc64le
+              ./.ci/bin/kconfigwtf index fedora --release rawhide --max-packages 5 --data-dir data --arch x86_64 --arch aarch64 --arch riscv64 --arch s390x --arch ppc64le
           - distro: guix
             setup: sudo apt-get update && sudo apt-get install -y guix
             command: >-
-              cargo run --locked -- index guix --package linux-libre --max-packages 1 --data-dir data --arch x86_64
+              ./.ci/bin/kconfigwtf index guix --package linux-libre --max-packages 1 --data-dir data --arch x86_64
           - distro: kali
             setup: ""
             command: >-
-              cargo run --locked -- index kali --suite kali-rolling --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch armhf
+              ./.ci/bin/kconfigwtf index kali --suite kali-rolling --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch armhf
           - distro: nixos
             setup: ""
             command: >-
-              cargo run --locked -- index nixos --max-packages 1 --data-dir data --arch x86_64
+              ./.ci/bin/kconfigwtf index nixos --max-packages 1 --data-dir data --arch x86_64
           - distro: openanolis
             setup: ""
             command: >-
-              cargo run --locked -- index openanolis --release 23.4 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
-              && cargo run --locked -- index openanolis --release 8.10 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
-              && cargo run --locked -- index openanolis --release 7.9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              ./.ci/bin/kconfigwtf index openanolis --release 23.4 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
+              && ./.ci/bin/kconfigwtf index openanolis --release 8.10 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
+              && ./.ci/bin/kconfigwtf index openanolis --release 7.9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
           - distro: openeuler
             setup: ""
             command: >-
-              cargo run --locked -- index openeuler --release openEuler-24.03-LTS-SP3 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
+              ./.ci/bin/kconfigwtf index openeuler --release openEuler-24.03-LTS-SP3 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
           - distro: openkylin
             setup: ""
             command: >-
-              cargo run --locked -- index openkylin --suite nile --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loong64
+              ./.ci/bin/kconfigwtf index openkylin --suite nile --component main --max-packages 15 --data-dir data --arch amd64 --arch arm64 --arch riscv64 --arch loong64
           - distro: opensuse
             setup: ""
             command: >-
-              cargo run --locked -- index opensuse --release tumbleweed --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch ppc64le --arch s390x --arch armhf
-              && cargo run --locked -- index opensuse --release 16.1 --max-packages 15 --data-dir data --arch x86_64 --arch s390x --arch aarch64 --arch ppc64le
+              ./.ci/bin/kconfigwtf index opensuse --release tumbleweed --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch ppc64le --arch s390x --arch armhf
+              && ./.ci/bin/kconfigwtf index opensuse --release 16.1 --max-packages 15 --data-dir data --arch x86_64 --arch s390x --arch aarch64 --arch ppc64le
           - distro: openwrt
             setup: ""
             command: >-
-              cargo run --locked -- index openwrt --targets-url https://downloads.openwrt.org/snapshots/targets --target x86/64 --target rockchip/armv8 --data-dir data
+              ./.ci/bin/kconfigwtf index openwrt --targets-url https://downloads.openwrt.org/snapshots/targets --target x86/64 --target rockchip/armv8 --data-dir data
           - distro: oraclelinux
             setup: ""
             command: >-
-              cargo run --locked -- index oraclelinux --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
-              && cargo run --locked -- index oraclelinux --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
-              && cargo run --locked -- index oraclelinux --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              ./.ci/bin/kconfigwtf index oraclelinux --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              && ./.ci/bin/kconfigwtf index oraclelinux --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              && ./.ci/bin/kconfigwtf index oraclelinux --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
           - distro: parabola
             setup: ""
             command: >-
-              cargo run --locked -- index arch --distribution parabola --max-packages 15 --data-dir data --arch x86_64
+              ./.ci/bin/kconfigwtf index arch --distribution parabola --max-packages 15 --data-dir data --arch x86_64
           - distro: proxmox
             setup: ""
             command: >-
-              cargo run --locked -- index proxmox --suite bookworm --component pve-no-subscription --max-packages 15 --data-dir data --arch amd64
+              ./.ci/bin/kconfigwtf index proxmox --suite bookworm --component pve-no-subscription --max-packages 15 --data-dir data --arch amd64
           - distro: rocky
             setup: ""
             command: >-
-              cargo run --locked -- index rocky --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch ppc64le --arch s390x
-              && cargo run --locked -- index rocky --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
-              && cargo run --locked -- index rocky --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
+              ./.ci/bin/kconfigwtf index rocky --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch riscv64 --arch aarch64 --arch ppc64le --arch s390x
+              && ./.ci/bin/kconfigwtf index rocky --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch ppc64le --arch s390x
+              && ./.ci/bin/kconfigwtf index rocky --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
           - distro: ubuntu
             setup: ""
             command: >-
-              cargo run --locked -- index ubuntu --suite noble-updates --component main --max-packages 25 --data-dir data --arch amd64
-              && cargo run --locked -- index ubuntu --suite noble-updates --component main --mirror http://ports.ubuntu.com/ubuntu-ports/ --max-packages 25 --data-dir data --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x
+              ./.ci/bin/kconfigwtf index ubuntu --suite noble-updates --component main --max-packages 25 --data-dir data --arch amd64
+              && ./.ci/bin/kconfigwtf index ubuntu --suite noble-updates --component main --mirror http://ports.ubuntu.com/ubuntu-ports/ --max-packages 25 --data-dir data --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x
           - distro: void
             setup: ""
             command: >-
-              cargo run --locked -- index void --max-packages 15 --data-dir data --arch amd64 --arch arm64
+              ./.ci/bin/kconfigwtf index void --max-packages 15 --data-dir data --arch amd64 --arch arm64
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.PAT }}
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - name: Download indexer binary
+        uses: actions/download-artifact@v4
         with:
-          key: weekly-index-${{ matrix.distro }}
+          name: kconfigwtf-indexer
+          path: .ci/bin
+      - name: Prepare indexer binary
+        run: chmod +x .ci/bin/kconfigwtf
       - name: Install Nix
         if: matrix.distro == 'nixos'
         uses: cachix/install-nix-action@v31
@@ -196,6 +217,7 @@ jobs:
         env:
           INDEX_COMMAND: ${{ matrix.command }}
           SETUP_COMMAND: ${{ matrix.setup }}
+          EXTRACT_IKCONFIG: ${{ github.workspace }}/scripts/extract-ikconfig
         run: |
           set -uo pipefail
           mkdir -p status
