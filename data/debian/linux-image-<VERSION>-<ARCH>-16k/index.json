@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-25T15:05:41.738992366Z",
+  "generated_at": "2026-06-26T12:21:53.449529531Z",
   "distribution": "debian",
   "package_name": "linux-image-<VERSION>-<ARCH>-16k",
   "releases": [
-    "trixie"
+    "stable"
   ],
   "architectures": [
     "arm64"
@@ -47875,7 +47875,6 @@
         1
       ]
     },
-    "CONFIG_WARN_ALL_UNSEEDED_RANDOM": {},
     "CONFIG_WATCHDOG": {
       "built_in": [
         0,

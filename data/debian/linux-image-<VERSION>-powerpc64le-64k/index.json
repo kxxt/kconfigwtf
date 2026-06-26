@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-25T15:03:38.353834553Z",
+  "generated_at": "2026-06-26T12:21:54.863252607Z",
   "distribution": "debian",
   "package_name": "linux-image-<VERSION>-powerpc64le-64k",
   "releases": [
-    "trixie"
+    "stable"
   ],
   "architectures": [
     "ppc64el"
@@ -33895,7 +33895,6 @@
         1
       ]
     },
-    "CONFIG_WARN_ALL_UNSEEDED_RANDOM": {},
     "CONFIG_WATCHDOG": {
       "built_in": [
         0,
