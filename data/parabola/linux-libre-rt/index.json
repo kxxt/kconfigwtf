@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-29T01:46:38.699146736Z",
+  "generated_at": "2026-06-26T12:16:32.091840365Z",
   "distribution": "parabola",
   "package_name": "linux-libre-rt",
   "releases": [
