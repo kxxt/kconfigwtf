@@ -187,10 +187,11 @@ impl OpenWrtIndexer {
         let normalized = normalized_target_name(&profiles.target);
         let owrt_version = profiles.version_number.as_deref().unwrap();
         let mut last_error = None;
-        for suffix in ["zst", "xz"] {
-            let ib_filename = format!(
-                "openwrt-imagebuilder-{owrt_version}-{normalized}.Linux-x86_64.tar.{suffix}"
-            );
+        for ib_filename in imagebuilder_filenames(owrt_version, &normalized) {
+            let suffix = ib_filename
+                .rsplit('.')
+                .next()
+                .context("imagebuilder filename is missing compression suffix")?;
             let url = target_artifact_url(root, target, &ib_filename);
             log_request_url(&url);
 
@@ -441,6 +442,27 @@ fn target_artifact_url(root: &str, target: &str, filename: &str) -> String {
     )
 }
 
+fn imagebuilder_filenames(version: &str, normalized_target: &str) -> Vec<String> {
+    let mut names = Vec::new();
+    let bases = if version == "SNAPSHOT" {
+        vec![
+            format!("openwrt-imagebuilder-{normalized_target}.Linux-x86_64.tar"),
+            format!("openwrt-imagebuilder-{version}-{normalized_target}.Linux-x86_64.tar"),
+        ]
+    } else {
+        vec![format!(
+            "openwrt-imagebuilder-{version}-{normalized_target}.Linux-x86_64.tar"
+        )]
+    };
+
+    for base in bases {
+        names.push(format!("{base}.zst"));
+        names.push(format!("{base}.xz"));
+    }
+
+    names
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -491,6 +513,30 @@ mod tests {
         assert_eq!(
             architecture_from_arch_packages("mipsel_24kc"),
             Architecture::Other("mipsel_24kc".to_string())
+        );
+    }
+
+    #[test]
+    fn builds_snapshot_imagebuilder_filename_candidates() {
+        assert_eq!(
+            imagebuilder_filenames("SNAPSHOT", "rockchip-armv8"),
+            vec![
+                "openwrt-imagebuilder-rockchip-armv8.Linux-x86_64.tar.zst",
+                "openwrt-imagebuilder-rockchip-armv8.Linux-x86_64.tar.xz",
+                "openwrt-imagebuilder-SNAPSHOT-rockchip-armv8.Linux-x86_64.tar.zst",
+                "openwrt-imagebuilder-SNAPSHOT-rockchip-armv8.Linux-x86_64.tar.xz",
+            ]
+        );
+    }
+
+    #[test]
+    fn builds_release_imagebuilder_filename_candidates() {
+        assert_eq!(
+            imagebuilder_filenames("25.12.4", "x86-64"),
+            vec![
+                "openwrt-imagebuilder-25.12.4-x86-64.Linux-x86_64.tar.zst",
+                "openwrt-imagebuilder-25.12.4-x86-64.Linux-x86_64.tar.xz",
+            ]
         );
     }
 

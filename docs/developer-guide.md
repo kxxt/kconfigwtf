@@ -220,8 +220,6 @@ cargo run -- index opensuse --release 16.1 --max-packages 15 --data-dir data \
   --arch x86_64 --arch s390x --arch aarch64 --arch ppc64le
 cargo run -- index oraclelinux --release 10 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64
-cargo run -- index oraclelinux --release 7 --max-packages 15 --data-dir data \
-  --arch x86_64
 cargo run -- index amazonlinux --release al2023 --max-packages 15 --data-dir data \
   --arch x86_64 --arch aarch64
 cargo run -- index azurelinux --release 3.0 --max-packages 15 --data-dir data \

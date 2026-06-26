@@ -66,7 +66,7 @@ jobs:
           - distro: android
             setup: ""
             command: >-
-              cargo run --locked -- index android --max-builds 5 --data-dir data
+              cargo run --locked -- index android --branch android16-6.12 --branch android15-6.6 --branch android14-6.1 --branch android14-5.15 --branch android13-5.15 --branch android13-5.10 --branch android12-5.10 --max-builds 5 --data-dir data
           - distro: aoscos
             setup: ""
             command: >-
@@ -135,7 +135,7 @@ jobs:
           - distro: openeuler
             setup: ""
             command: >-
-              cargo run --locked -- index openeuler --release openEuler-24.03-LTS-SP3 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64 --arch ppc64le
+              cargo run --locked -- index openeuler --release openEuler-24.03-LTS-SP3 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64 --arch loongarch64
           - distro: openkylin
             setup: ""
             command: >-
@@ -155,7 +155,6 @@ jobs:
               cargo run --locked -- index oraclelinux --release 10 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
               && cargo run --locked -- index oraclelinux --release 9 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
               && cargo run --locked -- index oraclelinux --release 8 --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
-              && cargo run --locked -- index oraclelinux --release 7 --max-packages 15 --data-dir data --arch x86_64
           - distro: parabola
             setup: ""
             command: >-
