@@ -164,6 +164,7 @@ impl KernelConfigIndexer for DebianIndexer {
         let mut packages = Vec::new();
         let mut selected_package_count = 0usize;
         let mut attempted_package_count = 0usize;
+        let mut skipped_existing_package_count = 0usize;
 
         for feed in &self.config.feeds {
             let package_index = self.load_package_index(&feed.packages).await?;
@@ -177,6 +178,15 @@ impl KernelConfigIndexer for DebianIndexer {
             );
             selected_package_count += candidates.len();
             candidates.retain(|candidate| {
+                !(self.config.distribution == Distribution::Debian
+                    && is_debian_unversioned_kernel_metapackage(
+                        &candidate.name,
+                        &self.config.package_name_prefix,
+                        &feed.architecture,
+                    ))
+            });
+            let before_existing_filter = candidates.len();
+            candidates.retain(|candidate| {
                 let package_name = normalize_apt_kernel_package_name(
                     &candidate.name,
                     &self.config.package_name_prefix,
@@ -189,6 +199,7 @@ impl KernelConfigIndexer for DebianIndexer {
                     &feed.architecture,
                 )
             });
+            skipped_existing_package_count += before_existing_filter - candidates.len();
             if let Some(max) = self.config.max_packages {
                 candidates.truncate(max);
             }
@@ -235,6 +246,13 @@ impl KernelConfigIndexer for DebianIndexer {
         }
 
         if packages.is_empty() {
+            if skipped_existing_package_count > 0 {
+                eprintln!(
+                    "APT indexer for {} selected {attempted_package_count} new package(s) without kernel configs after skipping {skipped_existing_package_count} already indexed package(s)",
+                    self.config.distribution
+                );
+                return Ok(packages);
+            }
             bail!(
                 "APT indexer for {} selected {attempted_package_count} new package(s), but none contained a kernel config",
                 self.config.distribution
@@ -335,6 +353,54 @@ pub fn select_kernel_packages(
     }
 
     candidates
+}
+
+fn is_debian_unversioned_kernel_metapackage(
+    name: &str,
+    package_name_prefix: &str,
+    architecture: &Architecture,
+) -> bool {
+    let Some(suffix) = name.strip_prefix(package_name_prefix) else {
+        return false;
+    };
+    if suffix.split('-').any(starts_with_digit) {
+        return false;
+    }
+    if suffix.ends_with("-signed-template") {
+        return true;
+    }
+
+    debian_kernel_package_architecture_names(architecture)
+        .iter()
+        .any(|architecture_name| {
+            suffix == architecture_name
+                || suffix.strip_prefix(architecture_name).is_some_and(|rest| {
+                    rest.starts_with('-')
+                        && rest[1..].split('-').all(is_debian_meta_flavour_segment)
+                })
+                || suffix.strip_suffix(architecture_name).is_some_and(|rest| {
+                    rest.ends_with('-')
+                        && rest[..rest.len() - 1]
+                            .split('-')
+                            .all(is_debian_meta_flavour_segment)
+                })
+        })
+}
+
+fn debian_kernel_package_architecture_names(architecture: &Architecture) -> Vec<String> {
+    match architecture {
+        Architecture::Ppc64el => vec!["ppc64el".to_string(), "powerpc64le".to_string()],
+        Architecture::Amd64 | Architecture::Arm64 | Architecture::Riscv64 | Architecture::S390x => {
+            vec![architecture.as_str().to_string()]
+        }
+        Architecture::Armhf => vec!["armhf".to_string(), "armmp".to_string()],
+        Architecture::I386 => vec!["i386".to_string(), "686".to_string(), "686-pae".to_string()],
+        Architecture::Other(value) => vec![value.clone()],
+    }
+}
+
+fn is_debian_meta_flavour_segment(segment: &str) -> bool {
+    matches!(segment, "cloud" | "rt" | "16k" | "64k" | "lpae")
 }
 
 pub fn normalize_debian_kernel_package_name(name: &str, architecture: &Architecture) -> String {
@@ -607,6 +673,57 @@ Filename: pool/main/b/bash/bash.deb
 
         assert_eq!(selected.len(), 1);
         assert_eq!(selected[0].name, "linux-image-6.1.0-1-amd64");
+    }
+
+    #[test]
+    fn identifies_debian_kernel_metapackages_without_versioned_names() {
+        let stanzas = parse_packages_index(
+            r#"Package: linux-image-amd64
+Version: 6.12.86-1
+Filename: pool/main/l/linux-signed-amd64/linux-image-amd64_6.12.86-1_amd64.deb
+
+Package: linux-image-amd64-signed-template
+Version: 6.12.86-1
+Filename: pool/main/l/linux/linux-image-amd64-signed-template_6.12.86-1_amd64.deb
+
+Package: linux-image-cloud-amd64
+Version: 6.12.86-1
+Filename: pool/main/l/linux-signed-amd64/linux-image-cloud-amd64_6.12.86-1_amd64.deb
+
+Package: linux-image-6.12.86+deb13-amd64
+Version: 6.12.86-1
+Filename: pool/main/l/linux/linux-image-6.12.86+deb13-amd64_6.12.86-1_amd64.deb
+"#,
+        );
+
+        let selected = select_kernel_packages(&stanzas, "linux-image-", &[], &[], None);
+
+        assert_eq!(selected.len(), 4);
+        assert!(is_debian_unversioned_kernel_metapackage(
+            "linux-image-amd64",
+            "linux-image-",
+            &Architecture::Amd64
+        ));
+        assert!(is_debian_unversioned_kernel_metapackage(
+            "linux-image-amd64-signed-template",
+            "linux-image-",
+            &Architecture::Amd64
+        ));
+        assert!(is_debian_unversioned_kernel_metapackage(
+            "linux-image-cloud-amd64",
+            "linux-image-",
+            &Architecture::Amd64
+        ));
+        assert!(!is_debian_unversioned_kernel_metapackage(
+            "linux-image-6.12.86+deb13-amd64",
+            "linux-image-",
+            &Architecture::Amd64
+        ));
+        assert!(!is_debian_unversioned_kernel_metapackage(
+            "linux-image-deepin-amd64",
+            "linux-image-",
+            &Architecture::Amd64
+        ));
     }
 
     #[test]
