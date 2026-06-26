@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:37:47.626120251Z",
+  "generated_at": "2026-06-26T12:18:11.694534458Z",
   "distribution": "kali",
   "package_name": "linux-image-<VERSION>-<ARCH>-16k",
   "releases": [
