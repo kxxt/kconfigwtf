@@ -1,10 +1,10 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:27:41.815913301Z",
+  "generated_at": "2026-06-26T12:52:28.807000798Z",
   "distribution": "openkylin",
   "package_name": "linux-image-<VERSION>-generic-64k",
   "releases": [
-    "nile.bedrock"
+    "nile"
   ],
   "architectures": [
     "arm64"
