@@ -119,7 +119,7 @@ jobs:
           - distro: debian
             setup: ""
             command: >-
-              ./.ci/bin/kconfigwtf index debian --suite stable --component main --max-packages 25 --data-dir data --arch amd64 --arch arm64 --arch armhf --arch i386 --arch ppc64el --arch s390x
+              ./.ci/bin/kconfigwtf index debian --suite trixie --component main --max-packages 25 --data-dir data --arch amd64 --arch arm64 --arch armhf --arch i386 --arch ppc64el --arch s390x
           - distro: deepin
             setup: ""
             command: >-
