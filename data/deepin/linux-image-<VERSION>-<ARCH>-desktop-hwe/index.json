@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:34:02.086155450Z",
+  "generated_at": "2026-06-26T12:22:46.310300521Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-<ARCH>-desktop-hwe",
   "releases": [

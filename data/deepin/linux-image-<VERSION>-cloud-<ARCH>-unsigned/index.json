@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-05-28T04:34:02.908863796Z",
+  "generated_at": "2026-06-26T12:22:48.159309175Z",
   "distribution": "deepin",
   "package_name": "linux-image-<VERSION>-cloud-<ARCH>-unsigned",
   "releases": [
