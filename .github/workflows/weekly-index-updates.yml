@@ -15,7 +15,7 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
-  UPDATE_BRANCH: automated/weekly-index-updates
+  UPDATE_BRANCH: automated/weekly-index-updates-${{ github.run_id }}-${{ github.run_attempt }}
 
 jobs:
   prepare-branch:
@@ -349,8 +349,15 @@ jobs:
             exit 0
           fi
 
-          if gh pr view "$UPDATE_BRANCH" --json number >/dev/null 2>&1; then
-            gh pr edit "$UPDATE_BRANCH" \
+          pr_number="$(gh pr list \
+            --head "$UPDATE_BRANCH" \
+            --base "${{ github.event.repository.default_branch }}" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [[ -n "$pr_number" ]]; then
+            gh pr edit "$pr_number" \
               --title "Update kernel package indexes" \
               --body-file pr-body.md
           else
