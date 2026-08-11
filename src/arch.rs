@@ -264,6 +264,7 @@ pub struct ArchPackageCandidate {
     pub version: String,
     pub architecture: Architecture,
     pub filename: String,
+    pub description: Option<String>,
 }
 
 pub fn parse_sync_database(bytes: &[u8], location_hint: &str) -> Result<Vec<ArchPackageCandidate>> {
@@ -315,6 +316,7 @@ pub fn parse_desc_file(desc: &str) -> Result<Option<ArchPackageCandidate>> {
         version: version.to_string(),
         architecture: architecture.parse().map_err(anyhow::Error::msg)?,
         filename: filename.to_string(),
+        description: first_field(&fields, "DESC").map(str::to_string),
     }))
 }
 
@@ -330,8 +332,7 @@ pub fn select_kernel_packages(
         .filter(|package| package.name.starts_with(package_name_prefix))
         .filter(|package| {
             is_kernel_headers_package(&package.name)
-                || (include_kernel_packages
-                    && is_kernel_package(&package.name, package_name_prefix))
+                || (include_kernel_packages && is_kernel_package(package, package_name_prefix))
         })
         .filter(|package| {
             architecture
@@ -433,7 +434,8 @@ fn is_kernel_headers_package(name: &str) -> bool {
     name != "linux-api-headers" && (name.ends_with("-headers") || name.ends_with("-devel"))
 }
 
-fn is_kernel_package(name: &str, package_name_prefix: &str) -> bool {
+fn is_kernel_package(package: &ArchPackageCandidate, package_name_prefix: &str) -> bool {
+    let name = &package.name;
     if is_kernel_headers_package(name) {
         return false;
     }
@@ -442,10 +444,17 @@ fn is_kernel_package(name: &str, package_name_prefix: &str) -> bool {
         return false;
     }
 
-    name == package_name_prefix
-        || name
-            .strip_prefix(package_name_prefix)
-            .is_some_and(|suffix| suffix.starts_with('-'))
+    if name == package_name_prefix {
+        return true;
+    }
+
+    name.strip_prefix(package_name_prefix)
+        .is_some_and(|suffix| suffix.starts_with('-'))
+        && package.description.as_deref().is_some_and(|description| {
+            description
+                .to_ascii_lowercase()
+                .contains("kernel and modules")
+        })
 }
 
 fn decode_tar_archive(bytes: &[u8], location_hint: &str) -> Result<Vec<u8>> {
@@ -579,6 +588,9 @@ linux
 
 %ARCH%
 x86_64
+
+%DESC%
+The Linux kernel and modules
 "#,
         )
         .expect("parse desc")
@@ -608,6 +620,9 @@ linux
 
 %ARCH%
 x86_64
+
+%DESC%
+The Linux kernel and modules
 "#,
         ));
 
@@ -640,6 +655,30 @@ x86_64
     fn optionally_selects_plain_kernel_packages() {
         let packages = vec![
             candidate("linux", "7.0.9.arch1-1", Architecture::Riscv64),
+            described_candidate(
+                "linux-zen",
+                "6.6.8.zen1-1",
+                Architecture::Riscv64,
+                "The Linux ZEN kernel and modules",
+            ),
+            described_candidate(
+                "linux-zen-docs",
+                "6.6.8.zen1-1",
+                Architecture::Riscv64,
+                "Documentation for the Linux ZEN kernel",
+            ),
+            described_candidate(
+                "linux-atm",
+                "2.5.2-9",
+                Architecture::Riscv64,
+                "Drivers and tools to support ATM networking under Linux",
+            ),
+            described_candidate(
+                "linux-tools-meta",
+                "7.1.1-1",
+                Architecture::Riscv64,
+                "Linux kernel tools meta package",
+            ),
             candidate("linux-api-headers", "6.19-1", Architecture::Riscv64),
             candidate("linux-firmware", "20260501-1", Architecture::Riscv64),
             candidate("bash", "5.2-1", Architecture::Riscv64),
@@ -648,8 +687,9 @@ x86_64
         let selected =
             select_kernel_packages(&packages, "linux", true, Some(Architecture::Riscv64), None);
 
-        assert_eq!(selected.len(), 1);
+        assert_eq!(selected.len(), 2);
         assert_eq!(selected[0].name, "linux");
+        assert_eq!(selected[1].name, "linux-zen");
     }
 
     #[test]
@@ -713,6 +753,19 @@ x86_64
             version: version.to_string(),
             architecture,
             filename: format!("{name}-{version}.pkg.tar.zst"),
+            description: None,
+        }
+    }
+
+    fn described_candidate(
+        name: &str,
+        version: &str,
+        architecture: Architecture,
+        description: &str,
+    ) -> ArchPackageCandidate {
+        ArchPackageCandidate {
+            description: Some(description.to_string()),
+            ..candidate(name, version, architecture)
         }
     }
 

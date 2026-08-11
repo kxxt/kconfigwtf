@@ -77,15 +77,14 @@ impl KernelConfigIndexer for StorePackageIndexer {
             selected_count += 1;
             if let Some(version) =
                 store_package_version_hint(&self.config.manager, package_name, &self.config.system)
-            {
-                if self.existing.contains(
+                && self.existing.contains(
                     &self.config.distribution,
                     package_name,
                     &version,
                     &self.config.architecture,
-                ) {
-                    continue;
-                }
+                )
+            {
+                continue;
             }
             if self
                 .config

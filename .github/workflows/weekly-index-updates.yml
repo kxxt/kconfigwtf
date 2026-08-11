@@ -224,6 +224,23 @@ jobs:
           status_file="status/${{ matrix.distro }}.md"
           log_file="status/${{ matrix.distro }}.log"
 
+          run_index_command() {
+            local attempt code delay
+            for attempt in 1 2 3; do
+              if bash -euxo pipefail -c "$INDEX_COMMAND"; then
+                return 0
+              else
+                code=$?
+              fi
+              if (( attempt == 3 )); then
+                return "$code"
+              fi
+              delay=$((attempt * 10))
+              echo "Index command failed with exit code ${code}; retrying in ${delay}s (attempt $((attempt + 1))/3)"
+              sleep "$delay"
+            done
+          }
+
           {
             echo "### ${{ matrix.distro }}"
             echo
@@ -245,7 +262,7 @@ jobs:
             if [[ -n "$SETUP_COMMAND" ]]; then
               bash -euxo pipefail -c "$SETUP_COMMAND"
             fi
-            bash -euxo pipefail -c "$INDEX_COMMAND"
+            run_index_command
           } > >(tee "$log_file") 2>&1; then
             echo "result=success" >> "$GITHUB_OUTPUT"
             echo "Status: success" >> "$status_file"

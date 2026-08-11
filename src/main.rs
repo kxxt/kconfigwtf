@@ -2292,7 +2292,11 @@ fn default_rpm_package_name(distribution: &Distribution, args: &RpmArgs) -> &'st
                 .release
                 .as_deref()
                 .unwrap_or(default_rpm_release(distribution));
-            if release.starts_with("8") {
+            if release
+                .split('.')
+                .next()
+                .is_some_and(|major| matches!(major, "7" | "8"))
+            {
                 "kernel-core"
             } else {
                 "kernel"
@@ -2559,8 +2563,16 @@ mod tests {
 
     #[test]
     fn builds_openanolis_and_opensuse_custom_release_repo_roots() {
+        let anolis7 = RpmArgs {
+            release: Some("7.9".to_string()),
+            ..rpm_args()
+        };
         let anolis8 = RpmArgs {
             release: Some("8.10".to_string()),
+            ..rpm_args()
+        };
+        let anolis23 = RpmArgs {
+            release: Some("23.4".to_string()),
             ..rpm_args()
         };
         let leap = RpmArgs {
@@ -2575,6 +2587,14 @@ mod tests {
         assert_eq!(
             default_rpm_package_name(&Distribution::OpenAnolis, &anolis8),
             "kernel-core"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::OpenAnolis, &anolis7),
+            "kernel-core"
+        );
+        assert_eq!(
+            default_rpm_package_name(&Distribution::OpenAnolis, &anolis23),
+            "kernel"
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &leap, &Architecture::Amd64),
