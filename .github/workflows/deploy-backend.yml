@@ -1,0 +1,66 @@
+name: Deploy backend data
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: backend-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Pull data on backend
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate deployment secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.KCONFIGWTF_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.KCONFIGWTF_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.KCONFIGWTF_DEPLOY_PATH }}
+          SSH_PRIVATE_KEY: ${{ secrets.KCONFIGWTF_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.KCONFIGWTF_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_PATH"
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.KCONFIGWTF_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.KCONFIGWTF_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/kconfigwtf_deploy"
+          chmod 0600 "$HOME/.ssh/kconfigwtf_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/known_hosts"
+
+      - name: Pull repository and reload data
+        env:
+          DEPLOY_HOST: ${{ secrets.KCONFIGWTF_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.KCONFIGWTF_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.KCONFIGWTF_DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.KCONFIGWTF_DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+          port="${DEPLOY_PORT:-22}"
+          printf -v quoted_path '%q' "$DEPLOY_PATH"
+          printf -v quoted_branch '%q' "$GITHUB_REF_NAME"
+          ssh \
+            -i "$HOME/.ssh/kconfigwtf_deploy" \
+            -p "$port" \
+            -o BatchMode=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "git -C $quoted_path pull --ff-only origin $quoted_branch && sudo systemctl restart kconfigwtf.service"

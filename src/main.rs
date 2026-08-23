@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
@@ -34,6 +35,7 @@ use kconfigwtf::openwrt::{
     DEFAULT_TARGETS_URL as DEFAULT_OPENWRT_TARGETS_URL, OpenWrtIndexer, OpenWrtIndexerConfig,
     OpenWrtTargetsLocation,
 };
+use kconfigwtf::server::{ServerConfig, serve};
 use kconfigwtf::slackware::{
     SlackwareIndexLocation, SlackwareIndexer, SlackwareIndexerConfig, SlackwarePackageBase,
     SlackwareRepoFeed,
@@ -66,6 +68,8 @@ enum Command {
     Migrate(MigrationArgs),
     /// Generate a static website from a data directory.
     Site(SiteArgs),
+    /// Serve the browser frontend and local-data API.
+    Serve(ServeArgs),
 }
 
 #[derive(Debug, Subcommand)]
@@ -956,6 +960,21 @@ struct SiteArgs {
 }
 
 #[derive(Debug, Args)]
+struct ServeArgs {
+    /// Input data directory containing package indexes and raw configs.
+    #[arg(long, default_value = "data", env = "KCONFIGWTF_DATA_DIR")]
+    data_dir: PathBuf,
+
+    /// Address and port for the HTTP server.
+    #[arg(long, default_value = "127.0.0.1:3000", env = "KCONFIGWTF_LISTEN")]
+    listen: SocketAddr,
+
+    /// Browser page title.
+    #[arg(long, default_value = "kconfigwtf", env = "KCONFIGWTF_TITLE")]
+    title: String,
+}
+
+#[derive(Debug, Args)]
 struct MigrationArgs {
     /// Data directory containing distribution/package trees.
     #[arg(long, default_value = "data")]
@@ -1018,6 +1037,14 @@ async fn main() -> Result<()> {
         },
         Command::Migrate(args) => migrate(args),
         Command::Site(args) => generate_site(args),
+        Command::Serve(args) => {
+            serve(ServerConfig {
+                listen: args.listen,
+                data_dir: args.data_dir,
+                title: args.title,
+            })
+            .await
+        }
     }
 }
 

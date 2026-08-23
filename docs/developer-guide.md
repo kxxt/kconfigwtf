@@ -6,17 +6,17 @@ live at the repository root. For a user-facing project overview, see
 
 # kconfigwtf
 
-kconfigwtf is a static Linux kernel config explorer. It builds an index of
-distribution kernel packages and generates a static website where users can
+kconfigwtf is a Linux kernel config explorer. It builds an index of
+distribution kernel packages and serves a browser frontend where users can
 search for a Kconfig entry such as `BPF`, see matching distribution kernel
-packages, and open the raw kernel config that was indexed. The website also
+packages, and open the raw kernel config that was indexed. The frontend also
 accepts explicit `CONFIG_*` input such as `CONFIG_BPF`.
 
 The foundation has two parts:
 
 - A kernel config indexer layer with an extensible `KernelConfigIndexer` trait.
-- A static site generator that renders a self-contained HTML/CSS/JavaScript
-  search UI from package-level indexes under `data/`.
+- An HTTP backend and browser frontend that query package-level indexes under
+  `data/`, plus a legacy static site generator.
 
 The first implemented distribution backends are Debian, Ubuntu, Kali, Proxmox,
 Deepin, Kylin OS, OpenKylin, AOSC OS, Fedora, RHEL, CentOS Stream, AlmaLinux, Rocky Linux,
@@ -549,7 +549,37 @@ cargo run -- index slackware \
 When `--packages-file` is used, `PACKAGE LOCATION` values in PACKAGES.TXT are
 resolved relative to `--package-root`.
 
-## Generate The Static Site
+## Run The Backend
+
+```sh
+cargo run -- serve \
+  --data-dir data \
+  --listen 127.0.0.1:3000 \
+  --title kconfigwtf
+```
+
+The backend loads the compact package indexes into memory at startup and reads
+raw configs from the same local data directory on demand. Restart it to pick up
+an updated data checkout. The frontend uses these read-only routes:
+
+- `/api/v1/configs`
+- `/api/v1/configs/<NAME>`
+- `/api/v1/raw/<DATA-RELATIVE-PATH>`
+- `/healthz`
+
+All public resources are safe for shared caching. Successful responses include
+an ETag and support conditional `GET` and `HEAD`. `Cache-Control`,
+`CDN-Cache-Control`, and `Cloudflare-CDN-Cache-Control` communicate browser and
+shared-cache lifetimes. nginx and Cloudflare can compress responses; the Rust
+service intentionally returns an uncompressed representation with a stable
+validator.
+
+The checked-in flake exposes `packages.<system>.default` and
+`nixosModules.default`. The NixOS module runs a hardened loopback-only systemd
+service and can optionally add an nginx reverse-proxy virtual host. See the
+root README for a complete consumer example and mutable-data deployment setup.
+
+## Generate The Legacy Static Site
 
 ```sh
 cargo run -- site \
@@ -570,8 +600,9 @@ The generated site consists of:
 The generated pages do not copy raw kernel config files into the published
 output. Instead, architecture buttons and the config viewer link to
 `https://raw.githubusercontent.com/kxxt/kconfigwtf/<commit>/data/...` so the
-site stays small and the raw config URLs remain pinned to the exact repository
-commit that built the site.
+raw config URLs remain pinned to the exact repository commit that built the
+site. It still creates one result page per Kconfig entry and can therefore
+produce a very large file tree; use the backend for production deployments.
 
 Because the site uses `fetch`, serve it with any static file
 server instead of opening `index.html` directly from disk:
@@ -589,48 +620,36 @@ page, for example `http://localhost:8000/CONFIG_/BPF/`.
 
 ## CI And Deployment
 
-GitHub Actions runs five checks on pushes and pull requests:
+GitHub Actions runs backend, flake, and Rust quality checks on pushes and pull
+requests:
 
 - tests
 - coverage generation
 - formatting (`cargo fmt --check`)
 - clippy (`-D warnings`)
-- static site build
-
-The site-build job uses the checked-in `data/` directory, so CI and deployment
-build the same static site content.
+- backend build and CLI verification
+- Nix flake and NixOS module evaluation
 
 Coverage is uploaded to Codecov from GitHub Actions with tokenless OIDC auth
 instead of being stored as a workflow artifact.
 
-GitHub Pages branch deployment is configured in
-[.github/workflows/gh-pages.yml](./.github/workflows/gh-pages.yml). The deploy
-workflow builds the static site from the checked-in `data/` tree, initializes a
-fresh Git repository inside `.ci/public`, and force-pushes that output to the
-`gh-pages` branch on pushes to `main` or `master`. It can also be triggered
-manually.
+Backend data deployment is configured in
+[.github/workflows/deploy-backend.yml](../.github/workflows/deploy-backend.yml).
+On pushes to `main` or `master`, it connects to the production host with a
+dedicated SSH key, runs `git pull --ff-only` in the configured checkout, and
+restarts `kconfigwtf.service` so the in-memory indexes are reloaded. It can also
+be triggered manually.
 
 Repository setup required:
 
-- Configure GitHub Pages in the repository settings to serve from the
-  `gh-pages` branch.
+- Add the production environment secrets documented in the root README.
+- Put the public key in the deployment user's `authorized_keys`.
+- Give that user permission to restart only `kconfigwtf.service` without a
+  password.
+- Set `services.kconfigwtf.dataDir` to `<deployment checkout>/data`.
 
-The GitHub Pages build itself runs:
-
-```sh
-cargo run --locked -- site --data-dir data --output-dir public --title kconfigwtf
-```
-
-The publish step uses:
-
-```sh
-cd .ci/public
-git init
-git checkout -B gh-pages
-git add --all
-git commit -m "Deploy <sha>"
-git push --force origin gh-pages
-```
+The data workflow does not rebuild the NixOS package. Apply backend binary or
+module changes through the host's normal NixOS deployment process.
 
 ## Architecture
 
@@ -638,6 +657,8 @@ The crate is split into focused modules:
 
 - `index`: JSON schema, config parser, normalization, and index aggregation.
 - `indexer`: shared distribution indexer trait and package payload type.
+- `server`: HTTP frontend/API serving, cache validators, and safe raw-config
+  access from the local data tree.
 - `android`: Android AOSP GKI release metadata parser and Android CI
   `kernel_aarch64_dot_config` retriever.
 - `alpine`: Alpine `APKINDEX.tar.gz` parser, `.apk` extraction, and indexer

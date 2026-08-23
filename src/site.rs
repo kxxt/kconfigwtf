@@ -116,6 +116,7 @@ impl SiteGenerator {
                 page_title: &self.title,
                 asset_prefix: "",
                 manifest_file: MANIFEST_FILE_NAME,
+                api_base: "",
                 result_title: "Enter a config entry",
                 result_count: "",
                 lkddb_url: None,
@@ -168,6 +169,7 @@ struct PageRender<'a> {
     page_title: &'a str,
     asset_prefix: &'a str,
     manifest_file: &'a str,
+    api_base: &'a str,
     result_title: &'a str,
     result_count: &'a str,
     lkddb_url: Option<&'a str>,
@@ -176,16 +178,38 @@ struct PageRender<'a> {
     config_viewer_hidden: bool,
 }
 
+pub fn render_server_page(title: &str, api_base: &str) -> Result<String> {
+    render_page(PageRender {
+        site_title: title,
+        page_title: title,
+        asset_prefix: "/",
+        manifest_file: MANIFEST_FILE_NAME,
+        api_base,
+        result_title: "Enter a config entry",
+        result_count: "",
+        lkddb_url: None,
+        kernelconfig_url: None,
+        table_body: r#"<tr><td colspan="6" class="empty">No lookup has been run yet.</td></tr>"#,
+        config_viewer_hidden: true,
+    })
+}
+
 fn write_page(path: PathBuf, page: PageRender<'_>) -> Result<()> {
+    let html = render_page(page)?;
+
+    fs::write(&path, html).with_context(|| format!("writing {}", path.display()))
+}
+
+fn render_page(page: PageRender<'_>) -> Result<String> {
     let env = page_environment()?;
-    let html = env
-        .get_template("index.html")
+    env.get_template("index.html")
         .context("loading index.html template")?
         .render(context! {
             site_title => page.site_title,
             page_title => page.page_title,
             asset_prefix => page.asset_prefix,
             manifest_file => page.manifest_file,
+            api_base => page.api_base,
             result_title => page.result_title,
             result_count => page.result_count,
             lkddb_url => page.lkddb_url,
@@ -193,9 +217,7 @@ fn write_page(path: PathBuf, page: PageRender<'_>) -> Result<()> {
             table_body => page.table_body,
             config_viewer_hidden => page.config_viewer_hidden,
         })
-        .context("rendering index.html")?;
-
-    fs::write(&path, html).with_context(|| format!("writing {}", path.display()))
+        .context("rendering index.html")
 }
 
 fn page_environment() -> Result<Environment<'static>> {
@@ -319,6 +341,7 @@ fn write_config_page(
             page_title: &page_title,
             asset_prefix: "../../",
             manifest_file: MANIFEST_FILE_NAME,
+            api_base: "",
             result_title: &config_name,
             result_count: &result_count,
             lkddb_url: Some(&lkddb_url),

@@ -58,30 +58,23 @@ jobs:
           fail_ci_if_error: true
           verbose: true
 
-  site-build:
-    name: Site Build
+  backend-build:
+    name: Backend Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Build static site
-        run: cargo run --locked -- site --data-dir data --output-dir .ci/public --title kconfigwtf
-      - name: Verify site output
-        run: |
-          test -f .ci/public/index.html
-          test -f .ci/public/app.js
-          test -f .ci/public/styles.css
-          test -f .ci/public/indexes.json
-          test -f .ci/public/CNAME
-      - name: Pack site artifact
-        run: |
-          mkdir -p .ci/artifact
-          tar --directory .ci/public -cvf .ci/artifact/site-build.tar .
-          gzip --force .ci/artifact/site-build.tar
-      - name: Upload site artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: site-build
-          path: .ci/artifact/site-build.tar.gz
-          if-no-files-found: error
+      - name: Build backend
+        run: cargo build --locked
+      - name: Verify server command
+        run: cargo run --locked -- serve --help
+
+  nix-flake:
+    name: Nix Flake
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v31
+      - name: Evaluate flake and NixOS module
+        run: nix flake check --no-build

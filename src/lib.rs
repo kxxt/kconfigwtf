@@ -10,6 +10,7 @@ pub mod index;
 pub mod indexer;
 pub mod migration;
 pub mod openwrt;
+pub mod server;
 pub mod site;
 pub mod slackware;
 pub mod store;
