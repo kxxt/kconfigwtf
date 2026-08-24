@@ -578,8 +578,9 @@ The checked-in flake exposes `packages.<system>.default` and
 `nixosModules.default`. The NixOS module runs a hardened loopback-only systemd
 service and can optionally add an nginx reverse-proxy virtual host. The package
 does not contain the large `data` tree, so consumers must set `dataDir` to an
-external checkout. See the root README for a complete consumer example and
-mutable-data deployment setup.
+external checkout. A private checkout also requires setting `user` to the
+account that owns it; otherwise the service uses a systemd dynamic user. See the
+root README for a complete consumer example and mutable-data deployment setup.
 
 Production consumers use the generated `nix-flake` branch rather than `main`.
 `.github/workflows/publish-nix-flake.yml` publishes that orphan branch from a
@@ -651,6 +652,8 @@ Repository setup required:
 
 - Add the production environment secrets documented in the root README.
 - Put the public key in the deployment user's `authorized_keys`.
+- Set `services.kconfigwtf.user` to the deployment user so the backend can read
+  a private checkout.
 - Give that user permission to restart only `kconfigwtf.service` without a
   password.
 - Set `services.kconfigwtf.dataDir` to `<deployment checkout>/data`.

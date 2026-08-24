@@ -67,6 +67,7 @@ looks like this:
           services.kconfigwtf = {
             enable = true;
             dataDir = "/srv/kconfigwtf/data";
+            user = "kconfigwtf-deploy";
             nginx.virtualHost = "kconfigwtf.example.org";
           };
         }
@@ -84,9 +85,15 @@ the checkout so the deploy workflow can update it without rebuilding NixOS:
 services.kconfigwtf = {
   enable = true;
   dataDir = "/srv/kconfigwtf/data";
+  user = "kconfigwtf-deploy";
   nginx.virtualHost = "kconfigwtf.example.org";
 };
 ```
+
+By default the service uses a systemd dynamic user, which requires the checkout
+and all of its parent directories to be world-readable. Set `user` to the
+account that owns a private checkout. The service still sees the filesystem as
+read-only because the unit uses `ProtectSystem=strict`.
 
 The `nix-flake` branch is generated from a code-only archive whenever backend
 or Nix files change. Use that branch as the flake input: unlike the main branch
@@ -112,9 +119,10 @@ reload the indexes. Configure these production-environment secrets:
 - `KCONFIGWTF_SSH_KNOWN_HOSTS`
 - `KCONFIGWTF_DEPLOY_PORT` (optional; defaults to `22`)
 
-Install the key's public half in the deploy user's `authorized_keys`. That user
-also needs narrowly scoped passwordless permission to run
-`systemctl restart kconfigwtf.service`, for example:
+Install the key's public half in the deploy user's `authorized_keys`, configure
+that account as `services.kconfigwtf.user`, and give it narrowly scoped
+passwordless permission to run `systemctl restart kconfigwtf.service`, for
+example:
 
 ```nix
 security.sudo.extraRules = [{
