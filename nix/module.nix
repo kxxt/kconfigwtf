@@ -34,6 +34,17 @@ in
       '';
     };
 
+    user = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "kconfigwtf-deploy";
+      description = ''
+        User under which the backend runs. When null, systemd allocates a
+        dynamic user. Set this to the owner of the data checkout when the
+        checkout or one of its parent directories is not world-readable.
+      '';
+    };
+
     listenAddress = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
@@ -79,7 +90,7 @@ in
               "--title"
               cfg.title
             ];
-            DynamicUser = true;
+            DynamicUser = cfg.user == null;
             Restart = "on-failure";
             RestartSec = "5s";
             NoNewPrivileges = true;
@@ -98,6 +109,9 @@ in
             LockPersonality = true;
             MemoryDenyWriteExecute = true;
             CapabilityBoundingSet = "";
+          }
+          // lib.optionalAttrs (cfg.user != null) {
+            User = cfg.user;
           };
         };
       }
