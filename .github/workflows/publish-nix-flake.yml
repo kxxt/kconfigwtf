@@ -1,0 +1,82 @@
+name: Publish Nix flake source
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - Cargo.lock
+      - Cargo.toml
+      - flake.lock
+      - flake.nix
+      - nix/**
+      - scripts/**
+      - src/**
+      - .github/workflows/publish-nix-flake.yml
+  workflow_dispatch:
+
+concurrency:
+  group: publish-nix-flake
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish code-only branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create and publish code-only archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_REVISION: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          source_dir="$(mktemp -d)"
+          archive_dir="$(mktemp -d)"
+
+          git -C "$source_dir" init --initial-branch=main
+          git -C "$source_dir" remote add origin "https://github.com/$SOURCE_REPOSITORY.git"
+          git -C "$source_dir" config remote.origin.promisor true
+          git -C "$source_dir" config remote.origin.partialclonefilter blob:none
+          git -C "$source_dir" sparse-checkout init --no-cone
+          git -C "$source_dir" sparse-checkout set --no-cone --stdin <<'EOF'
+          /Cargo.lock
+          /Cargo.toml
+          /flake.lock
+          /flake.nix
+          /nix/
+          /scripts/
+          /src/
+          EOF
+          git -C "$source_dir" fetch --depth=1 --filter=blob:none origin "$SOURCE_REVISION"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+
+          git -C "$archive_dir" init --initial-branch=nix-flake
+          git -C "$archive_dir" remote add origin \
+            "https://x-access-token:$GH_TOKEN@github.com/$SOURCE_REPOSITORY.git"
+
+          if git -C "$archive_dir" fetch --depth=1 origin nix-flake; then
+            git -C "$archive_dir" checkout -B nix-flake FETCH_HEAD
+            git -C "$archive_dir" rm -r --ignore-unmatch .
+          fi
+
+          git -C "$source_dir" archive HEAD \
+            Cargo.lock Cargo.toml flake.lock flake.nix nix scripts src \
+            | tar -x -C "$archive_dir"
+
+          git -C "$archive_dir" add --all
+          if git -C "$archive_dir" diff --cached --quiet; then
+            echo "The nix-flake branch is already current."
+            exit 0
+          fi
+
+          git -C "$archive_dir" config user.name "github-actions[bot]"
+          git -C "$archive_dir" config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$archive_dir" commit -m "Update from $SOURCE_REVISION"
+          git -C "$archive_dir" push origin HEAD:nix-flake

@@ -1,13 +1,16 @@
 { self }:
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.kconfigwtf;
   package = cfg.package;
   listenHost =
-    if lib.hasInfix ":" cfg.listenAddress
-    then "[${cfg.listenAddress}]"
-    else cfg.listenAddress;
+    if lib.hasInfix ":" cfg.listenAddress then "[${cfg.listenAddress}]" else cfg.listenAddress;
   listen = "${listenHost}:${toString cfg.port}";
 in
 {
@@ -23,11 +26,11 @@ in
 
     dataDir = lib.mkOption {
       type = lib.types.str;
-      default = "${package}/share/kconfigwtf/data";
-      defaultText = lib.literalExpression ''"\${config.services.kconfigwtf.package}/share/kconfigwtf/data"'';
+      example = "/srv/kconfigwtf/data";
       description = ''
-        Directory containing package indexes and raw configs. Point this at the
-        data directory in a server-side Git checkout to update data with git pull.
+        Directory containing package indexes and raw configs. This should point
+        at the data directory in a server-side Git checkout; the package does
+        not bundle the data tree.
       '';
     };
 
@@ -57,49 +60,55 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    {
-      systemd.services.kconfigwtf = {
-        description = "kconfigwtf backend";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ];
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        systemd.services.kconfigwtf = {
+          description = "kconfigwtf backend";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network.target" ];
 
-        serviceConfig = {
-          ExecStart = lib.escapeShellArgs [
-            (lib.getExe package)
-            "serve"
-            "--data-dir"
-            cfg.dataDir
-            "--listen"
-            listen
-            "--title"
-            cfg.title
-          ];
-          DynamicUser = true;
-          Restart = "on-failure";
-          RestartSec = "5s";
-          NoNewPrivileges = true;
-          PrivateTmp = true;
-          ProtectHome = true;
-          ProtectSystem = "strict";
-          ProtectKernelLogs = true;
-          ProtectKernelModules = true;
-          ProtectKernelTunables = true;
-          RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
-          RestrictRealtime = true;
-          LockPersonality = true;
-          MemoryDenyWriteExecute = true;
-          CapabilityBoundingSet = "";
+          serviceConfig = {
+            ExecStart = lib.escapeShellArgs [
+              (lib.getExe package)
+              "serve"
+              "--data-dir"
+              cfg.dataDir
+              "--listen"
+              listen
+              "--title"
+              cfg.title
+            ];
+            DynamicUser = true;
+            Restart = "on-failure";
+            RestartSec = "5s";
+            NoNewPrivileges = true;
+            PrivateTmp = true;
+            ProtectHome = true;
+            ProtectSystem = "strict";
+            ProtectKernelLogs = true;
+            ProtectKernelModules = true;
+            ProtectKernelTunables = true;
+            RestrictAddressFamilies = [
+              "AF_UNIX"
+              "AF_INET"
+              "AF_INET6"
+            ];
+            RestrictRealtime = true;
+            LockPersonality = true;
+            MemoryDenyWriteExecute = true;
+            CapabilityBoundingSet = "";
+          };
         };
-      };
-    }
+      }
 
-    (lib.mkIf (cfg.nginx.virtualHost != null) {
-      services.nginx.enable = true;
-      services.nginx.virtualHosts.${cfg.nginx.virtualHost}.locations."/" = {
-        proxyPass = "http://${listen}";
-        recommendedProxySettings = true;
-      };
-    })
-  ]);
+      (lib.mkIf (cfg.nginx.virtualHost != null) {
+        services.nginx.enable = true;
+        services.nginx.virtualHosts.${cfg.nginx.virtualHost}.locations."/" = {
+          proxyPass = "http://${listen}";
+          recommendedProxySettings = true;
+        };
+      })
+    ]
+  );
 }

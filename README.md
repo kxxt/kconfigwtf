@@ -56,7 +56,7 @@ looks like this:
 
 ```nix
 {
-  inputs.kconfigwtf.url = "github:kxxt/kconfigwtf";
+  inputs.kconfigwtf.url = "github:kxxt/kconfigwtf/nix-flake";
 
   outputs = { nixpkgs, kconfigwtf, ... }: {
     nixosConfigurations.my-host = nixpkgs.lib.nixosSystem {
@@ -66,6 +66,7 @@ looks like this:
         {
           services.kconfigwtf = {
             enable = true;
+            dataDir = "/srv/kconfigwtf/data";
             nginx.virtualHost = "kconfigwtf.example.org";
           };
         }
@@ -75,9 +76,9 @@ looks like this:
 }
 ```
 
-By default the service uses the data bundled in the package. To let the deploy
-workflow update data without rebuilding the NixOS system, clone this repository
-on the server and point the service at its data tree:
+The package intentionally does not include the large data tree. `dataDir` is a
+required option: clone this repository on the server and point the service at
+the checkout so the deploy workflow can update it without rebuilding NixOS:
 
 ```nix
 services.kconfigwtf = {
@@ -86,6 +87,10 @@ services.kconfigwtf = {
   nginx.virtualHost = "kconfigwtf.example.org";
 };
 ```
+
+The `nix-flake` branch is generated from a code-only archive whenever backend
+or Nix files change. Use that branch as the flake input: unlike the main branch
+archive, it has no `data/` tree or data history to download.
 
 The nginx option is deliberately small: it creates a reverse proxy to the
 loopback-only backend. TLS and Cloudflare origin settings remain part of your

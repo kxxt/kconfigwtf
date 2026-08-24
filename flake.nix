@@ -1,9 +1,10 @@
 {
-  description = "kconfigwtf backend, data, and NixOS service";
+  description = "kconfigwtf backend and NixOS service";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
       systems = [
         "x86_64-linux"
@@ -24,27 +25,35 @@
 
             src = pkgs.lib.cleanSourceWith {
               src = ./.;
-              filter = path: type:
+              filter =
+                path: type:
                 let
                   name = builtins.baseNameOf path;
                 in
-                !(builtins.elem name [ ".git" ".ci" "data" "public" "target" ]);
+                !(builtins.elem name [
+                  ".git"
+                  ".ci"
+                  "data"
+                  "public"
+                  "target"
+                ]);
             };
 
             cargoLock.lockFile = ./Cargo.lock;
             nativeBuildInputs = [ pkgs.pkg-config ];
-            buildInputs = [ pkgs.bzip2 pkgs.xz ];
+            buildInputs = [
+              pkgs.bzip2
+              pkgs.xz
+            ];
             doCheck = false;
-
-            postInstall = ''
-              mkdir -p "$out/share/kconfigwtf"
-              cp -r ${./data} "$out/share/kconfigwtf/data"
-            '';
 
             meta = {
               description = "Linux kernel config explorer and distribution config indexer";
               homepage = "https://github.com/kxxt/kconfigwtf";
-              license = with pkgs.lib.licenses; [ mit asl20 ];
+              license = with pkgs.lib.licenses; [
+                mit
+                asl20
+              ];
               mainProgram = "kconfigwtf";
             };
           };

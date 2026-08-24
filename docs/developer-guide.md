@@ -576,8 +576,15 @@ validator.
 
 The checked-in flake exposes `packages.<system>.default` and
 `nixosModules.default`. The NixOS module runs a hardened loopback-only systemd
-service and can optionally add an nginx reverse-proxy virtual host. See the
-root README for a complete consumer example and mutable-data deployment setup.
+service and can optionally add an nginx reverse-proxy virtual host. The package
+does not contain the large `data` tree, so consumers must set `dataDir` to an
+external checkout. See the root README for a complete consumer example and
+mutable-data deployment setup.
+
+Production consumers use the generated `nix-flake` branch rather than `main`.
+`.github/workflows/publish-nix-flake.yml` publishes that orphan branch from a
+code-only `git archive`, so fetching the flake never downloads `data/` or its
+history.
 
 ## Generate The Legacy Static Site
 
