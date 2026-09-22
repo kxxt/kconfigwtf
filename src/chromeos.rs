@@ -432,8 +432,8 @@ fn read_gpt_partitions(image_path: &Path) -> Result<Vec<GptPartition>> {
 
 fn decode_gpt_name(bytes: &[u8]) -> String {
     let mut code_units = Vec::new();
-    for chunk in bytes.chunks_exact(2) {
-        let unit = u16::from_le_bytes([chunk[0], chunk[1]]);
+    for &chunk in bytes.as_chunks::<2>().0 {
+        let unit = u16::from_le_bytes(chunk);
         if unit == 0 {
             break;
         }
