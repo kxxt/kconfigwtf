@@ -1,0 +1,10 @@
+{
+  "kind": "storage-only prototype, not integrated HTTP server",
+  "profile": "debug",
+  "indexes": 192,
+  "entries": 1933672,
+  "kernels": 3559,
+  "occurrences": 20462952,
+  "grouped_lists": {"rss_kib": 539548, "peak_kib": 539548, "startup_seconds": 6.081513138},
+  "packed_arrays": {"rss_kib": 342888, "peak_kib": 342888, "startup_seconds": 7.158716326}
+}

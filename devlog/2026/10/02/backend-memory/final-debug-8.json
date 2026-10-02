@@ -1,0 +1,68 @@
+{
+  "binary": "target/debug/kconfigwtf",
+  "command": [
+    "target/debug/kconfigwtf",
+    "serve",
+    "--data-dir",
+    "data",
+    "--listen",
+    "127.0.0.1:3187",
+    "--cache-dir",
+    "devlog/2026/10/02/backend-memory/cache"
+  ],
+  "startup_seconds": 13.086449482999342,
+  "idle_rss_mib": 109.734375,
+  "startup_peak_mib": 149.2265625,
+  "responses": [
+    {
+      "path": "/api/v1/configs",
+      "ms": 1.866108999820426,
+      "sha256": "e1986522d5282a3b1f44932fa0f17e05918e621edb4902221dd31c696cd168fc",
+      "bytes": 423015
+    },
+    {
+      "path": "/api/v1/configs/BPF",
+      "ms": 71.995880999566,
+      "sha256": "cf9ab7d885e008c0f4bf5b5bb1097e6193c8852b05887891c18670e92c3bf583",
+      "bytes": 1498542
+    },
+    {
+      "path": "/api/v1/configs/EXT4_FS",
+      "ms": 52.34359600035532,
+      "sha256": "fc0e91ee739cdc8e85093b49cf69ec820a77c2fe4e422c9f8cdb34749a754e49",
+      "bytes": 1498546
+    },
+    {
+      "path": "/api/v1/configs/LOCALVERSION",
+      "ms": 63.1488540002465,
+      "sha256": "0a87d67cedf9c5d2e43d42237b11a2714dc0cd45ea253d055885a55df3a7fb63",
+      "bytes": 1513766
+    },
+    {
+      "path": "/api/v1/configs/ARM64",
+      "ms": 57.75634500059823,
+      "sha256": "3891814c65f3db92977a51ef299bae233f36cebf4543a3428fa2f3669863fe10",
+      "bytes": 1212937
+    },
+    {
+      "path": "/api/v1/configs/X86",
+      "ms": 59.97386600029131,
+      "sha256": "e7ef800b6e43b5850fed323a1c925400baf0adbf4c1c3e02510f7b9fb4b8533d",
+      "bytes": 1324380
+    }
+  ],
+  "raw": {
+    "path": "/api/v1/raw/almalinux/kernel%2Dcore/0%3A6%2E12%2E0%2D211%2E16%2E1%2Eel10%5F2/amd64/config",
+    "ms": 3.1381579992739717,
+    "sha256": "bc5cb8ebe318017569ddaa72be5fda2e7e7c8a49344f120dc137078eabae9d56",
+    "bytes": 259623
+  },
+  "load": {
+    "requests": 80,
+    "concurrency": 8,
+    "mean_ms": 43.982891725033824,
+    "max_ms": 77.63798199994199
+  },
+  "peak_rss_mib": 149.2265625,
+  "after_load_rss_mib": 143.75
+}

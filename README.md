@@ -34,8 +34,16 @@ You can also run it locally from the checked-in `data/` directory:
 cargo run -- serve --data-dir data --listen 127.0.0.1:3000
 ```
 
-Then open `http://127.0.0.1:3000`. The service loads package indexes at startup,
-so restart it after changing `data/`.
+Then open `http://127.0.0.1:3000`. At startup the service builds a private
+temporary lookup file, keeping only lookup offsets and shared kernel metadata
+in memory. Restart it after changing `data/`.
+
+Use `--cache-dir /path/on/disk` (or `KCONFIGWTF_CACHE_DIR`) to choose where the
+temporary file lives. Without it, the OS temporary directory is used; this may
+be RAM-backed. The NixOS module uses `/var/cache/kconfigwtf`. The file is rebuilt
+on every startup and removed on close; the current dataset needs about 156 MiB
+of temporary storage. See the [backend memory measurements](./docs/developer-guide.md#backend-memory)
+for measured RSS and the benchmark commands.
 
 The backend exposes cacheable, versioned endpoints:
 

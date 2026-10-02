@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backend memory — implementation decision</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#172534;font:16px/1.55 system-ui,sans-serif}main{max-width:1020px;margin:auto;padding:36px 24px 80px}h1{font-size:34px;line-height:1.2;margin:10px 0 18px}h2{font-size:22px;margin-top:32px}.eyebrow{color:#526477;font-size:13px;letter-spacing:.1em;text-transform:uppercase}.card{background:white;border:1px solid #d7dfe8;border-radius:12px;padding:24px;margin:16px 0}.muted{color:#526477}.row{display:grid;grid-template-columns:200px 1fr 100px;gap:14px;align-items:center;margin:18px 0}.track{background:#edf0f4;height:28px;position:relative;border-radius:4px}.bar{height:100%;background:#c16945;border-radius:4px}.bar.good{background:#248479}.limit{position:absolute;left:20%;height:38px;top:-5px;border-left:2px dashed #182b3f}.num{font-variant-numeric:tabular-nums;text-align:right}.flow{display:grid;grid-template-columns:1fr 36px 1fr;gap:12px;align-items:center}.code{font:14px/1.6 ui-monospace,monospace;background:#f1f4f7;padding:16px;border-radius:8px;overflow-wrap:anywhere}.choice{display:block;border:1px solid #cbd5df;border-radius:8px;padding:16px;margin:12px 0;cursor:pointer}.choice:has(input:checked){border:2px solid #248479;background:#f0faf7;padding:15px}.choice strong{margin-left:6px}.detail{display:block;margin:6px 0 0 25px;color:#46566a}textarea{display:block;width:100%;min-height:100px;border:1px solid #bcc9d6;border-radius:6px;padding:12px;font:inherit;margin:8px 0 20px}button{background:#176c63;color:white;border:0;border-radius:6px;padding:13px 20px;font:600 16px system-ui;cursor:pointer}button:disabled{opacity:.5;cursor:wait}#status{white-space:pre-wrap}li{margin:9px 0}a{color:#176c63}@media(max-width:650px){main{padding:24px 16px}.card{padding:16px}.row{grid-template-columns:1fr 90px}.row>span:first-child{grid-column:1/-1}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}}
+</style>
+<main>
+<div class="eyebrow">kconfigwtf · 2 October 2026 · proposal 1</div>
+<h1>Keep the backend below 500 MiB</h1>
+<p>The current server expands compact JSON into a separate owned kernel-ID string for every occurrence. The checked-in dataset contains <strong>20,462,952 occurrences</strong>, 1,933,672 per-package config entries, and 3,559 kernel records across 192 index files.</p>
+<section class="card">
+<h2 style="margin-top:0">Measured resident memory</h2>
+<p class="muted">Dashed line: 500 MiB target. Scale: 0–2,500 MiB. Linux process RSS, current data tree, debug builds.</p>
+<div class="row"><span>Current server, idle</span><div class="track"><div class="bar" style="width:95.576%"></div><div class="limit"></div></div><span class="num">2,389 MiB</span></div>
+<div class="row"><span>Current server, peak</span><div class="track"><div class="bar" style="width:97.08%"></div><div class="limit"></div></div><span class="num">2,427 MiB</span></div>
+<div class="row"><span>Grouped-list prototype</span><div class="track"><div class="bar" style="width:21.076%"></div><div class="limit"></div></div><span class="num">527 MiB</span></div>
+<div class="row"><span>Packed-array prototype</span><div class="track"><div class="bar good" style="width:13.394%"></div><div class="limit"></div></div><span class="num">335 MiB</span></div>
+<p><strong>The packed-array result is a storage prototype, not a completed HTTP server.</strong> It includes loading all indexes; request allocations must still be measured after integration. Current-server peak includes 80 config requests at concurrency 8. Its startup took 13.1 seconds; the packed prototype took 7.2 seconds. These are single local runs, not production guarantees.</p>
+<a href="/baseline" target="_blank">View baseline measurements</a>
+</section>
+<section class="card">
+<h2 style="margin-top:0">Recommended implementation</h2>
+<div class="flow"><div class="code">Every occurrence owns:<br>kernel: "6.12.0-…/amd64"<br>value: enum + optional String</div><div class="arrow">→</div><div class="code">Each occurrence: 8 bytes<br>kernel_id: u32, value_id: u32<br>Strings stored in shared tables</div></div>
+<ol>
+<li><strong>Use a server-specific compact representation.</strong> Keep each package's entries in a sorted array searched by config name. Each entry holds one exact-sized array of integer pairs; kernel metadata and repeated value strings live in per-package tables.</li>
+<li><strong>Load one file at a time.</strong> Deserialize compact JSON directly, avoiding the generic untagged deserializer and its expanded string representation. Preserve legacy-index support through a per-file conversion using the existing loader. Keep validation of references and existing error behavior.</li>
+<li><strong>Build records only for the requested config.</strong> Preserve API response content, ordering, missing-value behavior, raw URLs, architecture spellings, cache headers, and ETags. Keep the on-disk schema, indexers, CLI, and frontend unchanged. No new dependencies, disk cache, or allocator change.</li>
+<li><strong>Verify the result.</strong> Add focused compatibility tests; run existing tests, formatting and Clippy; compare full-dataset API responses against the baseline; measure startup, idle, and 80 requests at concurrency 8. Target less than 500 MiB for measured peak as well as idle. Record results and the storage design in developer documentation.</li>
+</ol>
+<p class="muted">This design retains the complete lookup data in RAM and needs no writable service directory. Future dataset growth or substantially more concurrent traffic can still raise memory use. If measurements miss the target, further design changes come back here for your decision.</p>
+</section>
+<section class="card">
+<h2 style="margin-top:0">Choose the next step</h2>
+<form id="form">
+<label class="choice"><input type="radio" name="choice" value="compact" required><strong>Implement the packed-array proposal (recommended)</strong><span class="detail">Approve the four concrete implementation and validation choices above. Prototype: 335 MiB, with server integration still to measure.</span></label>
+<label class="choice"><input type="radio" name="choice" value="disk"><strong>Investigate disk-backed lookup first</strong><span class="detail">Potentially lower resident data, but adds storage and I/O tradeoffs. No measured implementation yet; prepare another concrete proposal before changing the backend.</span></label>
+<label class="choice"><input type="radio" name="choice" value="revise"><strong>Revise this proposal</strong><span class="detail">Use the notes to specify constraints or changes before implementation.</span></label>
+<label for="notes">Notes or changes (optional)</label><textarea id="notes" placeholder="For example: a different concurrency target, or a compatibility constraint."></textarea>
+<button type="submit">Save my decision</button>
+<p id="status" role="status" aria-live="polite"></p>
+</form>
+<p class="muted">Your choice is saved by this local backend to <code>decision.json</code> in this devlog directory. Nothing is submitted until you press the button.</p>
+</section>
+</main>
+<script>
+const form=document.querySelector('#form'),status=document.querySelector('#status');
+fetch('/decision').then(r=>r.json()).then(d=>{if(d){form.elements.choice.value=d.choice;document.querySelector('#notes').value=d.notes;status.textContent='Previously saved: '+d.choice+' at '+d.saved_at;}}).catch(()=>{status.textContent='Open http://127.0.0.1:3188 to save a decision.';});
+form.addEventListener('submit',async e=>{e.preventDefault();const button=form.querySelector('button');button.disabled=true;try{const r=await fetch('/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({choice:form.elements.choice.value,notes:document.querySelector('#notes').value})});const d=await r.json();if(!r.ok)throw Error(d.error);status.textContent='Saved: '+d.choice+'. The agent can now read your decision.';}catch(e){status.textContent='Unable to save: '+e.message;}finally{button.disabled=false;}});
+</script>
+</html>

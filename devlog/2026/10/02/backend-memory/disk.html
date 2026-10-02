@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Disk-backed backend — implementation decision</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#182b3a;font:16px/1.55 system-ui,sans-serif}main{max-width:1020px;margin:auto;padding:32px 24px 72px}h1{font-size:34px;line-height:1.2}h2{font-size:22px;margin:0 0 16px}.eyebrow{color:#526477;font-size:13px;letter-spacing:.08em;text-transform:uppercase}.card{background:white;border:1px solid #d4dce4;border-radius:12px;padding:24px;margin:20px 0}.muted{color:#526477}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.metric strong{display:block;font-size:32px;color:#166e62}.row{display:grid;grid-template-columns:200px 1fr 100px;gap:14px;align-items:center;margin:18px 0}.track{background:#eaf0f4;height:28px;position:relative;border-radius:4px}.bar{height:100%;background:#c16b48;border-radius:4px}.bar.good{background:#248479}.limit{position:absolute;left:20%;height:38px;top:-5px;border-left:2px dashed #182b3f}.num{font-variant-numeric:tabular-nums;text-align:right}.flow{display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;gap:12px;align-items:center}.step{background:#f0f5f7;border:1px solid #d8e4ea;border-radius:8px;padding:16px;min-height:138px}.step strong{display:block;margin-bottom:6px}li{margin:12px 0}code{font-size:.9em;overflow-wrap:anywhere}.choice{display:block;border:1px solid #cbd5df;border-radius:8px;padding:16px;margin:12px 0;cursor:pointer}.choice:has(input:checked){border:2px solid #248479;background:#eef9f6;padding:15px}.choice strong{margin-left:6px}.detail{display:block;margin:6px 0 0 25px;color:#46566a}textarea{display:block;width:100%;min-height:95px;border:1px solid #bcc9d6;border-radius:6px;padding:12px;font:inherit;margin:8px 0 20px}button{background:#176c63;color:white;border:0;border-radius:6px;padding:13px 20px;font:600 16px system-ui;cursor:pointer}button:disabled{opacity:.5;cursor:wait}a{color:#176c63}#status{white-space:pre-wrap}table{border-collapse:collapse;width:100%}th,td{padding:10px;text-align:left;border-bottom:1px solid #dbe2e9}@media(max-width:680px){main{padding:24px 16px}.card{padding:16px}.metrics{grid-template-columns:1fr}.row{grid-template-columns:1fr 90px}.row>span:first-child{grid-column:1/-1}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);text-align:center}.step{min-height:auto}}
+</style>
+<main>
+<div class="eyebrow">kconfigwtf · 2 October 2026 · proposal 2</div>
+<h1>Disk-backed lookup: measured and ready for a decision</h1>
+<p>You selected disk-backed investigation, then approved this implementation in proposal 2. The design is now integrated into the backend. The original proposal and prototype measurements are preserved below.</p>
+<section class="card">
+<h2>Completed implementation</h2>
+<div class="metrics"><div class="metric"><strong>101 MiB</strong>release idle RSS</div><div class="metric"><strong>141.2 MiB</strong>highest measured release peak</div><div class="metric"><strong>156 MiB</strong>temporary disk space</div></div>
+<p>Measured the full dataset with 80 requests at concurrency 8 and 640 requests at concurrency 64. Both release runs stayed below 500 MiB, including startup. Debug peaks were 149 MiB and 163 MiB respectively.</p>
+<p>All 142 final HTTP compatibility cases matched the original backend. The 146-test suite, Clippy, formatting, and Nix evaluation passed. Use <code>--cache-dir</code> to select actual disk storage; the NixOS module uses <code>/var/cache/kconfigwtf</code>. See <code>docs/developer-guide.md</code> for reproducible commands and <code>final-*.json</code> in this directory for raw measurements.</p>
+</section>
+<section class="card">
+<h2>Measured prototype</h2>
+<div class="metrics"><div class="metric"><strong>88 MiB</strong>idle process RSS</div><div class="metric"><strong>155 MiB</strong>peak RSS including requests</div><div class="metric"><strong>156 MiB</strong>temporary file on disk</div></div>
+<p class="muted">One local debug-build run: startup plus 80 config requests, concurrency 8. Dashed line: 500 MiB target. Scale: 0–2,500 MiB.</p>
+<div class="row"><span>Original backend peak</span><div class="track"><div class="bar" style="width:97.08%"></div><div class="limit"></div></div><span class="num">2,427 MiB</span></div>
+<div class="row"><span>Disk prototype peak</span><div class="track"><div class="bar good" style="width:6.195%"></div><div class="limit"></div></div><span class="num">155 MiB</span></div>
+<table><thead><tr><th>Local measurement</th><th>Original</th><th>Disk prototype</th></tr></thead><tbody><tr><td>Startup</td><td>13.1 seconds</td><td>7.7 seconds</td></tr><tr><td>Startup peak RSS</td><td>2,389 MiB</td><td>128 MiB</td></tr><tr><td>Mean concurrent request time</td><td>51.9 ms</td><td>39.0 ms</td></tr></tbody></table>
+<p>The prototype precomputes reusable kernel metadata, which also reduces work per request. These timings include warm filesystem caches; cold-disk latency has not been measured. RSS excludes the kernel's file cache, which can also be charged to a service's cgroup.</p>
+<p id="compatibility">Compatibility check: manifest, five common config responses, and a raw config match the original byte for byte. A broader deterministic sample is being checked.</p>
+<p><a href="/measurements" target="_blank">Disk measurements</a> · <a href="/baseline" target="_blank">Original measurements</a> · <a href="/compatibility" target="_blank">Compatibility results</a></p>
+</section>
+<section class="card">
+<h2>Proposed lifecycle</h2>
+<div class="flow"><div class="step"><strong>Start</strong>Read one JSON index at a time. Write integer occurrence pairs to one private temporary file.</div><div class="arrow">→</div><div class="step"><strong>Serve</strong>Keep offsets, value tables, and kernel metadata in RAM. Read only the requested config's occurrences.</div><div class="arrow">→</div><div class="step"><strong>Stop / restart</strong>Closing the file removes it. A restart rebuilds from the data tree, so no persistent cache invalidation is needed.</div></div>
+</section>
+<section class="card">
+<h2>Concrete implementation choices</h2>
+<ol>
+<li><strong>Storage format and lookup:</strong> one private binary file of 8-byte pairs (32-bit kernel ID + 32-bit value ID). An in-memory config-name map holds package IDs, offsets, and lengths. Per-package tables retain shared values and precomputed kernel metadata. Use existing Rust standard-library, Serde, and tempfile dependencies; no database or schema migration.</li>
+<li><strong>Storage location:</strong> add optional <code>serve --cache-dir PATH</code> and <code>KCONFIGWTF_CACHE_DIR</code>. Without either, use the operating system's temporary directory, preserving an easy CLI startup. Document explicitly choosing a disk-backed directory: <code>/tmp</code> is tmpfs on this host. Update the NixOS service to use <code>CacheDirectory=kconfigwtf</code> and pass <code>/var/cache/kconfigwtf</code>; systemd makes that directory writable for the service. Keep <code>data/</code> read-only.</li>
+<li><strong>File lifetime and failures:</strong> rebuild a fresh file on every startup; no reuse across restarts, data hashing, or persistent-cache cleanup. Keep the file private and automatically remove it on close. Fail startup with context if the directory is unavailable, disk is full, or an index is invalid. Return HTTP 500 if a later file read fails.</li>
+<li><strong>Concurrency:</strong> perform disk reads and result generation in Tokio blocking tasks, with at most 8 simultaneous config lookups; additional lookups wait. Hold each permit until its task completes, including cancelled requests. Use positional file reads on Unix, with a locked seek/read fallback on other platforms. Health, frontend, and raw-file routes retain their existing behavior.</li>
+<li><strong>Compatibility:</strong> directly parse compact indexes one at a time; retain legacy support through the existing loader and per-file conversion. Preserve missing values, duplicate precedence, package shards, stored architecture spellings, ordering, response JSON, raw URLs, ETags, and cache headers. Indexers and on-disk JSON remain unchanged.</li>
+<li><strong>Validation:</strong> add focused compatibility and file-failure tests; run the full test suite, formatting, and Clippy; compare full-dataset sampled HTTP responses; measure startup, idle, and request peaks at concurrency 8 and 64. Require measured RSS below 500 MiB. Document the final result, temporary disk requirement, and distinction between RSS and total cgroup memory.</li>
+</ol>
+<p class="muted">These choices were approved and implemented. Legacy compatibility, bounded query concurrency, configurable storage, and the NixOS integration have been validated. Dataset growth and arbitrary numbers of connections remain outside a fixed memory guarantee.</p>
+</section>
+<section class="card">
+<h2>Your implementation decision</h2>
+<form id="form">
+<label class="choice"><input type="radio" name="choice" value="implement_disk" required><strong>Implement this disk-backed design (recommended)</strong><span class="detail">Approve the six concrete choices above, including storage location, per-startup rebuilds, and a limit of 8 active config lookups.</span></label>
+<label class="choice"><input type="radio" name="choice" value="persistent"><strong>Investigate a persistent cache instead</strong><span class="detail">Potentially faster restarts, but needs cache invalidation and lifecycle decisions. Prepare a measured proposal before implementation.</span></label>
+<label class="choice"><input type="radio" name="choice" value="revise"><strong>Revise these choices</strong><span class="detail">Specify changes in the notes before implementation.</span></label>
+<label for="notes">Notes or changes (optional)</label><textarea id="notes"></textarea>
+<button type="submit">Save my decision</button><p id="status" role="status" aria-live="polite"></p>
+</form>
+<p class="muted">Saved locally to <code>decision-v2.json</code>. Your earlier disk-investigation choice remains in <code>decision.json</code>. Nothing is submitted automatically.</p>
+</section>
+</main>
+<script>
+const form=document.querySelector('#form'),status=document.querySelector('#status');
+fetch('/decision').then(r=>r.json()).then(d=>{if(d){form.elements.choice.value=d.choice;document.querySelector('#notes').value=d.notes;status.textContent='Previously saved: '+d.choice+' at '+d.saved_at;}}).catch(()=>{status.textContent='Open http://127.0.0.1:3189 to save a decision.';});
+fetch('/compatibility').then(r=>r.json()).then(d=>{if(d.cases)document.querySelector('#compatibility').textContent=`Broader compatibility check: ${d.cases} cases, ${d.different_cases.length} differences. Compared response bytes, status codes, ETags, and cache headers, including HEAD and conditional requests.`;}).catch(()=>{});
+form.addEventListener('submit',async e=>{e.preventDefault();const button=form.querySelector('button');button.disabled=true;try{const r=await fetch('/decision',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({choice:form.elements.choice.value,notes:document.querySelector('#notes').value})});const d=await r.json();if(!r.ok)throw Error(d.error);status.textContent='Saved: '+d.choice+'. The agent can now read your decision.';}catch(e){status.textContent='Unable to save: '+e.message;}finally{button.disabled=false;}});
+</script>
+</html>

@@ -554,13 +554,19 @@ resolved relative to `--package-root`.
 ```sh
 cargo run -- serve \
   --data-dir data \
+  --cache-dir /path/on/disk/kconfigwtf-cache \
   --listen 127.0.0.1:3000 \
   --title kconfigwtf
 ```
 
-The backend loads the compact package indexes into memory at startup and reads
-raw configs from the same local data directory on demand. Restart it to pick up
-an updated data checkout. The frontend uses these read-only routes:
+The backend reads package indexes one at a time and builds a private temporary
+lookup file at startup. Config occurrences are stored as pairs of 32-bit kernel
+and value IDs; only config-name lookup spans, kernel metadata, and shared values
+remain in memory. A request reads the spans for that config and constructs its
+response. At most eight config lookups run concurrently in blocking workers;
+additional lookups wait without blocking health checks or frontend requests.
+Raw configs are read from the same local data directory on demand. Restart the
+service to pick up an updated data checkout. The frontend uses these read-only routes:
 
 - `/api/v1/configs`
 - `/api/v1/configs/<NAME>`
@@ -573,6 +579,73 @@ an ETag and support conditional `GET` and `HEAD`. `Cache-Control`,
 shared-cache lifetimes. nginx and Cloudflare can compress responses; the Rust
 service intentionally returns an uncompressed representation with a stable
 validator.
+
+### Backend memory
+
+On October 2, 2026, the full checked-in dataset (192 indexes, 3,559 kernel
+records, 20,462,952 occurrences) measured as follows on Linux, using a
+disk-backed temporary file. Peak includes startup and the request workload.
+
+| Build | Requests / concurrency | Idle RSS | Peak RSS |
+| --- | --- | --- | --- |
+| Original debug backend | 80 / 8 | 2,389 MiB | 2,427 MiB |
+| Disk-backed debug backend | 80 / 8 | 110 MiB | 149 MiB |
+| Disk-backed debug backend | 640 / 64 | 109 MiB | 163 MiB |
+| Disk-backed release backend | 80 / 8 | 101 MiB | 141.2 MiB |
+| Disk-backed release backend | 640 / 64 | 101 MiB | 141.0 MiB |
+
+These are individual local runs with warm filesystem caches, not a cold-disk
+latency benchmark. Release startup took about 1.4 seconds. The final debug
+backend matched the original in 142 HTTP comparisons, including response bytes,
+status codes, ETags, cache headers, `HEAD`, and conditional requests. The test
+suite (146 tests), Clippy, formatting, and Nix flake/module evaluation passed.
+Detailed results are in `devlog/2026/10/02/backend-memory/final-*.json`.
+
+`--cache-dir` or `KCONFIGWTF_CACHE_DIR` selects the temporary lookup directory;
+the backend creates it if necessary. The default is the OS temporary directory,
+which can be tmpfs. Choose a disk-backed directory to avoid storing the lookup
+file in RAM. The NixOS module sets `CacheDirectory=kconfigwtf` and passes
+`/var/cache/kconfigwtf`, allowing the service to write there while the data tree
+remains read-only.
+
+Every process creates its own file, rebuilds it on startup, and removes it on
+close. There is no persistent cache to invalidate after data updates. Startup
+fails if the directory is unavailable, the file cannot be written, or an index
+cannot be loaded. The October 2 dataset uses 156 MiB of temporary file space;
+allow additional space for future data growth and overlapping server processes.
+Both compact and legacy JSON indexes remain supported.
+
+Process RSS excludes the kernel's filesystem page cache. A systemd/cgroup memory
+measurement can include that cache, and tmpfs also consumes memory outside the
+process's RSS. The lookup-worker limit bounds simultaneous computation, but
+response buffers and connections still consume memory, so measured RSS is not a
+hard ceiling for arbitrary traffic or future datasets.
+
+The reproducible Linux benchmark and compatibility comparison live in
+`devlog/2026/10/02/backend-memory/`. Run from the repository root, using a
+disk-backed `--cache-dir`:
+
+```sh
+cargo build --release --locked
+python3 devlog/2026/10/02/backend-memory/measure.py \
+  target/release/kconfigwtf /tmp/kconfigwtf-memory.json \
+  --cache-dir /path/on/disk/kconfigwtf-cache \
+  --concurrency 64 --requests 640 --max-rss-mib 500
+```
+
+The script measures startup high-water RSS, idle RSS, and peak RSS during config
+requests. To compare against an original backend binary saved before rebuilding:
+
+```sh
+python3 devlog/2026/10/02/backend-memory/compare.py \
+  /path/to/original-kconfigwtf target/release/kconfigwtf \
+  --cache-dir /path/on/disk/kconfigwtf-cache
+```
+
+It compares a deterministic sample of 128 config names plus API/frontend routes,
+errors, `HEAD`, and conditional requests, including response bytes and headers.
+
+### NixOS service
 
 The checked-in flake exposes `packages.<system>.default` and
 `nixosModules.default`. The NixOS module runs a hardened loopback-only systemd
@@ -645,7 +718,7 @@ Backend data deployment is configured in
 [.github/workflows/deploy-backend.yml](../.github/workflows/deploy-backend.yml).
 On pushes to `main` or `master`, it connects to the production host with a
 dedicated SSH key, runs `git pull --ff-only` in the configured checkout, and
-restarts `kconfigwtf.service` so the in-memory indexes are reloaded. It can also
+restarts `kconfigwtf.service` so the temporary lookup file is rebuilt. It can also
 be triggered manually.
 
 Repository setup required:

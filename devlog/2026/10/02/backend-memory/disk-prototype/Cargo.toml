@@ -1,0 +1,19 @@
+[package]
+name = "disk-memory-probe"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+kconfigwtf = { path = "../../../../../.." }
+anyhow = "1.0"
+bytes = "1.10"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+http = "1.2"
+http-body-util = "0.1"
+hyper = { version = "1.6", features = ["http1", "server"] }
+hyper-util = { version = "0.1", features = ["tokio"] }
+percent-encoding = "2.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tempfile = "3.15"
+tokio = { version = "1.43", features = ["fs", "io-util", "macros", "net", "rt-multi-thread", "signal"] }

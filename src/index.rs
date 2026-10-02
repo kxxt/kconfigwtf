@@ -453,7 +453,7 @@ struct LegacyPackageIndex {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct CompactPackageKernel {
+pub(crate) struct CompactPackageKernel {
     pub version: String,
     pub release: usize,
     pub architecture: usize,
@@ -462,7 +462,7 @@ struct CompactPackageKernel {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
-struct CompactConfigEntry {
+pub(crate) struct CompactConfigEntry {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub built_in: Vec<usize>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -474,7 +474,7 @@ struct CompactConfigEntry {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-struct CompactPackageIndex {
+pub(crate) struct CompactPackageIndex {
     pub schema_version: u32,
     pub generated_at: DateTime<Utc>,
     pub distribution: Distribution,
