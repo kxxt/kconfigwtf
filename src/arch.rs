@@ -431,7 +431,7 @@ fn first_field<'a>(fields: &'a BTreeMap<String, Vec<String>>, key: &str) -> Opti
 }
 
 fn is_kernel_headers_package(name: &str) -> bool {
-    name != "linux-api-headers" && (name.ends_with("-headers") || name.ends_with("-devel"))
+    !name.ends_with("-api-headers") && (name.ends_with("-headers") || name.ends_with("-devel"))
 }
 
 fn is_kernel_package(package: &ArchPackageCandidate, package_name_prefix: &str) -> bool {
@@ -440,7 +440,7 @@ fn is_kernel_package(package: &ArchPackageCandidate, package_name_prefix: &str) 
         return false;
     }
 
-    if name == "linux-api-headers" || name.contains("firmware") {
+    if name.ends_with("-api-headers") || name.contains("firmware") {
         return false;
     }
 
@@ -649,6 +649,40 @@ The Linux kernel and modules
         assert_eq!(selected.len(), 2);
         assert_eq!(selected[0].name, "linux-cachyos-headers");
         assert_eq!(selected[1].name, "linux-headers");
+    }
+
+    #[test]
+    fn excludes_api_headers_for_arch_and_parabola() {
+        let packages = vec![
+            candidate("linux-api-headers", "7.0-1", Architecture::Amd64),
+            candidate("linux-libre-api-headers", "7.0-1", Architecture::Amd64),
+            candidate("linux-libre-headers", "7.0-1", Architecture::Amd64),
+        ];
+
+        for include_kernel_packages in [false, true] {
+            for prefix in ["linux", "linux-libre"] {
+                let selected = select_kernel_packages(
+                    &packages,
+                    prefix,
+                    include_kernel_packages,
+                    Some(Architecture::Amd64),
+                    Some(1),
+                );
+                assert_eq!(selected.len(), 1);
+                assert_eq!(selected[0].name, "linux-libre-headers");
+            }
+
+            assert!(
+                select_kernel_packages(
+                    &packages,
+                    "linux-libre-api-headers",
+                    include_kernel_packages,
+                    None,
+                    None,
+                )
+                .is_empty()
+            );
+        }
     }
 
     #[test]
