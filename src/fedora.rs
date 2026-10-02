@@ -86,7 +86,14 @@ impl FedoraIndexer {
     pub fn new(config: FedoraIndexerConfig) -> Self {
         Self {
             config,
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .user_agent(concat!(
+                    env!("CARGO_PKG_NAME"),
+                    "/",
+                    env!("CARGO_PKG_VERSION")
+                ))
+                .build()
+                .expect("construct reqwest client"),
             existing: IndexedKernelSet::default(),
         }
     }
@@ -597,6 +604,64 @@ mod tests {
     use flate2::write::GzEncoder;
     use rpm::{BuildConfig, CompressionType, FileOptions, PackageBuilder};
     use std::io::Write;
+
+    #[tokio::test]
+    async fn sends_application_user_agent_for_metadata_and_packages() {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        use tokio::net::TcpListener;
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind server");
+        let base_url = format!("http://{}", listener.local_addr().expect("server address"));
+        let server = tokio::spawn(async move {
+            for path in [
+                "repodata/repomd.xml",
+                "repodata/primary.xml.gz",
+                "kernel.rpm",
+            ] {
+                let (mut stream, _) = listener.accept().await.expect("accept request");
+                let mut request = Vec::new();
+                while !request.ends_with(b"\r\n\r\n") {
+                    request.push(stream.read_u8().await.expect("read request"));
+                }
+                let request = String::from_utf8(request).expect("request text");
+                assert!(request.starts_with(&format!("GET /{path} HTTP/1.1\r\n")));
+                assert!(request.lines().any(|line| {
+                    line.split_once(':').is_some_and(|(name, value)| {
+                        name.eq_ignore_ascii_case("user-agent")
+                            && value.trim()
+                                == concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"))
+                    })
+                }));
+                stream
+                    .write_all(
+                        b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok",
+                    )
+                    .await
+                    .expect("write response");
+            }
+        });
+
+        let indexer = FedoraIndexer::new(FedoraIndexerConfig::from_mirror(
+            &base_url,
+            "rawhide",
+            [Architecture::Amd64],
+        ));
+        let (_, metadata) = indexer
+            .load_metadata(&FedoraMetadataLocation::Url(format!(
+                "{base_url}/repodata/repomd.xml"
+            )))
+            .await
+            .expect("load metadata");
+        assert_eq!(metadata, b"ok");
+        for path in ["repodata/primary.xml.gz", "kernel.rpm"] {
+            let (_, bytes) = indexer
+                .load_repo_file(&FedoraPackageBase::Url(base_url.clone()), path)
+                .await
+                .expect("load repo file");
+            assert_eq!(bytes, b"ok");
+        }
+        server.await.expect("server completed");
+    }
 
     #[test]
     fn maps_known_architectures_to_fedora_repo_paths() {
