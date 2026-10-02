@@ -965,6 +965,10 @@ struct ServeArgs {
     #[arg(long, default_value = "data", env = "KCONFIGWTF_DATA_DIR")]
     data_dir: PathBuf,
 
+    /// Directory for the temporary lookup file; defaults to the OS temp directory.
+    #[arg(long, env = "KCONFIGWTF_CACHE_DIR")]
+    cache_dir: Option<PathBuf>,
+
     /// Address and port for the HTTP server.
     #[arg(long, default_value = "127.0.0.1:3000", env = "KCONFIGWTF_LISTEN")]
     listen: SocketAddr,
@@ -1041,6 +1045,7 @@ async fn main() -> Result<()> {
             serve(ServerConfig {
                 listen: args.listen,
                 data_dir: args.data_dir,
+                cache_dir: args.cache_dir,
                 title: args.title,
             })
             .await

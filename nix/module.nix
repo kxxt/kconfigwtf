@@ -85,12 +85,15 @@ in
               "serve"
               "--data-dir"
               cfg.dataDir
+              "--cache-dir"
+              "/var/cache/kconfigwtf"
               "--listen"
               listen
               "--title"
               cfg.title
             ];
             DynamicUser = cfg.user == null;
+            CacheDirectory = "kconfigwtf";
             Restart = "on-failure";
             RestartSec = "5s";
             NoNewPrivileges = true;
