@@ -843,6 +843,37 @@ mod tests {
     }
 
     #[test]
+    fn selects_armhf_kernels_from_opensuse_arm_metadata() {
+        let packages = parse_primary_metadata(
+            r#"<metadata>
+  <package type="rpm">
+    <name>kernel-default</name><arch>armv6hl</arch>
+    <version epoch="0" ver="7.2.9" rel="1.1"/>
+    <location href="armv6hl/kernel-default-7.2.9-1.1.armv6hl.rpm"/>
+  </package>
+  <package type="rpm">
+    <name>kernel-default</name><arch>armv7hl</arch>
+    <version epoch="0" ver="7.2.9" rel="1.1"/>
+    <location href="armv7hl/kernel-default-7.2.9-1.1.armv7hl.rpm"/>
+  </package>
+</metadata>"#,
+        )
+        .expect("parse ARM metadata");
+        let selected = select_kernel_packages(
+            &packages,
+            &["kernel-default".to_string()],
+            Some(Architecture::Armhf),
+            None,
+        );
+        assert_eq!(selected.len(), 1);
+        assert_eq!(selected[0].architecture, Architecture::Armhf);
+        assert_eq!(
+            selected[0].location_href,
+            "armv7hl/kernel-default-7.2.9-1.1.armv7hl.rpm"
+        );
+    }
+
+    #[test]
     fn extracts_boot_config_from_rpm() {
         let rpm = minimal_rpm_with_config("CONFIG_BPF=y\n", "/boot/config-6.12.0-1.fc99.x86_64");
 
