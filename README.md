@@ -41,8 +41,8 @@ in memory. Restart it after changing `data/`.
 Use `--cache-dir /path/on/disk` (or `KCONFIGWTF_CACHE_DIR`) to choose where the
 temporary file lives. Without it, the OS temporary directory is used; this may
 be RAM-backed. The NixOS module uses `/var/cache/kconfigwtf`. The file is rebuilt
-on every startup and removed on close; the current dataset needs about 156 MiB
-of temporary storage. See the [backend memory measurements](./docs/developer-guide.md#backend-memory)
+on every startup and removed on close. Temporary storage usage grows with the
+dataset and is reported at startup. See the [backend memory measurements](./docs/developer-guide.md#backend-memory)
 for measured RSS and the benchmark commands.
 
 The backend exposes cacheable, versioned endpoints:
