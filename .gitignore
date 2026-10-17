@@ -3,3 +3,4 @@
 /public
 /.ci
 /coverage.lcov
+.env
