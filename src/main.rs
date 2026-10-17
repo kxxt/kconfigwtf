@@ -444,7 +444,7 @@ struct UbuntuArgs {
     mirror: String,
 
     /// Ubuntu suite to index when using a mirror.
-    #[arg(long, default_value = "noble-updates")]
+    #[arg(long, default_value = "resolute-updates")]
     suite: String,
 
     /// Ubuntu archive component to index when using a mirror.
@@ -522,7 +522,7 @@ struct ProxmoxArgs {
     mirror: String,
 
     /// Debian suite backing the Proxmox repository.
-    #[arg(long, default_value = "bookworm")]
+    #[arg(long, default_value = "trixie")]
     suite: String,
 
     /// Proxmox repository component to index.
@@ -2238,7 +2238,7 @@ fn opensuse_tumbleweed_repo_root(
             format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/aarch64")
         }
         Architecture::Armhf => {
-            format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/armv7hl")
+            format!("{mirror}/ports/armv7hl/tumbleweed/repo/{repository}")
         }
         Architecture::I386 => format!("{mirror}/ports/i586/tumbleweed/repo/{repository}"),
         Architecture::Riscv64 => format!("{mirror}/ports/riscv/tumbleweed/repo/{repository}"),
@@ -2247,7 +2247,7 @@ fn opensuse_tumbleweed_repo_root(
             format!("{mirror}/ports/zsystems/tumbleweed/repo/{repository}")
         }
         Architecture::Other(value) if value == "armv6hl" => {
-            format!("{mirror}/ports/aarch64/tumbleweed/repo/{repository}/armv6hl")
+            format!("{mirror}/ports/armv6hl/tumbleweed/repo/{repository}")
         }
         _ => format!("{mirror}/tumbleweed/repo/{repository}"),
     }
@@ -2448,7 +2448,7 @@ mod tests {
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::Armhf),
-            "https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/armv7hl"
+            "https://download.opensuse.org/ports/armv7hl/tumbleweed/repo/oss"
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OpenSUSE, &args, &Architecture::I386),
@@ -2472,7 +2472,7 @@ mod tests {
                 &args,
                 &Architecture::Other("armv6hl".to_string()),
             ),
-            "https://download.opensuse.org/ports/aarch64/tumbleweed/repo/oss/armv6hl"
+            "https://download.opensuse.org/ports/armv6hl/tumbleweed/repo/oss"
         );
         assert_eq!(
             rpm_repo_root(&Distribution::OracleLinux, &args, &Architecture::Amd64),
