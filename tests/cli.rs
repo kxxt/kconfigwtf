@@ -299,6 +299,89 @@ fn void_index_command_indexes_local_void_packages_checkout() {
 }
 
 #[test]
+fn void_refresh_succeeds_when_only_unsupported_architectures_remain() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let repo_root = temp.path().join("void-packages");
+    let data_dir = temp.path().join("data");
+    for (name, architectures) in [
+        ("linux6.6", vec!["x86_64", "aarch64"]),
+        ("linux-asahi", vec!["aarch64"]),
+    ] {
+        let package = repo_root.join("srcpkgs").join(name);
+        fs::create_dir_all(package.join("files")).expect("create recipe");
+        fs::write(
+            package.join("template"),
+            format!("pkgname={name}\nversion=6.6.141\nrevision=1\n"),
+        )
+        .expect("write template");
+        for architecture in architectures {
+            fs::write(
+                package
+                    .join("files")
+                    .join(format!("{architecture}-dotconfig")),
+                "CONFIG_BPF=y\n",
+            )
+            .expect("write config");
+        }
+    }
+
+    let refresh = || {
+        let mut command = Command::cargo_bin("kconfigwtf").expect("binary");
+        command.args([
+            "index",
+            "void",
+            "--package-root",
+            repo_root.to_str().expect("repo root"),
+            "--arch",
+            "amd64",
+            "--arch",
+            "arm64",
+            "--data-dir",
+            data_dir.to_str().expect("data dir"),
+        ]);
+        command
+    };
+    refresh().assert().success();
+    let indexes = ["linux6.6", "linux-asahi"].map(|name| {
+        let path = data_dir.join("void").join(name).join("index.json");
+        let bytes = fs::read(&path).expect("read index");
+        (path, bytes)
+    });
+    refresh()
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("no new kernel packages to write"));
+    for (path, before) in indexes {
+        assert_eq!(fs::read(path).expect("read refreshed index"), before);
+    }
+    assert!(
+        !data_dir
+            .join("void/linux-asahi/6.6.141_1/amd64/config")
+            .exists()
+    );
+
+    Command::cargo_bin("kconfigwtf")
+        .expect("binary")
+        .args([
+            "index",
+            "void",
+            "--package-root",
+            repo_root.to_str().expect("repo root"),
+            "--package",
+            "linux-asahi",
+            "--arch",
+            "amd64",
+            "--data-dir",
+            temp.path().join("unsupported").to_str().expect("output"),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "none had an architecture-specific dotconfig",
+        ));
+}
+
+#[test]
 fn chromeos_index_command_indexes_local_recovery_image() {
     let temp = tempfile::tempdir().expect("tempdir");
     let data_dir = temp.path().join("data");
