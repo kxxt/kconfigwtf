@@ -228,6 +228,7 @@ impl KernelConfigIndexer for VoidIndexer {
         let mut packages = Vec::new();
         let mut selected_count = 0usize;
         let mut attempted_count = 0usize;
+        let mut existing_count = 0usize;
 
         for feed in &self.config.feeds {
             let mut candidates = feed
@@ -257,6 +258,7 @@ impl KernelConfigIndexer for VoidIndexer {
                     &package_version,
                     &feed.architecture,
                 ) {
+                    existing_count += 1;
                     continue;
                 }
                 if self
@@ -311,8 +313,8 @@ impl KernelConfigIndexer for VoidIndexer {
             );
         }
 
-        if attempted_count == 0 {
-            eprintln!("Void indexer skipped {selected_count} already indexed package(s)");
+        if attempted_count == 0 || (packages.is_empty() && existing_count > 0) {
+            eprintln!("Void indexer skipped {existing_count} already indexed package(s)");
             return Ok(packages);
         }
 
