@@ -205,7 +205,7 @@ impl FromStr for Architecture {
         Ok(match normalized.as_str() {
             "amd64" | "x86_64" => Self::Amd64,
             "arm64" | "aarch64" => Self::Arm64,
-            "armhf" | "armv7" | "armv7h" => Self::Armhf,
+            "armhf" | "armv7" | "armv7h" | "armv7hl" => Self::Armhf,
             "i386" | "i586" | "x86" => Self::I386,
             "ppc64el" | "ppc64le" => Self::Ppc64el,
             "riscv64" => Self::Riscv64,
