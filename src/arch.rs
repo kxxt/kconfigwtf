@@ -9,6 +9,7 @@ use liblzma::read::XzDecoder;
 use tar::Archive;
 
 use crate::http::log_request_url;
+use crate::ikconfig::extract_ikconfig_from_image;
 use crate::index::{Architecture, Distribution, IndexedKernelSet};
 use crate::indexer::{KernelConfigIndexer, KernelConfigPackage, rolling_release_label};
 
@@ -371,6 +372,7 @@ pub fn extract_kernel_configs_from_package(
     let tar_bytes = decode_tar_archive(package_bytes, location_hint)?;
     let mut archive = Archive::new(Cursor::new(tar_bytes));
     let mut configs = Vec::new();
+    let mut image_candidates = Vec::new();
 
     for entry in archive
         .entries()
@@ -382,16 +384,29 @@ pub fn extract_kernel_configs_from_package(
         }
 
         let path = entry.path().context("reading pacman package entry path")?;
-        if !is_kernel_config_path(&path) {
-            continue;
+        if is_kernel_config_path(&path) {
+            let path = path.display().to_string();
+            let mut config_text = String::new();
+            entry
+                .read_to_string(&mut config_text)
+                .with_context(|| format!("reading kernel config {path}"))?;
+            configs.push((path, config_text));
+        } else if is_kernel_image_path(&path) {
+            let path = path.display().to_string();
+            let mut image = Vec::new();
+            entry
+                .read_to_end(&mut image)
+                .with_context(|| format!("reading kernel image {path}"))?;
+            image_candidates.push((path, image));
         }
+    }
 
-        let path = path.display().to_string();
-        let mut config_text = String::new();
-        entry
-            .read_to_string(&mut config_text)
-            .with_context(|| format!("reading kernel config {path}"))?;
-        configs.push((path, config_text));
+    if configs.is_empty() {
+        for (path, image) in image_candidates {
+            if let Ok(config_text) = extract_ikconfig_from_image(&image) {
+                configs.push((path, config_text));
+            }
+        }
     }
 
     configs.sort_by(|(left, _), (right, _)| left.cmp(right));
@@ -431,7 +446,11 @@ fn first_field<'a>(fields: &'a BTreeMap<String, Vec<String>>, key: &str) -> Opti
 }
 
 fn is_kernel_headers_package(name: &str) -> bool {
-    !name.ends_with("-api-headers") && (name.ends_with("-headers") || name.ends_with("-devel"))
+    !is_userspace_headers_package(name) && (name.ends_with("-headers") || name.ends_with("-devel"))
+}
+
+fn is_userspace_headers_package(name: &str) -> bool {
+    name.ends_with("-api-headers") || name.ends_with("-uapi-headers")
 }
 
 fn is_kernel_package(package: &ArchPackageCandidate, package_name_prefix: &str) -> bool {
@@ -440,7 +459,7 @@ fn is_kernel_package(package: &ArchPackageCandidate, package_name_prefix: &str) 
         return false;
     }
 
-    if name.ends_with("-api-headers") || name.contains("firmware") {
+    if is_userspace_headers_package(name) || name.contains("firmware") {
         return false;
     }
 
@@ -515,6 +534,24 @@ fn is_kernel_config_path(path: &Path) -> bool {
             && normalized[0] == "usr"
             && normalized[1] == "src"
             && normalized[normalized.len() - 1] == ".config")
+}
+
+fn is_kernel_image_path(path: &Path) -> bool {
+    let Some(filename) = path.file_name().and_then(|name| name.to_str()) else {
+        return false;
+    };
+    let Some(parent) = path.parent() else {
+        return false;
+    };
+    if parent.file_name().is_some_and(|name| name == "boot") {
+        return ["vmlinuz", "vmlinux", "Image", "bzImage"]
+            .iter()
+            .any(|name| filename == *name || filename.starts_with(&format!("{name}-")));
+    }
+    filename == "vmlinuz"
+        && parent.parent().is_some_and(|modules| {
+            modules == Path::new("usr/lib/modules") || modules == Path::new("lib/modules")
+        })
 }
 
 fn arch_repo_root(
@@ -652,10 +689,12 @@ The Linux kernel and modules
     }
 
     #[test]
-    fn excludes_api_headers_for_arch_and_parabola() {
+    fn excludes_userspace_headers_for_arch_parabola_and_eweos() {
         let packages = vec![
             candidate("linux-api-headers", "7.0-1", Architecture::Amd64),
             candidate("linux-libre-api-headers", "7.0-1", Architecture::Amd64),
+            candidate("linux-uapi-headers", "6.19.6-3", Architecture::Amd64),
+            candidate("linux-libre-uapi-headers", "7.0-1", Architecture::Amd64),
             candidate("linux-libre-headers", "7.0-1", Architecture::Amd64),
         ];
 
@@ -672,16 +711,12 @@ The Linux kernel and modules
                 assert_eq!(selected[0].name, "linux-libre-headers");
             }
 
-            assert!(
-                select_kernel_packages(
-                    &packages,
-                    "linux-libre-api-headers",
-                    include_kernel_packages,
-                    None,
-                    None,
-                )
-                .is_empty()
-            );
+            for prefix in ["linux-libre-api-headers", "linux-uapi-headers"] {
+                assert!(
+                    select_kernel_packages(&packages, prefix, include_kernel_packages, None, None)
+                        .is_empty()
+                );
+            }
         }
     }
 
@@ -751,6 +786,52 @@ The Linux kernel and modules
     }
 
     #[test]
+    fn extracts_embedded_config_from_arch_kernel_images() {
+        let mut image = b"kernel image\0IKCFG_ST".to_vec();
+        image.extend(gzip_bytes(b"CONFIG_BPF=y\nCONFIG_IKCONFIG=y\n"));
+        image.extend_from_slice(b"IKCFG_ED");
+        for path in [
+            "usr/lib/modules/6.1.80-sophgo-multi/vmlinuz",
+            "lib/modules/6.1.80-sophgo-multi/vmlinuz",
+            "boot/Image",
+            "boot/vmlinuz-linux",
+        ] {
+            let package = zstd_bytes(&tar_with_file(path, &image));
+            let configs = extract_kernel_configs_from_package(&package, "linux.pkg.tar.zst")
+                .expect("extract embedded config");
+            assert_eq!(
+                configs,
+                vec![(
+                    path.to_string(),
+                    "CONFIG_BPF=y\nCONFIG_IKCONFIG=y\n".to_string()
+                )]
+            );
+        }
+    }
+
+    #[test]
+    fn prefers_standalone_configs_and_ignores_images_without_ikconfig() {
+        let mut image = b"IKCFG_ST".to_vec();
+        image.extend(gzip_bytes(b"CONFIG_BPF=n\n"));
+        image.extend_from_slice(b"IKCFG_ED");
+        let config_path = "usr/lib/modules/6.1.80/build/.config";
+        let package = zstd_bytes(&tar_with_files(&[
+            ("usr/lib/modules/6.1.80/vmlinuz", &image),
+            (config_path, b"CONFIG_BPF=y\n"),
+        ]));
+        assert_eq!(
+            extract_kernel_configs_from_package(&package, "linux.pkg.tar.zst").expect("extract"),
+            vec![(config_path.to_string(), "CONFIG_BPF=y\n".to_string())]
+        );
+        let package = zstd_bytes(&tar_with_file("boot/Image", b"no embedded config"));
+        assert!(
+            extract_kernel_configs_from_package(&package, "linux.pkg.tar.zst")
+                .expect("extract")
+                .is_empty()
+        );
+    }
+
+    #[test]
     fn builds_expected_repository_urls() {
         let arch = ArchIndexerConfig::from_mirror(
             Distribution::ArchLinux,
@@ -804,15 +885,21 @@ The Linux kernel and modules
     }
 
     fn tar_with_file(path: &str, contents: &[u8]) -> Vec<u8> {
+        tar_with_files(&[(path, contents)])
+    }
+
+    fn tar_with_files(files: &[(&str, &[u8])]) -> Vec<u8> {
         let mut tarball = Vec::new();
         {
             let mut builder = Builder::new(&mut tarball);
-            let mut header = Header::new_gnu();
-            header.set_size(contents.len() as u64);
-            header.set_cksum();
-            builder
-                .append_data(&mut header, path, contents)
-                .expect("append file");
+            for (path, contents) in files {
+                let mut header = Header::new_gnu();
+                header.set_size(contents.len() as u64);
+                header.set_cksum();
+                builder
+                    .append_data(&mut header, path, *contents)
+                    .expect("append file");
+            }
             builder.finish().expect("finish tar");
         }
         tarball

@@ -70,16 +70,16 @@ machinery as Debian, with distribution-specific defaults:
 
 ```sh
 cargo run -- index ubuntu \
-  --suite noble-updates \
+  --suite resolute-updates \
   --component main \
   --arch amd64 \
   --max-packages 25 \
   --data-dir data
 
 # ports
-cargo run -- index ubuntu   --suite noble-updates  \
+cargo run -- index ubuntu   --suite resolute-updates  \
  --component main   \
- --arch amd64 --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x \
+ --arch arm64 --arch armhf --arch riscv64 --arch ppc64el --arch s390x \
  --max-packages 25   --data-dir data \
  --mirror http://ports.ubuntu.com/ubuntu-ports/
 
@@ -91,7 +91,7 @@ cargo run -- index kali \
   --data-dir data
 
 cargo run -- index proxmox \
-  --suite bookworm \
+  --suite trixie \
   --component pve-no-subscription \
   --arch amd64 \
   --max-packages 15 \
@@ -136,6 +136,10 @@ Default mirrors are:
 - OpenKylin: `https://archive.openkylin.top/openkylin`
 - AOSC OS: `https://repo.aosc.io/debs`
 
+Weekly Ubuntu updates cover `noble-updates` (24.04 LTS), `resolute-updates`
+(26.04 LTS), and `stonking` (26.10). Use `--suite stonking` to index the new
+26.10 release; its initial kernels are in the release pocket.
+
 The Ubuntu backend selects `linux-modules-*` packages, and the Kali backend
 selects `linux-base-*` packages, because those packages carry `/boot/config-*`
 in current repositories. Package names are normalized back to `linux-image-*`
@@ -149,7 +153,7 @@ Offline indexing works the same as Debian:
 
 ```sh
 cargo run -- index ubuntu \
-  --packages-file ./mirror/dists/noble-updates/main/binary-amd64/Packages \
+  --packages-file ./mirror/dists/resolute-updates/main/binary-amd64/Packages \
   --deb-root ./mirror \
   --arch amd64 \
   --data-dir data
@@ -207,6 +211,11 @@ cargo run -- index openeuler --release openEuler-24.03-LTS-SP3 \
 cargo run -- index openeuler --release openEuler-24.03-LTS-SP3 \
  --max-packages 15 --data-dir data \
  --arch x86_64 --arch aarch64 --arch riscv64 --arch loongarch64
+cargo run -- index openeuler --release openEuler-24.03-LTS-SP4 \
+ --max-packages 15 --data-dir data \
+ --arch x86_64 --arch aarch64 --arch loongarch64
+cargo run -- index openeuler --release openEuler-26.09 \
+ --max-packages 15 --data-dir data --arch x86_64 --arch aarch64
 cargo run -- index openeuler --release openEuler-22.03-LTS-SP3 \
  --max-packages 15 --data-dir data  --arch x86_64 --arch aarch64 
 cargo run -- index openeuler --release openEuler-20.03-LTS-SP3 \
@@ -334,6 +343,10 @@ configs plus package-level indexes. Arch Linux stores the build config in
 packages such as `linux-headers`, while eweOS uses packages such as
 `linux-devel`; the backend strips the `-headers` or `-devel` suffix when
 writing the data tree and UI package name.
+
+Userspace API headers (`*-api-headers` and `*-uapi-headers`) are excluded.
+When a kernel package has no standalone config, the backend tries embedded
+IKCONFIG from boot images and `usr/lib/modules/*/vmlinuz` (also `lib/modules`).
 
 Parabola and CachyOS use the same backend with distro-specific default mirror
 and repository values. Arch Linux RISC-V is treated as Arch Linux on the

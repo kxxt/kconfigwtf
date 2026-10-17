@@ -187,10 +187,10 @@ Ubuntu, Kali, and Proxmox reuse the APT backend with different distribution
 values and defaults:
 
 - Ubuntu defaults to `http://archive.ubuntu.com/ubuntu`,
-  `noble-updates`, `main`, and `linux-modules-`.
+  `resolute-updates` (26.04 LTS), `main`, and `linux-modules-`.
 - Kali defaults to `http://http.kali.org/kali`, `kali-rolling`, `main`, and
   `linux-base-`.
-- Proxmox defaults to `http://download.proxmox.com/debian/pve`, `bookworm`,
+- Proxmox defaults to `http://download.proxmox.com/debian/pve`, `trixie` (VE 9),
   `pve-no-subscription`, and `proxmox-kernel-`.
 
 The Proxmox CLI requires package names to contain `-pve` and excludes signed
