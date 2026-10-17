@@ -13,7 +13,7 @@
     "amd64",
     "arm64",
     "loongarch64",
-    "ppc64el",
+    "ppc64le",
     "riscv64",
     "riscv64-rva23"
   ],
