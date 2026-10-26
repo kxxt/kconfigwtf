@@ -1,6 +1,6 @@
 {
   "schema_version": 6,
-  "generated_at": "2026-10-19T09:02:55.332651425Z",
+  "generated_at": "2026-10-26T09:05:43.539328109Z",
   "distribution": "ubuntu",
   "package_name": "linux-image-<VERSION>-generic",
   "releases": [
@@ -4459,6 +4459,7 @@
       ]
     },
     "CONFIG_ADC_BATTERY_HELPER": {},
+    "CONFIG_ADDRESS_MASKING": {},
     "CONFIG_ADE7753": {
       "module": [
         0,
